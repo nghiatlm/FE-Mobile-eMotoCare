@@ -2,9 +2,10 @@ import { View, Text, Image, ImageBackground, Button } from "react-native";
 import React from "react";
 import { globalStyle } from "../../styles/globalStyle";
 import { appInfor } from "../../constants/appInfor";
-import { SpaceComponent } from "../../components";
+import { SpaceComponent, TextComponent } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { useNavigation } from "@react-navigation/native";
+import { fontFamilies } from "../../constants/fontFamilies";
 
 const OnbroadingScreen = () => {
   const navigation = useNavigation();
@@ -34,16 +35,12 @@ const OnbroadingScreen = () => {
           }}
         >
           Chào mừng bạn đến với{"\n "}
-          <Text
-            style={{
-              color: appColor.primary,
-              fontSize: 20,
-              fontWeight: 700,
-              marginTop: 8,
-            }}
-          >
-            eMotoCare
-          </Text>
+          <TextComponent
+            text="eMotoCare"
+            size={20}
+            color={appColor.primary}
+            font={fontFamilies.roboto_medium}
+          />
         </Text>
         <View
           style={{
