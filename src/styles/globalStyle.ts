@@ -3,13 +3,23 @@ import { appColor } from "../constants/appColor";
 import { fontFamilies } from "../constants/fontFamilies";
 
 export const globalStyle = StyleSheet.create({
-    container : {
-        flex: 1,
-        backgroundColor: appColor.white
-    },
-    text: {
-        fontFamily: fontFamilies.roboto_regular,
-        fontSize: 14,
-        color: appColor.text,
-    }
-})
+  container: {
+    flex: 1,
+    backgroundColor: appColor.white,
+  },
+  text: {
+    fontFamily: fontFamilies.roboto_regular,
+    fontSize: 14,
+    color: appColor.text,
+  },
+  button: {
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: appColor.white,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 56,
+    flexDirection: "row",
+  },
+});
