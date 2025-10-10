@@ -1,11 +1,16 @@
 import { NavigationContainer } from "@react-navigation/native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AuthNavigator from "./src/navigators/AuthNavigator";
 import { SplashScreen } from "./src/screens";
 import { StatusBar } from "react-native";
+import { useAsyncStorage } from "@react-native-async-storage/async-storage";
+import MainNavigator from "./src/navigators/MainNavigator";
 
 const App = () => {
-  const [isShowSlpash, setIsShowSplash] = React.useState(true);
+  const [isShowSlpash, setIsShowSplash] = useState(true);
+  const [accsessToken, setAccsessToken] = useState("");
+
+  const { getItem, setItem } = useAsyncStorage("accessToken");
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -13,7 +18,18 @@ const App = () => {
     }, 1500);
 
     return () => clearTimeout(timeout);
-  });
+  }, []);
+
+  useEffect(() => {
+    checkLogin();
+  }, []);
+
+  const checkLogin = async () => {
+    const token = await getItem();
+    if (token) {
+      setAccsessToken(token);
+    }
+  };
 
   return (
     <>
@@ -26,7 +42,7 @@ const App = () => {
         <SplashScreen />
       ) : (
         <NavigationContainer>
-          <AuthNavigator />
+          {accsessToken ? <MainNavigator /> : <AuthNavigator />}
         </NavigationContainer>
       )}
     </>
