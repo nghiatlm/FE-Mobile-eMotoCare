@@ -23,11 +23,12 @@ const TextComponent = (props: Props) => {
         {
           color: color ?? appColor.text,
           flex: flex ?? 0,
-          fontSize: size ?? title ? 24 : 14,
-          fontFamily:
-            font ?? title
-              ? fontFamilies.roboto_bold
-              : fontFamilies.roboto_regular,
+          fontSize: size ? size : title ? 24 : 14,
+          fontFamily: font
+            ? font
+            : title
+            ? fontFamilies.roboto_medium
+            : fontFamilies.roboto_regular,
         },
         styles,
       ]}

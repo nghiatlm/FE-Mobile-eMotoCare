@@ -1,6 +1,5 @@
-import { Lock, Sms } from "iconsax-react-nativejs";
 import React, { useState } from "react";
-import { Image, Switch } from "react-native";
+import { Image, Switch, Text, View } from "react-native";
 import {
   ButtonComponent,
   ContainerComponent,
@@ -10,27 +9,17 @@ import {
   SpaceComponent,
   TextComponent,
 } from "../../components";
+import { Lock, Sms } from "iconsax-react-nativejs";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 
-const initValue = {
-  phone: "",
-  password: "",
-};
-
-const LoginScreen = ({ navigation }: any) => {
+const RegisterScreen = ({ navigation }: any) => {
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [isRemember, setIsRemember] = useState(true);
 
-  const [values, setValues] = useState(initValue);
-
-  const hanldeChange = (key: string, value: string) => {
-    const data: any = { ...values };
-    data[`${key}`] = value;
-    setValues(data);
-  };
-
   return (
-    <ContainerComponent isImageBackground isScroll>
+    <ContainerComponent isImageBackground isScroll back>
       <SectionComponent
         styles={{
           justifyContent: "center",
@@ -49,44 +38,27 @@ const LoginScreen = ({ navigation }: any) => {
       </SectionComponent>
       <SectionComponent>
         <TextComponent
-          text="Đăng nhập"
+          text="Đăng ký"
           size={24}
           font={fontFamilies.roboto_medium}
         />
         <SpaceComponent height={20} />
         <InputComponent
-          value={values.phone}
-          onChange={(val) => hanldeChange("phone", val)}
+          value={phone}
+          onChange={(val) => setPhone(val)}
           placeholder="Số điện thoại"
           allowClear
           affix={<Sms size={22} color={appColor.gray} />}
         />
 
         <InputComponent
-          value={values.password}
-          onChange={(val) => hanldeChange("password", val)}
+          value={password}
+          onChange={(val) => setPassword(val)}
           placeholder="Mật khẩu"
           allowClear
           isPassword
           affix={<Lock size={22} color={appColor.gray} />}
         />
-
-        <RowComponent justify="space-between">
-          <RowComponent onPress={() => setIsRemember(!isRemember)}>
-            <Switch
-              trackColor={{ true: appColor.primary }}
-              thumbColor={appColor.white}
-              value={isRemember}
-              onChange={() => setIsRemember(!isRemember)}
-            />
-            <TextComponent text="Ghi nhớ" />
-          </RowComponent>
-          <ButtonComponent
-            text="Quên mật khẩu"
-            type="text"
-            onPress={() => {}}
-          />
-        </RowComponent>
       </SectionComponent>
       <SpaceComponent height={16} />
       <SectionComponent styles={{alignItems: 'center'}}>
@@ -95,16 +67,12 @@ const LoginScreen = ({ navigation }: any) => {
       <SpaceComponent height={16} />
       <SectionComponent>
         <RowComponent justify="center">
-          <TextComponent text="Bạn chưa có tài khoản? " />
-          <ButtonComponent
-            text="Đăng ký"
-            type="link"
-            onPress={() => navigation.navigate("RegisterScreen")}
-          />
+          <TextComponent text="Bạn đã có tài khoản? " />
+          <ButtonComponent text="Đăng nhập" type="link" onPress={() => navigation.navigate("LoginScreen")} />
         </RowComponent>
       </SectionComponent>
     </ContainerComponent>
   );
 };
 
-export default LoginScreen;
+export default RegisterScreen;

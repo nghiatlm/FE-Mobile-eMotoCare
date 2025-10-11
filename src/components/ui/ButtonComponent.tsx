@@ -18,6 +18,7 @@ interface Props {
   styles?: StyleProp<ViewStyle>;
   textColor?: string;
   textStyle?: StyleProp<TextStyle>;
+  textFont?: string;
   onPress?: () => void;
   iconFlex?: "right" | "left";
 }
@@ -31,6 +32,7 @@ const ButtonComponent = (props: Props) => {
     styles,
     textColor,
     textStyle,
+    textFont,
     onPress,
     iconFlex,
   } = props;
@@ -40,8 +42,11 @@ const ButtonComponent = (props: Props) => {
       onPress={onPress}
       style={[
         globalStyle.button,
+        globalStyle.shadow,
         {
           backgroundColor: color ?? appColor.primary,
+          marginBottom: 20,
+          width: '90%'
         },
         styles,
       ]}
@@ -50,11 +55,12 @@ const ButtonComponent = (props: Props) => {
       <TextComponent
         text={text}
         color={textColor ?? appColor.white}
-        font={fontFamilies.roboto_regular}
+        font={textFont ?? fontFamilies.roboto_medium}
         styles={[
           textStyle,
           {
             marginLeft: icon ? 12 : 0,
+            fontSize: 16,
           },
         ]}
         flex={icon && iconFlex === "right" ? 1 : 0}
@@ -62,7 +68,7 @@ const ButtonComponent = (props: Props) => {
       {icon && iconFlex === "right" && icon}
     </TouchableOpacity>
   ) : (
-    <TouchableOpacity>
+    <TouchableOpacity onPress={onPress}>
       <TextComponent
         text={text}
         color={type === "link" ? appColor.primary : appColor.text}
