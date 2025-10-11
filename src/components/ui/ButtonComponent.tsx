@@ -3,6 +3,7 @@ import {
   StyleProp,
   TextStyle,
   TouchableOpacity,
+  View,
   ViewStyle,
 } from "react-native";
 import { appColor } from "../../constants/appColor";
@@ -38,35 +39,38 @@ const ButtonComponent = (props: Props) => {
   } = props;
 
   return type === "primary" ? (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[
-        globalStyle.button,
-        globalStyle.shadow,
-        {
-          backgroundColor: color ?? appColor.primary,
-          marginBottom: 20,
-          width: '90%'
-        },
-        styles,
-      ]}
-    >
-      {icon && icon}
-      <TextComponent
-        text={text}
-        color={textColor ?? appColor.white}
-        font={textFont ?? fontFamilies.roboto_medium}
-        styles={[
-          textStyle,
+    <View style={{ alignItems: "center" }}>
+      <TouchableOpacity
+        onPress={onPress}
+        style={[
+          globalStyle.button,
+          globalStyle.shadow,
           {
-            marginLeft: icon ? 12 : 0,
-            fontSize: 16,
+            backgroundColor: color ?? appColor.primary,
+            marginBottom: 20,
+            width: "90%",
           },
+          styles,
         ]}
-        flex={icon && iconFlex === "right" ? 1 : 0}
-      />
-      {icon && iconFlex === "right" && icon}
-    </TouchableOpacity>
+      >
+        {icon && iconFlex === "left" && icon}
+        <TextComponent
+          text={text}
+          color={textColor ?? appColor.white}
+          font={textFont ?? fontFamilies.roboto_medium}
+          styles={[
+            textStyle,
+            {
+              marginLeft: icon ? 12 : 0,
+              fontSize: 16,
+              textAlign: "center",
+            },
+          ]}
+          flex={icon && iconFlex === "right" ? 1 : 0}
+        />
+        {icon && iconFlex === "right" && icon}
+      </TouchableOpacity>
+    </View>
   ) : (
     <TouchableOpacity onPress={onPress}>
       <TextComponent

@@ -61,7 +61,7 @@ const RegisterScreen = ({ navigation }: any) => {
         />
       </SectionComponent>
       <SpaceComponent height={16} />
-      <SectionComponent styles={{alignItems: 'center'}}>
+      <SectionComponent>
         <ButtonComponent text="Đăng nhập" type="primary" />
       </SectionComponent>
       <SpaceComponent height={16} />

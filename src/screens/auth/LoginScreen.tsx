@@ -84,12 +84,12 @@ const LoginScreen = ({ navigation }: any) => {
           <ButtonComponent
             text="Quên mật khẩu"
             type="text"
-            onPress={() => {}}
+            onPress={() => navigation.navigate("ForgotPassword")}
           />
         </RowComponent>
       </SectionComponent>
       <SpaceComponent height={16} />
-      <SectionComponent styles={{alignItems: 'center'}}>
+      <SectionComponent>
         <ButtonComponent text="Đăng nhập" type="primary" />
       </SectionComponent>
       <SpaceComponent height={16} />
