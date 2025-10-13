@@ -4605,7 +4605,7 @@ react-native-svg-transformer@^1.5.1:
     "@svgr/plugin-svgo" "^8.1.0"
     path-dirname "^1.0.2"
 
-react-native-svg@^15.14.0:
+react-native-svg@^15.12.1:
   version "15.14.0"
   resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-15.14.0.tgz#e5e7e18bfc2be29347631734a1af409b63c582eb"
   integrity sha512-B3gYc7WztcOT4N54AtUutbe0Nuqqh/nkresY0fAXzUHYLsWuIu/yGiCCD3DKfAs6GLv5LFtWTu7N333Q+e3bkg==
@@ -4629,10 +4629,10 @@ react-native-vector-icons@^10.3.0:
     prop-types "^15.7.2"
     yargs "^16.1.1"
 
-react-native-worklets@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.6.1.tgz#daa56dea896c7bdcead064b675ef341ac1f41029"
-  integrity sha512-URca8l7c7Uog7gv4mcg9KILdJlnbvwdS5yfXQYf5TDkD2W1VY1sduEKrD+sA3lUPXH/TG1vmXAvNxCNwPMYgGg==
+react-native-worklets@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/react-native-worklets/-/react-native-worklets-0.5.1.tgz#d153242655e3757b6c62a474768831157316ad33"
+  integrity sha512-lJG6Uk9YuojjEX/tQrCbcbmpdLCSFxDK1rJlkDhgqkVi1KZzG7cdcBFQRqyNOOzR9Y0CXNuldmtWTGOyM0k0+w==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.0.0-0"
     "@babel/plugin-transform-class-properties" "^7.0.0-0"

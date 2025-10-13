@@ -5,7 +5,7 @@ import {
   LoginScreen,
   OnbroadingScreen,
   RegisterScreen,
-  Verication,
+  Verification,
 } from "../screens";
 
 const AuthNavigator = () => {
@@ -17,7 +17,7 @@ const AuthNavigator = () => {
       <Stack.Screen name="OnbroadingScreen" component={OnbroadingScreen} />
       <Stack.Screen name="LoginScreen" component={LoginScreen} />
       <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-      <Stack.Screen name="Verication" component={Verication} />
+      <Stack.Screen name="Verification" component={Verification} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
     </Stack.Navigator>
   );
