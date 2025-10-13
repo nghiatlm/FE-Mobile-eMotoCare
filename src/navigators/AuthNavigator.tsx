@@ -9,7 +9,9 @@ import {
 } from "../screens";
 
 const AuthNavigator = () => {
+
   const Stack = createNativeStackNavigator();
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="OnbroadingScreen" component={OnbroadingScreen} />
