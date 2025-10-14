@@ -1,14 +1,14 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import TabsNavigator from "./TabsNavigator";
+import { SettingScreen } from "../screens";
 
-const MainNavigator = () => {
+const SettingNavigator = () => {
   const Stack = createNativeStackNavigator();
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Main" component={TabsNavigator} />
+      <Stack.Screen name="SettingScreen" component={SettingScreen} />
     </Stack.Navigator>
   );
 };
 
-export default MainNavigator;
+export default SettingNavigator;
