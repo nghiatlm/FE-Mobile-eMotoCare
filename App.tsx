@@ -12,6 +12,7 @@ import { StatusBar } from "react-native";
 import { Provider } from "react-redux";
 import AppRouter from "./src/navigators/AppRouter";
 import store from "./src/redux/store";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const App = () => {
   let [fontsLoaded] = useFonts({
@@ -28,14 +29,16 @@ const App = () => {
     return (
       <>
         <Provider store={store}>
-          <StatusBar
-            barStyle="dark-content"
-            backgroundColor="transparent"
-            translucent
-          />
-          <NavigationContainer>
-            <AppRouter />
-          </NavigationContainer>
+          <SafeAreaProvider>
+            <StatusBar
+              barStyle="dark-content"
+              backgroundColor="transparent"
+              translucent
+            />
+            <NavigationContainer>
+              <AppRouter />
+            </NavigationContainer>
+          </SafeAreaProvider>
         </Provider>
       </>
     );

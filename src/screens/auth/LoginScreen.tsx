@@ -20,7 +20,7 @@ import { addAuth } from "../../redux/reducers/authReducer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const initValue = {
-  email: "",
+  phone: "",
   password: "",
 };
 
@@ -33,10 +33,10 @@ const LoginScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (values.email || values.password) {
+    if (values.phone || values.password) {
       setErrorMessage("");
     }
-  }, [values.email, values.password]);
+  }, [values.phone, values.password]);
 
   const hanldeChange = (key: string, value: string) => {
     const data: any = { ...values };
@@ -45,7 +45,7 @@ const LoginScreen = ({ navigation }: any) => {
   };
 
   const handleLogin = async () => {
-    const { email, password } = values;
+    const { phone, password } = values;
     // const phoneValid = Validate.Phone(phone);
     const passValid = Validate.Password(password);
     // if (phone && password) {
@@ -59,11 +59,13 @@ const LoginScreen = ({ navigation }: any) => {
         "post"
       );
       console.log("Login success: ", res.data);
-      dispatch(addAuth(res.data));
-      await AsyncStorage.setItem(
-        "auth",
-        isRemember ? JSON.stringify(res.data) : email
-      );
+      if (res.data.success) {
+        dispatch(addAuth(res.data.data));
+        await AsyncStorage.setItem(
+          "auth",
+          isRemember ? JSON.stringify(res.data.data) : phone
+        );
+      }
       setIsLoading(false);
     } catch (error) {
       console.log("Login error: ", error);
@@ -105,8 +107,8 @@ const LoginScreen = ({ navigation }: any) => {
           />
           <SpaceComponent height={20} />
           <InputComponent
-            value={values.email}
-            onChange={(val) => hanldeChange("email", val)}
+            value={values.phone}
+            onChange={(val) => hanldeChange("phone", val)}
             placeholder="Số điện thoại"
             allowClear
             affix={<Sms size={22} color={appColor.gray} />}

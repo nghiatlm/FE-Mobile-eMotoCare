@@ -25,6 +25,7 @@ const TabsNavigator = () => {
           height: Platform.OS === "ios" ? 88 : 78,
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: appColor.white,
         },
         tabBarIcon: ({ focused, color, size }) => {
           let icon: ReactNode;
