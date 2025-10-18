@@ -1,0 +1,31 @@
+{
+    "id": "3f1a9b2d-6c4e-4b8f-9a2d-0c7e5a1f2b3c",
+    "firstName": "Nguyễn",
+    "lastName": "Văn A",
+    "address": "123 Đường Lê Lợi, Quận 1, TP. HCM",
+    "citizenId": "012345678901234",
+    "dateOfBirth": "1990-05-20T00:00:00Z",
+    "gender": "Male",
+    "avatarUrl": "https://cdn.example.com/avatars/3f1a9b2d.png",
+    "accountId": "a8d7c6e5-4b3a-2f1e-9d8c-7b6a5c4e3f2d",
+    "vehicles": [
+        {
+            "id": "b1c2d3e4-5678-90ab-cdef-1234567890ab",
+            "vinNumber": "LVSN0123456789012",
+            "plateNumber": "59A-12345",
+            "image": "https://cdn.example.com/vehicles/b1c2d3e4.png",
+            "color": "Red",
+            "chassisNumber": "CHS-987654321",
+            "engineNumber": "ENG-123456789",
+            "status": "Active",
+            "manufactureDate": "2021-03-15T00:00:00Z",
+            "purchaseDate": "2021-04-01T00:00:00Z",
+            "warrantyExpiry": "2024-04-01T00:00:00Z",
+            "modelId": "a3b2c1d4-1111-2222-3333-444455556666",
+            "customerId": "3f1a9b2d-6c4e-4b8f-9a2d-0c7e5a1f2b3c"
+        }
+    ],
+    "payments": [],
+    "appointments": [],
+    "rmas": []
+}

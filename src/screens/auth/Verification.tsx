@@ -8,6 +8,7 @@ import {
   TextComponent,
 } from "../../components";
 import { StyleSheet, TextInput, View } from "react-native";
+import { Alert } from "react-native";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { ArrowRight } from "iconsax-react-nativejs";
@@ -16,10 +17,10 @@ import authenticationAPI from "../../apis/authApi";
 import { LoadingModal } from "../../modal";
 
 const Verification = ({ navigation, route }: any) => {
-  const { code, email, password, phone } = route.params;
+  const { phone } = route.params;
 
-  const [currentCode, setCurrentCode] = useState(code);
-  const [codeValues, setCodeValues] = useState<string[]>([]);
+  // const [currentCode, setCurrentCode] = useState(code);
+  const [codeValues, setCodeValues] = useState<string[]>(["", "", "", "", "", ""]);
   const [newCode, setNewCode] = useState("");
   const [limit, setLimit] = useState(20);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,9 +29,37 @@ const Verification = ({ navigation, route }: any) => {
   const ref2 = useRef<any>(null);
   const ref3 = useRef<any>(null);
   const ref4 = useRef<any>(null);
+  const ref5 = useRef<any>(null);
+  const ref6 = useRef<any>(null);
+
+  // confirmation object passed from Register screen (result of signInWithPhoneNumber)
+  const [confirmation, setConfirmation] = useState<any>(
+    route.params?.confirmation ?? null
+  );
 
   useEffect(() => {
-    ref1.current.focus();
+    // if confirmation not passed via route, try reading from phoneAuthStore
+    if (!confirmation) {
+      try {
+        const { getConfirmation } = require("../../utils/phoneAuthStore");
+        const stored = getConfirmation();
+        if (stored) setConfirmation(stored);
+      } catch (e) {
+        console.warn("phoneAuthStore not available", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    ref1.current && ref1.current.focus();
+    // if code provided from route params, autofill
+    if (route.params?.code) {
+      const provided: string = String(route.params.code);
+      const digits = provided.split("").slice(0, 6);
+      const filled = ["", "", "", "", "", ""];
+      digits.forEach((d, i) => (filled[i] = d));
+      setCodeValues(filled);
+    }
   }, []);
 
   useEffect(() => {
@@ -54,21 +83,47 @@ const Verification = ({ navigation, route }: any) => {
     setCodeValues(data);
   };
 
-  const handleResendVerification = async () => {
-    const api = "/verification";
-    setIsLoading(true);
+  const handleConfirm = async () => {
+    if (newCode.length !== 6) return;
+    if (!confirmation) {
+      Alert.alert("Lỗi", "Không có phiên xác thực. Vui lòng gửi lại mã OTP.");
+      return;
+    }
     try {
-      const res: any = await authenticationAPI.HandleAuthentication(
-        api,
-        { email },
+      setIsLoading(true);
+      const userCredential: any = await confirmation.confirm(newCode);
+      // get idToken from firebase user
+      const idToken = await userCredential.user.getIdToken();
+      console.log("token: ", idToken);
+
+      // send idToken to backend for verification / account creation
+      await authenticationAPI.HandleAuthentication(
+        "/verify-sms-otp",
+        { idToken },
         "post"
       );
+      setIsLoading(false);
+      Alert.alert("Thành công", "Xác thực hoàn tất.");
+      navigation.navigate("LoginScreen");
+    } catch (err: any) {
+      console.warn("Confirm error", err);
+      setIsLoading(false);
+      Alert.alert("Lỗi xác thực", err?.message || "Mã không đúng hoặc đã hết hạn");
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setIsLoading(true);
+    try {
+      // ask backend to resend (if your backend supports it); otherwise you can re-trigger Firebase send
+      await authenticationAPI.HandleAuthentication("/resend-otp", { phone }, "post");
       setLimit(20);
-      setCurrentCode(res.data.code);
       setIsLoading(false);
+      Alert.alert("Thông báo", "Mã OTP đã được gửi lại");
     } catch (error) {
-      console.log(`Can not send verification code ${error}`);
+      console.warn(`Can not resend verification code ${error}`);
       setIsLoading(false);
+      Alert.alert("Lỗi", "Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
     }
   };
 
@@ -120,11 +175,33 @@ const Verification = ({ navigation, route }: any) => {
             placeholder="-"
           />
           <TextInput
+            keyboardType="number-pad"
             ref={ref4}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {
+              val.length > 0 && ref5.current.focus();
               handleChangeCode(val, 3);
+            }}
+            placeholder="-"
+          />
+          <TextInput
+            keyboardType="number-pad"
+            ref={ref5}
+            style={[styles.input]}
+            maxLength={1}
+            onChangeText={(val) => {
+              val.length > 0 && ref6.current.focus();
+              handleChangeCode(val, 4);
+            }}
+            placeholder="-"
+          />
+          <TextInput
+            ref={ref6}
+            style={[styles.input]}
+            maxLength={1}
+            onChangeText={(val) => {
+              handleChangeCode(val, 5);
               val.length > 0 && console.log("newcode: ", newCode);
             }}
             keyboardType="number-pad"
@@ -140,8 +217,8 @@ const Verification = ({ navigation, route }: any) => {
         <ButtonComponent
           text="Tiếp tục"
           type="primary"
-          disbale={newCode.length !== 4}
-          onPress={() => {}}
+          // disbale={newCode.length !== 6}
+          onPress={handleConfirm}
           iconFlex="right"
           icon={
             <View
@@ -149,7 +226,7 @@ const Verification = ({ navigation, route }: any) => {
                 globalStyle.iconContainer,
                 {
                   backgroundColor:
-                    newCode.length !== 4 ? appColor.gray : appColor.primary,
+                    newCode.length !== 6 ? appColor.gray : appColor.primary,
                 },
               ]}
             >
