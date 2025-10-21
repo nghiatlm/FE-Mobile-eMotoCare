@@ -1,3 +1,4 @@
+import BackgroundComponent from "./containers/BackgroundComponent";
 import ContainerComponent from "./containers/ContainerComponent";
 import RowComponent from "./containers/RowComponent";
 import SectionComponent from "./containers/SectionComponent";
@@ -14,4 +15,5 @@ export {
   ContainerComponent,
   SectionComponent,
   RowComponent,
+  BackgroundComponent
 };

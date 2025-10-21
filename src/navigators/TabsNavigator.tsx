@@ -13,6 +13,7 @@ import HomeNavigator from "./HomeNavigator";
 import NotificationNavigator from "./NotificationNavigator";
 import ServiceNavigator from "./ServiceNavigator";
 import SettingNavigator from "./SettingNavigator";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 const TabsNavigator = () => {
   const Tab = createBottomTabNavigator();
@@ -115,7 +116,21 @@ const TabsNavigator = () => {
     >
       <Tab.Screen name="Service" component={ServiceNavigator} />
       <Tab.Screen name="Activity" component={ActivityNavigator} />
-      <Tab.Screen name="Home" component={HomeNavigator} />
+      <Tab.Screen
+        name="Home"
+        component={HomeNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+          return {
+            headerShown: false,
+            tabBarStyle: ["MaintenanceDetail", "CreateMaintenance"].includes(
+              routeName
+            )
+              ? { display: "none" }
+              : undefined,
+          };
+        }}
+      />
       <Tab.Screen name="Notification" component={NotificationNavigator} />
       <Tab.Screen name="Setting" component={SettingNavigator} />
     </Tab.Navigator>

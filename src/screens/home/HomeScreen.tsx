@@ -1,31 +1,107 @@
-import React from "react";
-import { StatusBar, TouchableOpacity, View } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
-import { appColor } from "../../constants/appColor";
-import { authSelecter } from "../../redux/reducers/authReducer";
-import { globalStyle } from "../../styles/globalStyle";
+import React, { useState } from "react";
+import {
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   ButtonComponent,
-  ContainerComponent,
   RowComponent,
   SectionComponent,
+  SpaceComponent,
   TextComponent,
 } from "../../components";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { appColor } from "../../constants/appColor";
+import { appInfor } from "../../constants/appInfor";
 import { fontFamilies } from "../../constants/fontFamilies";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-const HomeScreen = () => {
-  const dispatch = useDispatch();
+import { globalStyle } from "../../styles/globalStyle";
+const HomeScreen = ({ navigation }: any) => {
+  const [selectedMaintenance, setSelectedMaintenance] = useState(0);
 
-  const auth = useSelector(authSelecter);
+  const [mainDetailId, setMainDetailId] = useState(1);
+
+  const maintenanceItems = [
+    {
+      id: 0,
+      title: "Lịch bảo dưỡng tháng 12",
+      date: "20/12/2024",
+      status: "COMPLETED",
+      pillColor: appColor.primary,
+      cardBg: appColor.success50,
+      statusColor: appColor.primary,
+    },
+    {
+      id: 1,
+      title: "Lịch bảo dưỡng tháng 01",
+      date: "15/01/2025",
+      status: "COMPLETED",
+      pillColor: appColor.primary,
+      cardBg: appColor.success50,
+      statusColor: appColor.primary,
+    },
+    {
+      id: 2,
+      title: "Lịch bảo dưỡng tháng 02",
+      date: "10/02/2025",
+      status: "Quá hạn",
+      pillColor: appColor.danger,
+      cardBg: appColor.danger50,
+      statusColor: appColor.danger,
+    },
+    {
+      id: 3,
+      title: "Lịch bảo dưỡng tháng 03",
+      date: "05/03/2025",
+      status: "Sắp tới",
+      pillColor: appColor.warning,
+      cardBg: appColor.warning2,
+      statusColor: appColor.warning,
+    },
+    {
+      id: 4,
+      title: "Lịch bảo dưỡng tháng 04",
+      date: "01/04/2025",
+      status: "Chưa thực hiện",
+      pillColor: appColor.gray,
+      cardBg: appColor.white,
+      statusColor: appColor.gray,
+    },
+    {
+      id: 5,
+      title: "Lịch bảo dưỡng tháng 05",
+      date: "20/05/2025",
+      status: "Chưa thực hiện",
+      pillColor: appColor.gray,
+      cardBg: appColor.white,
+      statusColor: appColor.gray,
+    },
+    {
+      id: 6,
+      title: "Lịch bảo dưỡng tháng 06",
+      date: "30/06/2025",
+      status: "Chưa thực hiện",
+      pillColor: appColor.gray,
+      cardBg: appColor.white,
+      statusColor: appColor.gray,
+    },
+  ];
 
   return (
     <View style={[globalStyle.container]}>
       <StatusBar barStyle={"dark-content"} />
-      <ContainerComponent>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         <SectionComponent
           styles={{
-            padding: StatusBar.currentHeight,
+            padding: Platform.OS == "android" ? StatusBar.currentHeight : 44,
+            paddingBottom: 12,
           }}
         >
           <RowComponent justify="space-between">
@@ -44,11 +120,10 @@ const HomeScreen = () => {
                   <Ionicons name="person" color={appColor.primary} size={24} />
                 </View>
                 <TextComponent
-                  text="Cusstomer ID"
+                  text="Customer ID"
                   font={fontFamilies.roboto_bold}
                   color={appColor.text}
                   size={16}
-                  flex={1}
                   styles={{
                     marginLeft: 12,
                   }}
@@ -75,18 +150,164 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </RowComponent>
         </SectionComponent>
+
         <SectionComponent>
-          <View style={[{ flex: 1 }]}>
-            <ButtonComponent
-              text="logout"
-              type="primary"
-              onPress={async () => await AsyncStorage.clear()}
-            />
+          <View style={{ alignItems: "center" }}>
+            <View style={{ width: appInfor.size.width, height: 450 }}>
+              <Image
+                source={require("../../assets/images/vehicles/image.png")}
+                style={{
+                  borderRadius: 12,
+                  width: "100%",
+                  height: "100%",
+                  resizeMode: "contain",
+                }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 20,
+                  marginLeft: "50%",
+                  transform: [{ translateX: "-50%" }],
+                  backgroundColor: "#E8F5FF",
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: "#D1E9FF",
+                }}
+              >
+                <TextComponent text="EvoGrand - 0129458793" size={12} />
+              </View>
+
+              <ButtonComponent
+                text="Xem thêm"
+                type="link"
+                styles={{
+                  position: "absolute",
+                  marginLeft: "50%",
+                  transform: [{ translateX: "-50%" }],
+                  bottom: -16,
+                  backgroundColor: appColor.white,
+                  borderWidth: 1,
+                  borderColor: appColor.gray,
+                  borderRadius: 40,
+                  paddingHorizontal: 8,
+                  paddingVertical: 8,
+                }}
+              />
+            </View>
           </View>
         </SectionComponent>
-      </ContainerComponent>
+        <SpaceComponent height={20} />
+        <SectionComponent
+          styles={[
+            globalStyle.shadow,
+            {
+              backgroundColor: appColor.white,
+              padding: 16,
+              borderRadius: 12,
+              marginHorizontal: 8,
+            },
+          ]}
+        >
+          <View>
+            <TextComponent
+              text="Bảo dưỡng định kỳ"
+              title
+              font={fontFamilies.roboto_bold}
+              color={appColor.primary}
+            />
+            <View style={styles.line} />
+            <RowComponent justify="space-between">
+              {maintenanceItems.map((item, idx) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => setSelectedMaintenance(idx)}
+                  activeOpacity={0.8}
+                  style={{
+                    // nếu là item được chọn, tăng viền
+                    borderWidth: selectedMaintenance === idx ? 2 : 0,
+                    borderColor:
+                      selectedMaintenance === idx
+                        ? maintenanceItems[selectedMaintenance].pillColor
+                        : "transparent",
+                    borderRadius: 20,
+                    padding: 2,
+                  }}
+                >
+                  <View
+                    style={[
+                      styles.maintenanceStatus,
+                      {
+                        backgroundColor: item.pillColor,
+                        width: 46,
+                        height: 20,
+                      },
+                    ]}
+                  />
+                </TouchableOpacity>
+              ))}
+            </RowComponent>
+            <SpaceComponent height={12} />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={{
+                padding: 12,
+                backgroundColor: maintenanceItems[selectedMaintenance].cardBg,
+                borderWidth: 1,
+                borderColor: maintenanceItems[selectedMaintenance].statusColor,
+                borderRadius: 8,
+              }}
+              onPress={() => {
+                navigation.navigate("MaintenanceDetail", {
+                  maintenanceId: mainDetailId,
+                });
+              }}
+            >
+              <TextComponent
+                text={maintenanceItems[selectedMaintenance].title}
+                size={18}
+                color={appColor.text}
+              />
+              <RowComponent justify="flex-start" styles={{ marginTop: 8 }}>
+                <TextComponent text="Thời gian: " size={18} />
+                <TextComponent
+                  text={maintenanceItems[selectedMaintenance].date}
+                  size={18}
+                  font={fontFamilies.roboto_bold}
+                  styles={{ marginLeft: 4 }}
+                />
+              </RowComponent>
+              <RowComponent justify="flex-start" styles={{ marginTop: 8 }}>
+                <TextComponent text="Trạng thái: " size={18} />
+                <TextComponent
+                  text={maintenanceItems[selectedMaintenance].status}
+                  size={18}
+                  font={fontFamilies.roboto_bold}
+                  styles={{ marginLeft: 4 }}
+                />
+              </RowComponent>
+            </TouchableOpacity>
+          </View>
+        </SectionComponent>
+      </ScrollView>
     </View>
   );
 };
 
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  line: {
+    height: 1,
+    backgroundColor: appColor.gray,
+    marginVertical: 8,
+  },
+  maintenanceStatus: {
+    height: 20,
+    width: 46,
+    backgroundColor: appColor.primary,
+    borderRadius: 20,
+  },
+});

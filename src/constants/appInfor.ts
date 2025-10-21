@@ -7,6 +7,5 @@ export const appInfor = {
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
-  // BASE_URL: "http://10.0.2.2:5154/api/v1",
-  BASE_URL: "https://be-emotorcare.onrender.com/api/v1",
+  BASE_URL: process.env.EXPO_BASE_URL,
 };

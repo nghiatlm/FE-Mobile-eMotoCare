@@ -5,6 +5,8 @@ import OnbroadingScreen from "./auth/OnbroadingScreen";
 import RegisterScreen from "./auth/RegisterScreen";
 import Verification from "./auth/Verification";
 import HomeScreen from "./home/HomeScreen";
+import CreateMaintenance from "./Maintenances/CreateMaintenance";
+import MaintenanceDetailScreen from "./Maintenances/MaintenanceDetailScreen";
 import NotificationScreen from "./notifications/NotificationScreen";
 import ServiceScreen from "./services/ServiceScreen";
 import SettingScreen from "./setting/SettingScreen";
@@ -22,4 +24,6 @@ export {
   NotificationScreen,
   ActivityScreen,
   SettingScreen,
+  MaintenanceDetailScreen,
+  CreateMaintenance,
 };

@@ -23,8 +23,8 @@ export const globalStyle = StyleSheet.create({
     flexDirection: "row",
   },
   section: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 12,
+    paddingBottom: 16,
   },
   row: {
     flexDirection: "row",
