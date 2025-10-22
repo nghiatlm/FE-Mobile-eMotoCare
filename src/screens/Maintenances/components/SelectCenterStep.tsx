@@ -1,19 +1,15 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import {
-    SectionComponent,
-    SpaceComponent,
-    TextComponent,
+  RowComponent,
+  SectionComponent,
+  SpaceComponent,
+  TextComponent,
 } from "../../../components";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
-
-const mockCenters = [
-  { id: "c1", name: "Trung tâm A", rating: 4.6, distance: "600m" },
-  { id: "c2", name: "Trung tâm B", rating: 3.6, distance: "700m" },
-  { id: "c3", name: "Trung tâm C", rating: 4.8, distance: "1.0km" },
-];
+import { getServiceCenter } from "../../../services/serviceCenter.service";
 
 const parseDistance = (d?: string) => {
   if (!d) return Infinity;
@@ -71,22 +67,60 @@ const renderStars = (rating: number) => {
 };
 
 const SelectCenterStep = ({ state, dispatch }: any) => {
+  const [serviceCenter, setServiceCenter] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchServiceCenter();
+  }, []);
+
+  const fetchServiceCenter = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        page: 1,
+        pageSize: 10,
+      };
+
+      const result = await getServiceCenter(params);
+      console.log("API result: ", result);
+
+      if (result?.success) {
+        setServiceCenter(result.data.rowDatas);
+      } else {
+        console.log("Fetch error:", result?.message || "Unknown error");
+      }
+    } catch (err) {
+      console.log("API call failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const bestId = useMemo(() => {
-    return mockCenters.reduce((best, cur) => {
+    if (!serviceCenter.length) return null;
+    return serviceCenter.reduce((best, cur) => {
       return parseDistance(cur.distance) < parseDistance(best.distance)
         ? cur
         : best;
-    }, mockCenters[0]).id;
-  }, []);
+    }, serviceCenter[0]).id;
+  }, [serviceCenter]);
+
+  if (loading) {
+    return (
+      <SectionComponent styles={{ alignItems: "center", marginTop: 20 }}>
+        <TextComponent
+          text="Đang tải trung tâm..."
+          size={18}
+          color={appColor.gray2}
+        />
+      </SectionComponent>
+    );
+  }
 
   return (
     <View>
-      <SectionComponent
-        styles={{
-          alignItems: "center",
-          marginTop: 20,
-        }}
-      >
+      <SectionComponent styles={{ alignItems: "center", marginTop: 20 }}>
         <TextComponent
           text="Chọn trung tâm bảo dưỡng"
           size={20}
@@ -98,20 +132,20 @@ const SelectCenterStep = ({ state, dispatch }: any) => {
           color={appColor.gray2}
           font={fontFamilies.roboto_regular}
           size={18}
-          styles={{
-            marginTop: 10,
-          }}
+          styles={{ marginTop: 10 }}
         />
       </SectionComponent>
+
       <SpaceComponent height={15} />
-      {mockCenters.map((item) => {
-        const selected = state.centerId === item.id;
+
+      {serviceCenter.map((item) => {
+        const selected = state.serviceCenterId === item.id;
         const isBest = item.id === bestId;
         return (
           <TouchableOpacity
             key={item.id}
             onPress={() =>
-              dispatch({ type: "SET", payload: { centerId: item.id } })
+              dispatch({ type: "SET", payload: { serviceCenterId: item.id } })
             }
             style={[
               styles.item,
@@ -130,19 +164,37 @@ const SelectCenterStep = ({ state, dispatch }: any) => {
                 color={appColor.text}
               />
               <SpaceComponent height={6} />
+              <RowComponent justify="flex-start">
+                <TextComponent
+                  text="Địa chỉ: "
+                  size={18}
+                  font={fontFamilies.roboto_regular}
+                  color={appColor.text}
+                />
+                <TextComponent
+                  text={item.address}
+                  size={18}
+                  font={fontFamilies.roboto_regular}
+                  color={appColor.text}
+                  styles={{
+                    marginLeft: 12
+                  }}
+                />
+              </RowComponent>
+              <SpaceComponent height={6} />
               <View style={styles.metaRow}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  {renderStars(item.rating)}
+                  {renderStars(item.rating || 4)}
                 </View>
                 <View style={{ width: 12 }} />
                 <TextComponent
-                  text={item.rating.toFixed(1)}
+                  text={(item.rating || 4).toFixed(1)}
                   size={14}
                   color={appColor.gray2}
                 />
                 <View style={{ width: 8 }} />
                 <TextComponent
-                  text={item.distance}
+                  text={item.distance || "1km"}
                   size={14}
                   color={appColor.gray2}
                 />

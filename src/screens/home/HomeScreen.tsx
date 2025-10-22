@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Platform,
@@ -20,8 +20,12 @@ import { appColor } from "../../constants/appColor";
 import { appInfor } from "../../constants/appInfor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getVehicleByCustomer } from "../../services/vehicle.service";
+import Customer from "../../services/contants/cumstomer.json";
 const HomeScreen = ({ navigation }: any) => {
   const [selectedMaintenance, setSelectedMaintenance] = useState(0);
+  const [vehicle, setVehicle] = useState<any>(null);
 
   const [mainDetailId, setMainDetailId] = useState(1);
 
@@ -91,6 +95,16 @@ const HomeScreen = ({ navigation }: any) => {
     },
   ];
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await getVehicleByCustomer();
+      if (res.success && res.data.length > 0) {
+        setVehicle(res.data[0]);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <View style={[globalStyle.container]}>
       <StatusBar barStyle={"dark-content"} />
@@ -120,7 +134,7 @@ const HomeScreen = ({ navigation }: any) => {
                   <Ionicons name="person" color={appColor.primary} size={24} />
                 </View>
                 <TextComponent
-                  text="Customer ID"
+                  text={Customer.code}
                   font={fontFamilies.roboto_bold}
                   color={appColor.text}
                   size={16}
@@ -289,6 +303,16 @@ const HomeScreen = ({ navigation }: any) => {
                 />
               </RowComponent>
             </TouchableOpacity>
+          </View>
+        </SectionComponent>
+
+        <SectionComponent>
+          <View style={[{ flex: 1 }]}>
+            <ButtonComponent
+              text="logout"
+              type="primary"
+              onPress={async () => await AsyncStorage.clear()}
+            />
           </View>
         </SectionComponent>
       </ScrollView>

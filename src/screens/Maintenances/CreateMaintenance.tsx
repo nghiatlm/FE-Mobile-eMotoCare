@@ -1,5 +1,7 @@
-import { View, Text } from "react-native";
-import React, { useReducer } from "react";
+import { AntDesign } from "@expo/vector-icons";
+import { BrifecaseTimer, CalendarTick } from "iconsax-react-nativejs";
+import React, { useReducer, useState } from "react";
+import { View } from "react-native";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -7,76 +9,83 @@ import {
   SpaceComponent,
   TextComponent,
 } from "../../components";
-import {
-  BrifecaseTimer,
-  CalendarTick,
-  InfoCircle,
-} from "iconsax-react-nativejs";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
-import { AntDesign } from "@expo/vector-icons";
+import ConfirmStep from "./components/ConfirmStep";
 import SelectCenterStep from "./components/SelectCenterStep";
 import SelectTimeStep from "./components/SelectTimeStep";
-import VehicleInfoStep from "./components/VehicleInfoStep";
-import ConfirmStep from "./components/ConfirmStep";
+import { CreateAppointment } from "../../services/appointment.service";
 
 type State = {
-  step: number;
   serviceCenterId?: string;
   customerId?: string;
   vehicleStageId?: string;
   timeSlot?: string;
   appointmentDate?: string;
   slot?: string;
-  vehicleId?: string;
   notes?: string;
   type?: string;
 };
 
-const initialState: State = { step: 0 };
+const initialState: State = {
+  serviceCenterId: "",
+  customerId: "7e639b73-cd8a-4459-8a49-58234f4e5fc1",
+  vehicleStageId: "1bfc9f3c-e394-4240-9f3b-8f1dc5d5cf73",
+  appointmentDate: "",
+  timeSlot: "",
+  type: "MAINTENACE_TYPE",
+};
 
 function reducer(state: State, action: any): State {
   switch (action.type) {
     case "SET":
       return { ...state, ...action.payload };
-    case "NEXT":
-      return { ...state, step: Math.min(3, state.step + 1) };
-    case "BACK":
-      return { ...state, step: Math.max(0, state.step - 1) };
     default:
       return state;
   }
 }
 
 const CreateMaintenance = ({ navigation }: any) => {
+  const [step, setStep] = useState(0);
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  const handleNext = async () => {
+    if (step < 2) setStep(step + 1);
+    else {
+      console.log("Submit:", state);
+      const result = await CreateAppointment(state);
+      if (result.success) {
+        console.log("Success: ", result.data);
+      } else {
+        console.log("Failed: ", result.message);
+      }
+      navigation.navigate("SuccessScreen", {
+        id: result.data.id,
+      });
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 0) setStep(step - 1);
+  };
 
   const footer = (
     <View style={{ width: "100%" }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        {state.step > 0 ? (
-          <ButtonComponent
-            text="Quay lại"
-            type="link"
-            onPress={() => dispatch({ type: "BACK" })}
-          />
+        {step > 0 ? (
+          <ButtonComponent text="Quay lại" type="link" onPress={handleBack} />
         ) : (
           <View style={{ width: 120 }} />
         )}
         <ButtonComponent
-          text={state.step === 3 ? "Xác nhận" : "Tiếp theo"}
+          text={step === 2 ? "Xác nhận" : "Tiếp theo"}
           type="primary"
-          onPress={() => {
-            if (state.step < 3) dispatch({ type: "NEXT" });
-            else {
-              console.log("submit", state);
-              navigation.goBack();
-            }
-          }}
+          onPress={handleNext}
         />
       </View>
     </View>
   );
+
   return (
     <BackgroundComponent
       back
@@ -87,53 +96,98 @@ const CreateMaintenance = ({ navigation }: any) => {
       <SpaceComponent height={12} />
       <View style={{ paddingHorizontal: 8 }}>
         <RowComponent justify="space-between">
-          <View style={{ flexDirection: "column", alignItems: "center" }}>
-            <BrifecaseTimer
-              size="28"
-              color={appColor.primary}
-              variant="Outline"
-            />
+          {/* --- Step 1 --- */}
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: step === 0 ? appColor.primary : appColor.white,
+                borderWidth: 1.5,
+                borderColor: appColor.gray,
+                width: 50,
+                height: 50,
+                borderRadius: 50,
+              }}
+            >
+              <BrifecaseTimer
+                size={24}
+                color={step === 0 ? appColor.white : appColor.gray}
+                variant="Outline"
+              />
+            </View>
             <SpaceComponent height={4} />
             <TextComponent
               text="Trung tâm"
               font={fontFamilies.roboto_regular}
               size={16}
-              color={appColor.text}
+              color={step === 0 ? appColor.primary : appColor.text}
             />
           </View>
-          <View style={{ flexDirection: "column", alignItems: "center" }}>
-            <CalendarTick
-              size="28"
-              color={appColor.primary}
-              variant="Outline"
-            />
+
+          {/* --- Step 2 --- */}
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: step === 1 ? appColor.primary : appColor.white,
+                borderWidth: 1.5,
+                borderColor: appColor.gray,
+                width: 50,
+                height: 50,
+                borderRadius: 50,
+              }}
+            >
+              <CalendarTick
+                size="28"
+                color={step === 1 ? appColor.white : appColor.gray}
+                variant="Outline"
+              />
+            </View>
             <SpaceComponent height={4} />
             <TextComponent
               text="Thời gian"
               font={fontFamilies.roboto_regular}
               size={16}
-              color={appColor.text}
+              color={step === 1 ? appColor.primary : appColor.text}
             />
           </View>
-          <View style={{ flexDirection: "column", alignItems: "center" }}>
-            <AntDesign name="check-circle" size={28} color={appColor.primary} />
+
+          {/* --- Step 3 --- */}
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: step === 2 ? appColor.primary : appColor.white,
+                borderWidth: 1.5,
+                borderColor: appColor.gray,
+                width: 50,
+                height: 50,
+                borderRadius: 50,
+              }}
+            >
+              <AntDesign
+                name="check-circle"
+                size={28}
+                color={step === 2 ? appColor.white : appColor.gray}
+              />
+            </View>
             <SpaceComponent height={4} />
             <TextComponent
               text="Xác nhận"
               font={fontFamilies.roboto_regular}
               size={16}
-              color={appColor.text}
+              color={step === 2 ? appColor.primary : appColor.text}
             />
           </View>
         </RowComponent>
 
-        {state.step === 0 && (
-          <SelectCenterStep state={state} dispatch={dispatch} />
-        )}
-        {state.step === 1 && (
-          <SelectTimeStep state={state} dispatch={dispatch} />
-        )}
-        {state.step === 2 && <ConfirmStep state={state} dispatch={dispatch} />}
+        {/* Render từng step */}
+        {step === 0 && <SelectCenterStep state={state} dispatch={dispatch} />}
+        {step === 1 && <SelectTimeStep state={state} dispatch={dispatch} />}
+        {step === 2 && <ConfirmStep state={state} dispatch={dispatch} />}
       </View>
     </BackgroundComponent>
   );

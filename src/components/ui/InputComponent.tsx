@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { appColor } from "../../constants/appColor";
 import { globalStyle } from "../../styles/globalStyle";
+import TextComponent from "./TextComponent";
 
 interface Props {
   value: string;
@@ -20,6 +21,7 @@ interface Props {
   isPassword?: boolean;
   allowClear?: boolean;
   type?: KeyboardType;
+  error?: string;
 }
 
 const InputComponent = (props: Props) => {
@@ -32,44 +34,60 @@ const InputComponent = (props: Props) => {
     suffix,
     allowClear,
     type,
+    error,
   } = props;
 
   const [isShowPassword, setIsShowPassword] = useState(isPassword ?? false);
 
   return (
-    <View style={[styles.inputContainer]}>
-      {affix ?? affix}
-      <TextInput
-        style={[styles.input, globalStyle.text]}
-        value={value}
-        placeholder={placeholder ?? ""}
-        onChangeText={(val) => onChange(val)}
-        secureTextEntry={isShowPassword}
-        placeholderTextColor={"#747688"}
-        keyboardType={type ?? "default"}
-        autoCapitalize="none"
-      />
-      {suffix ?? suffix}
-      <TouchableOpacity
-        onPress={
-          isPassword
-            ? () => setIsShowPassword(!isShowPassword)
-            : () => onChange("")
-        }
+    <View style={{ width: "100%" }}>
+      <View
+        style={[
+          styles.inputContainer,
+          error && { borderColor: appColor.danger || "red" }, // viền đỏ khi có lỗi
+        ]}
       >
-        {isPassword ? (
-          <FontAwesome
-            name={isShowPassword ? "eye-slash" : "eye"}
-            size={22}
-            color={appColor.gray}
-          />
-        ) : (
-          value.length > 0 &&
-          allowClear && (
-            <AntDesign name="close" size={18} color={appColor.text} />
-          )
-        )}
-      </TouchableOpacity>
+        {affix ?? affix}
+        <TextInput
+          style={[styles.input, globalStyle.text]}
+          value={value}
+          placeholder={placeholder ?? ""}
+          onChangeText={(val) => onChange(val)}
+          secureTextEntry={isShowPassword}
+          placeholderTextColor={"#747688"}
+          keyboardType={type ?? "default"}
+          autoCapitalize="none"
+        />
+        {suffix ?? suffix}
+        <TouchableOpacity
+          onPress={
+            isPassword
+              ? () => setIsShowPassword(!isShowPassword)
+              : () => onChange("")
+          }
+        >
+          {isPassword ? (
+            <FontAwesome
+              name={isShowPassword ? "eye-slash" : "eye"}
+              size={22}
+              color={appColor.gray}
+            />
+          ) : (
+            value.length > 0 &&
+            allowClear && (
+              <AntDesign name="close" size={18} color={appColor.text} />
+            )
+          )}
+        </TouchableOpacity>
+      </View>
+      {error && (
+        <TextComponent
+          text={error}
+          size={13}
+          color={appColor.danger}
+          styles={{ marginBottom: 10, marginLeft: 5 }}
+        />
+      )}
     </View>
   );
 };

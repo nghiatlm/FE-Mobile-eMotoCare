@@ -1,4 +1,5 @@
-import { Lock, Sms } from "iconsax-react-nativejs";
+import { Feather } from "@expo/vector-icons";
+import { Lock } from "iconsax-react-nativejs";
 import React, { useEffect, useState } from "react";
 import { Image, Switch } from "react-native";
 import {
@@ -13,11 +14,7 @@ import {
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { LoadingModal } from "../../modal";
-import { Validate } from "../../utils/validate";
-import authenticationAPI from "../../apis/authApi";
-import { useDispatch } from "react-redux";
-import { addAuth } from "../../redux/reducers/authReducer";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { login } from "../../services/auth.service";
 
 const initValue = {
   phone: "",
@@ -27,14 +24,12 @@ const initValue = {
 const LoginScreen = ({ navigation }: any) => {
   const [isRemember, setIsRemember] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [values, setValues] = useState(initValue);
-
-  const dispatch = useDispatch();
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (values.phone || values.password) {
-      setErrorMessage("");
+      setErrors({});
     }
   }, [values.phone, values.password]);
 
@@ -45,39 +40,17 @@ const LoginScreen = ({ navigation }: any) => {
   };
 
   const handleLogin = async () => {
-    const { phone, password } = values;
-    // const phoneValid = Validate.Phone(phone);
-    const passValid = Validate.Password(password);
-    // if (phone && password) {
-    //   if (phoneValid && passValid) {
-    //     setErrorMessage("");
     setIsLoading(true);
-    try {
-      const res = await authenticationAPI.HandleAuthentication(
-        "/login",
-        values,
-        "post"
-      );
-      console.log("Login success: ", res.data);
-      if (res.data.success) {
-        dispatch(addAuth(res.data.data));
-        await AsyncStorage.setItem(
-          "auth",
-          isRemember ? JSON.stringify(res.data.data) : phone
-        );
-      }
-      setIsLoading(false);
-    } catch (error) {
-      console.log("Login error: ", error);
-      setIsLoading(false);
+    setErrors({});
+    const result = await login(values, isRemember);
+    if (result.success) {
+      console.log("Login Success: ", result.data);
+    } else if (result.errors) {
+      setErrors(result.errors);
+    } else {
+      setErrors({ general: result.message });
     }
-    //   } else {
-    //     setErrorMessage("Số điện thoại không hợp lệ");
-    //     return;
-    //   }
-    // } else {
-    //   setErrorMessage("Vui lòng nhập đầy đủ thông tin");
-    // }
+    setIsLoading(false);
   };
 
   return (
@@ -111,7 +84,8 @@ const LoginScreen = ({ navigation }: any) => {
             onChange={(val) => hanldeChange("phone", val)}
             placeholder="Số điện thoại"
             allowClear
-            affix={<Sms size={22} color={appColor.gray} />}
+            affix={<Feather name="phone" size={22} color={appColor.gray} />}
+            error={errors.phone}
           />
 
           <InputComponent
@@ -121,6 +95,7 @@ const LoginScreen = ({ navigation }: any) => {
             allowClear
             isPassword
             affix={<Lock size={22} color={appColor.gray} />}
+            error={errors.password}
           />
 
           <RowComponent justify="space-between">
@@ -140,12 +115,6 @@ const LoginScreen = ({ navigation }: any) => {
             />
           </RowComponent>
         </SectionComponent>
-
-        {errorMessage && (
-          <SectionComponent>
-            <TextComponent text={errorMessage} color={appColor.danger} />
-          </SectionComponent>
-        )}
         <SpaceComponent height={16} />
         <SectionComponent>
           <ButtonComponent

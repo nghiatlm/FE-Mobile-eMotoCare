@@ -123,9 +123,13 @@ const TabsNavigator = () => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
           return {
             headerShown: false,
-            tabBarStyle: ["MaintenanceDetail", "CreateMaintenance"].includes(
-              routeName
-            )
+            tabBarStyle: [
+              "MaintenanceDetail",
+              "CreateMaintenance",
+              "SuccessScreen",
+              "AppointmentDetail",
+              "MaintenanceProcess",
+            ].includes(routeName)
               ? { display: "none" }
               : undefined,
           };

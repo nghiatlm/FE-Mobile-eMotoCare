@@ -1,25 +1,32 @@
+import { AntDesign, Fontisto } from "@expo/vector-icons";
 import React from "react";
 import { View } from "react-native";
 import {
-  RowComponent,
   SectionComponent,
   SpaceComponent,
-  TextComponent,
+  TextComponent
 } from "../../../components";
-import { fontFamilies } from "../../../constants/fontFamilies";
 import { appColor } from "../../../constants/appColor";
-import { Fontisto, MaterialIcons } from "@expo/vector-icons";
+import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
 
 const ConfirmStep = ({ state }: any) => {
+  const { appointmentDate, timeSlot, serviceCenterName, vehicleName } = state;
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   return (
     <View>
-      <SectionComponent
-        styles={{
-          alignItems: "center",
-          marginTop: 20,
-        }}
-      >
+      <SectionComponent styles={{ alignItems: "center", marginTop: 20 }}>
         <TextComponent
           text="Xác nhận đặt lịch"
           size={20}
@@ -27,16 +34,16 @@ const ConfirmStep = ({ state }: any) => {
           color={appColor.text}
         />
         <TextComponent
-          text="Kiểm tra lại thông tin trước khi đặt lịch"
+          text="Kiểm tra lại thông tin trước khi đặt"
           color={appColor.gray2}
-          font={fontFamilies.roboto_regular}
-          size={18}
-          styles={{
-            marginTop: 10,
-          }}
+          size={16}
+          styles={{ marginTop: 6 }}
         />
       </SectionComponent>
-      <SpaceComponent height={22} />
+
+      <SpaceComponent height={16} />
+
+      {/* ---- Trung tâm ---- */}
       <SectionComponent
         styles={[
           globalStyle.shadow,
@@ -45,7 +52,7 @@ const ConfirmStep = ({ state }: any) => {
             borderWidth: 1,
             borderColor: appColor.gray,
             borderRadius: 8,
-            paddingVertical: 16,
+            padding: 16,
             flexDirection: "row",
           },
         ]}
@@ -53,49 +60,89 @@ const ConfirmStep = ({ state }: any) => {
         <Fontisto name="map-marker-alt" size={24} color={appColor.primary} />
         <View style={{ flex: 1, marginLeft: 12 }}>
           <TextComponent
-            text="Trung tâm: "
+            text="Trung tâm:"
             size={18}
             color={appColor.primary}
             font={fontFamilies.roboto_medium}
           />
-          <SpaceComponent height={8} />
+          <SpaceComponent height={6} />
           <TextComponent
-            text="eMotoCare Center Lê Văn Khương"
+            text={serviceCenterName || "Chưa chọn"}
             size={18}
             color={appColor.text}
-            font={fontFamilies.roboto_regular}
           />
-          <SpaceComponent height={8} />
-          <TextComponent
-            text="123 Lê Lợi, Quận 1, TP.HCM"
-            size={16}
-            color={appColor.gray3}
-            font={fontFamilies.roboto_regular}
-          />
-          <SpaceComponent height={8} />
-          <RowComponent justify="flex-start">
-            <TextComponent
-              text="600m "
-              size={16}
-              color={appColor.gray3}
-              font={fontFamilies.roboto_regular}
-            />
-            <TextComponent
-              text="- 4.8"
-              size={16}
-              color={appColor.gray3}
-              font={fontFamilies.roboto_regular}
-            />
-            <MaterialIcons name="star" size={24} color={appColor.warning} />
-          </RowComponent>
         </View>
       </SectionComponent>
-      <SpaceComponent height={6} />
-      <TextComponent text={`Khung giờ: ${state.slot ?? "-"}`} />
-      <SpaceComponent height={6} />
-      <TextComponent text={`Xe: ${state.vehicleId ?? "-"}`} />
-      <SpaceComponent height={6} />
-      <TextComponent text={`Ghi chú: ${state.notes ?? "-"}`} />
+
+      {/* ---- Thời gian ---- */}
+      <SectionComponent
+        styles={[
+          globalStyle.shadow,
+          {
+            backgroundColor: appColor.white,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+            borderRadius: 8,
+            padding: 16,
+            marginTop: 12,
+            flexDirection: "row",
+          },
+        ]}
+      >
+        <Fontisto name="date" size={24} color={appColor.primary} />
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <TextComponent
+            text="Thời gian:"
+            size={18}
+            color={appColor.primary}
+            font={fontFamilies.roboto_medium}
+          />
+          <SpaceComponent height={6} />
+          <TextComponent
+            text={formatDate(appointmentDate)}
+            size={18}
+            color={appColor.text}
+          />
+          <SpaceComponent height={4} />
+          <TextComponent
+            text={timeSlot || "Chưa chọn"}
+            size={18}
+            color={appColor.text}
+          />
+        </View>
+      </SectionComponent>
+
+      {/* ---- Xe ---- */}
+      <SectionComponent
+        styles={[
+          globalStyle.shadow,
+          {
+            backgroundColor: appColor.white,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+            borderRadius: 8,
+            padding: 16,
+            marginTop: 12,
+            flexDirection: "row",
+          },
+        ]}
+      >
+        <AntDesign name="info-circle" size={24} color={appColor.primary} />
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <TextComponent
+            text="Thông tin xe:"
+            size={18}
+            color={appColor.primary}
+            font={fontFamilies.roboto_medium}
+          />
+          <SpaceComponent height={6} />
+          <TextComponent
+            text={vehicleName || "Vinfast Feliz Lite"}
+            size={18}
+            color={appColor.text}
+          />
+        </View>
+      </SectionComponent>
     </View>
   );
 };

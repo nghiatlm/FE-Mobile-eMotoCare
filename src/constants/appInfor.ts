@@ -7,5 +7,5 @@ export const appInfor = {
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
-  BASE_URL: process.env.EXPO_BASE_URL,
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL,
 };
