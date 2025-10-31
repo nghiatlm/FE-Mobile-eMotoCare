@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -9,6 +10,7 @@ import {
   View,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ButtonComponent,
   RowComponent,
@@ -19,13 +21,29 @@ import {
 import { appColor } from "../../constants/appColor";
 import { appInfor } from "../../constants/appInfor";
 import { fontFamilies } from "../../constants/fontFamilies";
+import { authSelecter, removeAuth } from "../../redux/reducers/authReducer";
+import { getCustomerByAccount } from "../../services/customer.service";
+import { getVehicle } from "../../services/vehicle.service";
 import { globalStyle } from "../../styles/globalStyle";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getVehicleByCustomer } from "../../services/vehicle.service";
-import Customer from "../../services/contants/cumstomer.json";
+import { getMaintenances } from "../../services/maintenance.service";
+
+interface CustomerType {
+  id?: string;
+  firstName: string;
+  lastName?: string;
+  phone?: string;
+  [key: string]: any;
+}
+
 const HomeScreen = ({ navigation }: any) => {
   const [selectedMaintenance, setSelectedMaintenance] = useState(0);
   const [vehicle, setVehicle] = useState<any>(null);
+  const [customer, setCustomer] = useState<CustomerType | null>(null);
+
+  const auth = useSelector(authSelecter);
+  const dispatch = useDispatch();
+  const [accountId, setAccountId] = useState("");
+  const [vehicleMaintenance, setVehicleMaintenance] = useState<any>(null);
 
   const [mainDetailId, setMainDetailId] = useState(1);
 
@@ -96,14 +114,86 @@ const HomeScreen = ({ navigation }: any) => {
   ];
 
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await getVehicleByCustomer();
-      if (res.success && res.data.length > 0) {
-        setVehicle(res.data[0]);
-      }
+    const id = auth.accountResponse?.id ?? "";
+    setAccountId(id);
+    if (!id || String(id).trim() === "") return;
+
+    const loadCustomer = async () => {
+      await fetchCustomer(String(id).trim());
     };
-    fetchData();
-  }, []);
+    loadCustomer();
+  }, [auth]);
+
+  useEffect(() => {
+    if (!customer?.id) return;
+    fetchVehicle();
+  }, [customer]);
+
+  useEffect(() => {
+    if (!vehicle?.id) return;
+    fetchMaintenances();
+  }, [vehicle]);
+
+  const fetchCustomer = async (id: string) => {
+    try {
+      const res = await getCustomerByAccount(id);
+      if (res.success) {
+        setCustomer(res.data);
+      } else {
+        setCustomer(null);
+      }
+    } catch (e) {
+      setCustomer(null);
+      console.error("fetchCustomer error:", e);
+    }
+  };
+
+  const fetchVehicle = async () => {
+    if (!customer?.id) return;
+
+    const params = {
+      customerId: String(customer.id),
+      page: 1,
+      pageSize: 10,
+      search: undefined,
+      status: undefined,
+      modelId: undefined,
+      fromPurchaseDate: undefined,
+      toPurchaseDate: undefined,
+    };
+
+    try {
+      const res = await getVehicle(params);
+      if (res.success) {
+        const data = res.data?.rowDatas[0];
+        setVehicle(data);
+      } else {
+        console.warn("fetchVehicle:", res.message);
+      }
+    } catch (e) {
+      console.error("fetchVehicle error:", e);
+    }
+  };
+
+  const fetchMaintenances = async () => {
+    if (!vehicle?.id) return;
+    const params = {
+      vehicleId: String(vehicle.id),
+      page: 1,
+      pageSize: 10,
+    };
+    try {
+      const res = await getMaintenances(params);
+      if (res.success) {
+        setVehicleMaintenance(res.data?.rowDatas ?? []);
+        console.log("Fetched maintenance data:", vehicleMaintenance);
+      } else {
+        console.warn("fetchMaintenances:", res.message);
+      }
+    } catch (e) {
+      console.error("fetchMaintenances error:", e);
+    }
+  };
 
   return (
     <View style={[globalStyle.container]}>
@@ -134,7 +224,7 @@ const HomeScreen = ({ navigation }: any) => {
                   <Ionicons name="person" color={appColor.primary} size={24} />
                 </View>
                 <TextComponent
-                  text={Customer.code}
+                  text={customer?.firstName ?? ""}
                   font={fontFamilies.roboto_bold}
                   color={appColor.text}
                   size={16}
@@ -191,7 +281,7 @@ const HomeScreen = ({ navigation }: any) => {
                   borderColor: "#D1E9FF",
                 }}
               >
-                <TextComponent text="EvoGrand - 0129458793" size={12} />
+                <TextComponent text={vehicle?.vinNumber} size={12} />
               </View>
 
               <ButtonComponent
@@ -311,7 +401,15 @@ const HomeScreen = ({ navigation }: any) => {
             <ButtonComponent
               text="logout"
               type="primary"
-              onPress={async () => await AsyncStorage.clear()}
+              onPress={async () => {
+                // xóa token/auth trên storage
+                await AsyncStorage.removeItem("auth");
+                await AsyncStorage.removeItem("ACCESS_TOKEN");
+                // gọi action remove trong redux
+                dispatch(removeAuth());
+                // tuỳ chọn: chuyển về màn hình login
+                // navigation.replace("Login");
+              }}
             />
           </View>
         </SectionComponent>

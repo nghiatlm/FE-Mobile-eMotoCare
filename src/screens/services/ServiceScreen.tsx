@@ -13,7 +13,10 @@ const ServiceScreen = () => {
       <SectionComponent>
         <ButtonComponent
           text="Bảo dưỡng"
-          textStyle={{ fontFamily: fontFamilies.roboto_bold, fontSize: 20 }}
+          textStyle={{
+            fontFamily: fontFamilies.roboto_bold,
+            fontSize: 20,
+          }}
         />
         <ButtonComponent
           text="Bảo dưỡng"

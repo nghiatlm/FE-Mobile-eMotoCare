@@ -78,7 +78,7 @@ const ButtonComponent = (props: Props) => {
         {icon && iconFlex === "right" && icon}
       </TouchableOpacity>
     </View>
-  ) : (
+  ) : type === "text" || type == "link" ? (
     <TouchableOpacity onPress={onPress} style={styles}>
       <TextComponent
         flex={0}
@@ -87,6 +87,40 @@ const ButtonComponent = (props: Props) => {
         color={type === "link" ? appColor.primary : appColor.text}
       />
     </TouchableOpacity>
+  ) : (
+    <View style={{ alignItems: "center" }}>
+      <TouchableOpacity
+        disabled={disbale}
+        onPress={onPress}
+        style={[
+          globalStyle.button,
+          {
+            backgroundColor: appColor.white,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+            width: "100%",
+            marginBottom: 20,
+          },
+          styles,
+        ]}
+      >
+        {icon && iconFlex === "left" && icon}
+        <TextComponent
+          text={text}
+          color={textColor ?? appColor.text}
+          font={textFont ?? fontFamilies.roboto_medium}
+          styles={[
+            textStyle,
+            {
+              marginLeft: icon ? 12 : 0,
+              fontSize: 16,
+              textAlign: "center",
+            },
+          ]}
+        />
+        {icon && iconFlex === "right" && icon}
+      </TouchableOpacity>
+    </View>
   );
 };
 

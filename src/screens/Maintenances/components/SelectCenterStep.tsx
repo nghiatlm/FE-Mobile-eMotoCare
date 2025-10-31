@@ -66,7 +66,7 @@ const renderStars = (rating: number) => {
   return stars;
 };
 
-const SelectCenterStep = ({ state, dispatch }: any) => {
+const SelectCenterStep = ({ state, dispatch, onSelectCenter }: any) => {
   const [serviceCenter, setServiceCenter] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -144,9 +144,10 @@ const SelectCenterStep = ({ state, dispatch }: any) => {
         return (
           <TouchableOpacity
             key={item.id}
-            onPress={() =>
-              dispatch({ type: "SET", payload: { serviceCenterId: item.id } })
-            }
+            onPress={() => {
+              dispatch({ type: "SET", payload: { serviceCenterId: item.id } });
+              onSelectCenter?.(item);
+            }}
             style={[
               styles.item,
               {
@@ -177,7 +178,7 @@ const SelectCenterStep = ({ state, dispatch }: any) => {
                   font={fontFamilies.roboto_regular}
                   color={appColor.text}
                   styles={{
-                    marginLeft: 12
+                    marginLeft: 12,
                   }}
                 />
               </RowComponent>

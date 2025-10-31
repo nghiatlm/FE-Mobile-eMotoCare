@@ -4,13 +4,13 @@ import { View } from "react-native";
 import {
   SectionComponent,
   SpaceComponent,
-  TextComponent
+  TextComponent,
 } from "../../../components";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
 
-const ConfirmStep = ({ state }: any) => {
+const ConfirmStep = ({ state, center }: any) => {
   const { appointmentDate, timeSlot, serviceCenterName, vehicleName } = state;
 
   const formatDate = (dateStr?: string) => {
@@ -67,9 +67,15 @@ const ConfirmStep = ({ state }: any) => {
           />
           <SpaceComponent height={6} />
           <TextComponent
-            text={serviceCenterName || "Chưa chọn"}
+            text={center.name || "Chưa chọn"}
             size={18}
             color={appColor.text}
+          />
+          <SpaceComponent height={6} />
+          <TextComponent
+            text={center.address || "Chưa chọn"}
+            size={16}
+            color={appColor.gray}
           />
         </View>
       </SectionComponent>

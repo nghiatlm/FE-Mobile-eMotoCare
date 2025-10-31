@@ -48,19 +48,21 @@ function reducer(state: State, action: any): State {
 const CreateMaintenance = ({ navigation }: any) => {
   const [step, setStep] = useState(0);
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [serviceCenter, setServiceCenter] = useState();
 
   const handleNext = async () => {
     if (step < 2) setStep(step + 1);
     else {
-      console.log("Submit:", state);
-      const result = await CreateAppointment(state);
-      if (result.success) {
-        console.log("Success: ", result.data);
-      } else {
-        console.log("Failed: ", result.message);
-      }
+      // console.log("Submit:", state);
+      // const result = await CreateAppointment(state);
+      // if (result.success) {
+      //   console.log("Success: ", result.data);
+      // } else {
+      //   console.log("Failed: ", result.message);
+      // }
       navigation.navigate("SuccessScreen", {
-        id: result.data.id,
+        // id: result.data.id,
+        id: "121234",
       });
     }
   };
@@ -70,10 +72,10 @@ const CreateMaintenance = ({ navigation }: any) => {
   };
 
   const footer = (
-    <View style={{ width: "100%" }}>
+    <View style={{ justifyContent: "center", alignItems: "center" }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         {step > 0 ? (
-          <ButtonComponent text="Quay lại" type="link" onPress={handleBack} />
+          <ButtonComponent text="Quay lại" onPress={handleBack} />
         ) : (
           <View style={{ width: 120 }} />
         )}
@@ -184,10 +186,24 @@ const CreateMaintenance = ({ navigation }: any) => {
           </View>
         </RowComponent>
 
-        {/* Render từng step */}
-        {step === 0 && <SelectCenterStep state={state} dispatch={dispatch} />}
+        {step === 0 && (
+          <SelectCenterStep
+            state={state}
+            onSelectCenter={(center: any) => {
+              console.log("Trung tâm được chọn:", center);
+              setServiceCenter(center);
+            }}
+            dispatch={dispatch}
+          />
+        )}
         {step === 1 && <SelectTimeStep state={state} dispatch={dispatch} />}
-        {step === 2 && <ConfirmStep state={state} dispatch={dispatch} />}
+        {step === 2 && (
+          <ConfirmStep
+            state={state}
+            dispatch={dispatch}
+            center={serviceCenter}
+          />
+        )}
       </View>
     </BackgroundComponent>
   );

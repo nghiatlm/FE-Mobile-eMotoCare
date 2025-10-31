@@ -1,5 +1,10 @@
+import {
+  AntDesign,
+  FontAwesome5,
+  Ionicons
+} from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { View, Image, StyleSheet, ActivityIndicator } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -8,14 +13,8 @@ import {
   SpaceComponent,
   TextComponent,
 } from "../../components";
-import { fontFamilies } from "../../constants/fontFamilies";
 import { appColor } from "../../constants/appColor";
-import {
-  AntDesign,
-  FontAwesome5,
-  Ionicons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { fontFamilies } from "../../constants/fontFamilies";
 import { getAppointmentDetail } from "../../services/appointment.service";
 import { globalStyle } from "../../styles/globalStyle";
 
@@ -59,7 +58,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
     );
   }
 
-  if (!data) {
+  if (data) {
     return (
       <BackgroundComponent back title="Đặt lịch bảo dưỡng">
         <TextComponent
@@ -125,81 +124,104 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
 
       <SpaceComponent height={25} />
 
-      {/* Thông tin chi tiết */}
+      <RowComponent justify="flex-start">
+        <Ionicons
+          name="information-circle-outline"
+          size={22}
+          color={appColor.primary}
+        />
+        <TextComponent
+          text="Chi tiết lịch hẹn"
+          size={18}
+          font={fontFamilies.roboto_bold}
+          color={appColor.text}
+          styles={{ marginLeft: 10 }}
+        />
+      </RowComponent>
+      <SpaceComponent height={20} />
       <SectionComponent
-        styles={[globalStyle.shadow, styles.card, { paddingVertical: 20 }]}
+        styles={[
+          globalStyle.shadow,
+          {
+            borderColor: appColor.gray,
+            borderWidth: 1,
+            backgroundColor: appColor.white,
+            borderRadius: 8,
+            marginVertical: 12,
+            paddingVertical: 16,
+          },
+        ]}
       >
         <RowComponent justify="flex-start">
-          <Ionicons
-            name="information-circle-outline"
-            size={22}
-            color={appColor.primary}
-          />
-          <TextComponent
-            text="Chi tiết lịch hẹn"
-            size={18}
-            font={fontFamilies.roboto_bold}
-            color={appColor.text}
-            styles={{ marginLeft: 10 }}
-          />
-        </RowComponent>
-
-        <SpaceComponent height={20} />
-
-        {/* Thông tin trung tâm */}
-        <RowComponent justify="flex-start" styles={styles.infoRow}>
           <FontAwesome5
             name="map-marker-alt"
             size={20}
             color={appColor.primary}
           />
           <View style={{ marginLeft: 10, flex: 1 }}>
-            <TextComponent text="Trung tâm" font={fontFamilies.roboto_medium} />
+            <TextComponent
+              text="Trung tâm"
+              font={fontFamilies.roboto_medium}
+              size={20}
+            />
+            <SpaceComponent height={8} />
             <TextComponent
               text={data?.serviceCenter?.name || "Ihouzz MotorCare"}
               color={appColor.gray2}
+              font={fontFamilies.roboto_regular}
+              size={18}
             />
+            <SpaceComponent height={8} />
             <TextComponent
               text={
                 data?.serviceCenter?.address || "Số 1, Nguyễn Văn Bảo, Gò Vấp"
               }
               color={appColor.gray2}
+              size={16}
             />
           </View>
         </RowComponent>
-
-        <SpaceComponent height={12} />
-
-        {/* Ngày và Giờ */}
-        <RowComponent justify="space-between" styles={styles.infoRow}>
-          <MaterialIcons name="date-range" size={20} color={appColor.primary} />
-          <TextComponent
-            text={data?.date || "22/10/2025"}
-            color={appColor.gray2}
-            styles={{ marginLeft: 8, flex: 1 }}
-          />
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-
-        <RowComponent justify="space-between" styles={styles.infoRow}>
-          <AntDesign name="clock-circle" size={20} color={appColor.primary} />
-          <TextComponent
-            text={data?.timeSlot || "09:00 - 10:00"}
-            color={appColor.gray2}
-            styles={{ marginLeft: 8, flex: 1 }}
-          />
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-
-        <RowComponent justify="space-between" styles={styles.infoRow}>
-          <MaterialIcons name="build" size={22} color={appColor.primary} />
-          <TextComponent
-            text={data?.type || "Bảo dưỡng định kỳ"}
-            color={appColor.gray2}
-            styles={{ marginLeft: 8, flex: 1 }}
-          />
+      </SectionComponent>
+      <SectionComponent
+        styles={[
+          globalStyle.shadow,
+          {
+            borderColor: appColor.gray,
+            borderWidth: 1,
+            backgroundColor: appColor.white,
+            borderRadius: 8,
+            marginVertical: 12,
+            paddingVertical: 16,
+          },
+        ]}
+      >
+        <RowComponent justify="flex-start">
+          <Ionicons name="today-outline" size={20} color={appColor.primary} />
+          <View
+            style={{
+              marginLeft: 12,
+            }}
+          >
+            <TextComponent
+              text="Thời gian"
+              font={fontFamilies.roboto_regular}
+              size={18}
+            />
+            <SpaceComponent height={8} />
+            <TextComponent
+              text="Thứ ba, 9 tháng 9, 2025"
+              font={fontFamilies.roboto_regular}
+              size={16}
+              color={appColor.gray2}
+            />
+            <SpaceComponent height={8} />
+            <TextComponent
+              text="09:00"
+              font={fontFamilies.roboto_regular}
+              size={16}
+              color={appColor.gray2}
+            />
+          </View>
         </RowComponent>
       </SectionComponent>
     </BackgroundComponent>
@@ -227,6 +249,7 @@ const styles = StyleSheet.create({
     backgroundColor: appColor.white,
     borderRadius: 12,
     paddingHorizontal: 16,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: appColor.gray,
   },
