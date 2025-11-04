@@ -7,6 +7,7 @@ import {
   MaintenanceDetailScreen,
   MaintenanceProcess,
   SuccessScreen,
+  WaitConfirm,
 } from "../screens";
 
 const ExploreNavigator = () => {
@@ -21,6 +22,7 @@ const ExploreNavigator = () => {
       <Stack.Screen name="CreateMaintenance" component={CreateMaintenance} />
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
       <Stack.Screen name="MaintenanceProcess" component={MaintenanceProcess} />
+      <Stack.Screen name="WaitConfirm" component={WaitConfirm} />
       <Stack.Screen
         name="AppointmentDetail"
         component={AppointmentDetailScreen}

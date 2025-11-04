@@ -129,6 +129,7 @@ const TabsNavigator = () => {
               "SuccessScreen",
               "AppointmentDetail",
               "MaintenanceProcess",
+              "WaitConfirm",
             ].includes(routeName)
               ? { display: "none" }
               : undefined,

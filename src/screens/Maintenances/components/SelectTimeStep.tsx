@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import {
   RowComponent,
@@ -9,19 +9,8 @@ import {
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { appColor } from "../../../constants/appColor";
 import { Fontisto, Ionicons } from "@expo/vector-icons";
+import { getServiceCenterSlots } from "../../../services/serviceCenter.service";
 
-const mockSlots = [
-  { id: "s1", label: "08:00", available: true },
-  { id: "s2", label: "09:00", available: true },
-  { id: "s3", label: "10:00", available: false },
-  { id: "s4", label: "14:00", available: true },
-  { id: "s5", label: "15:00", available: false },
-  { id: "s6", label: "16:00", available: true },
-];
-
-const weekdayLabels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-
-// ✅ Lấy YYYY-MM-DD mà không bị lệch múi giờ
 const isoDateLocal = (d: Date) => {
   const offset = d.getTimezoneOffset() * 60000;
   const local = new Date(d.getTime() - offset);
@@ -50,12 +39,18 @@ const buildMonthMatrix = (year: number, month: number) => {
   return weeks;
 };
 
-const SelectTimeStep = ({ state, dispatch }: any) => {
+const SelectTimeStep = ({ state, dispatch, center }: any) => {
   const today = new Date();
   const todayIso = isoDateLocal(today);
-  const initDate = state.appointmentDate
+  let initDate = state.appointmentDate
     ? parseIsoToLocalDate(state.appointmentDate)
     : today;
+
+  // ensure initial appointmentDate is not in the past
+  if (state.appointmentDate && state.appointmentDate < todayIso) {
+    dispatch?.({ type: "SET", payload: { appointmentDate: todayIso } });
+    initDate = today;
+  }
 
   const [currentMonth, setCurrentMonth] = useState(
     new Date(initDate.getFullYear(), initDate.getMonth(), 1)
@@ -70,10 +65,95 @@ const SelectTimeStep = ({ state, dispatch }: any) => {
     [currentMonth]
   );
 
+  const [slots, setSlots] = useState<any[]>([]);
+
+  useEffect(() => {
+    const centerId =
+      center?.id || center?.serviceCenterId || center?.serviceCenter?.id;
+    console.log("Fetch slots for centerId:", centerId);
+    if (centerId) {
+      getSlot(centerId);
+    } else {
+      setSlots([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center]);
+
+  const getSlot = async (centerId: string) => {
+    try {
+      const res = await getServiceCenterSlots(centerId);
+      if (res?.success) {
+        // find slots in several possible paths (tolerate API shape)
+        const data = res.data || {};
+        let s: any[] =
+          data?.serviceCente?.slot ||
+          data?.servicecenter?.serviceCente?.slot ||
+          data?.servicecenter?.slot ||
+          data?.servicecenter?.serviceCenter?.slot ||
+          data?.slots ||
+          data?.slot ||
+          [];
+
+        // if nested under servicecenter key (common shape)
+        if (!s.length && data?.servicecenter) {
+          const sc = data.servicecenter;
+          s =
+            sc?.serviceCente?.slot || sc?.slot || sc?.serviceCenter?.slot || [];
+        }
+
+        setSlots(Array.isArray(s) ? s : []);
+      } else {
+        setSlots([]);
+      }
+    } catch (error) {
+      console.warn("getSlot error", error);
+      setSlots([]);
+    }
+  };
+
+  // label for slot: "HH:MM - HH:MM"
+  const slotLabel = (s: any) =>
+    `${s?.startTime?.trim() || ""} - ${s?.endTime?.trim() || ""}`;
+
   const isSameDay = (a: Date, bIso: string) => isoDateLocal(a) === bIso;
   const inSameMonth = (d: Date, monthDate: Date) =>
     d.getMonth() === monthDate.getMonth() &&
     d.getFullYear() === monthDate.getFullYear();
+
+  // compute slots for selected day only — strict match by slot.date only
+  const daySlots = useMemo(() => {
+    if (!selectedIso || !slots?.length) return [];
+
+    const normalizeSlotDate = (s: any) => {
+      const raw = s?.date || s?.Date || s?.day;
+      if (!raw) return "";
+      // if already yyyy-mm-dd
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      // try parse and convert to local yyyy-mm-dd
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return "";
+      const offset = d.getTimezoneOffset() * 60000;
+      const local = new Date(d.getTime() - offset);
+      return local.toISOString().split("T")[0];
+    };
+
+    const matched = slots.filter((s: any) => {
+      const sd = normalizeSlotDate(s);
+      return sd === selectedIso;
+    });
+
+    // sort by startTime if present (HH:MM)
+    matched.sort((a: any, b: any) => {
+      const ta = (a?.startTime || "").trim();
+      const tb = (b?.startTime || "").trim();
+      if (!ta && !tb) return 0;
+      if (!ta) return 1;
+      if (!tb) return -1;
+      return ta.localeCompare(tb);
+    });
+
+    return matched;
+  }, [selectedIso, slots]);
 
   return (
     <View>
@@ -155,14 +235,14 @@ const SelectTimeStep = ({ state, dispatch }: any) => {
 
         {/* ---- Header thứ ---- */}
         <View style={styles.weekRow}>
-          {weekdayLabels.map((w) => (
+          {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((w) => (
             <View key={w} style={styles.dayCellHeader}>
               <TextComponent text={w} size={12} color={appColor.gray2} />
             </View>
           ))}
         </View>
 
-        {/* ---- Ngày ---- */}
+        {/* ---- Ngày (mỗi tuần một hàng) ---- */}
         {weeks.map((week, wi) => (
           <View key={wi} style={styles.weekRow}>
             {week.map((d, di) => {
@@ -177,7 +257,7 @@ const SelectTimeStep = ({ state, dispatch }: any) => {
                     !isPast &&
                     dispatch({
                       type: "SET",
-                      payload: { appointmentDate: dayIso },
+                      payload: { appointmentDate: dayIso, timeSlot: "" },
                     })
                   }
                   style={styles.dayCell}
@@ -207,53 +287,73 @@ const SelectTimeStep = ({ state, dispatch }: any) => {
             })}
           </View>
         ))}
-      </SectionComponent>
 
-      <SpaceComponent height={16} />
+        <SpaceComponent height={16} />
+      </SectionComponent>
 
       {/* ---- Chọn giờ ---- */}
       <SectionComponent styles={{ paddingHorizontal: 12 }}>
-        <RowComponent>
-          <Ionicons name="time-outline" size={20} color={appColor.primary} />
-          <TextComponent text="Chọn giờ" size={18} styles={{ marginLeft: 8 }} />
+        <RowComponent justify="flex-start">
+          <Ionicons name="time-outline" size={24} color={appColor.primary} />
+          <TextComponent
+            text="Chọn giờ"
+            size={19}
+            color={appColor.text}
+            font={fontFamilies.roboto_medium}
+            styles={{ marginLeft: 8 }}
+          />
         </RowComponent>
-        <SpaceComponent height={12} />
+        <SpaceComponent height={16} />
         <View style={styles.slotsWrap}>
-          {mockSlots.map((s) => {
-            const active = state.timeSlot === s.label;
-            const disabled = !s.available;
-            return (
-              <TouchableOpacity
-                key={s.id}
-                disabled={disabled}
-                onPress={() =>
-                  dispatch({
-                    type: "SET",
-                    payload: {
-                      timeSlot: s.label,
-                      appointmentDate: state.appointmentDate,
-                    },
-                  })
-                }
-                style={[
-                  styles.slot,
-                  {
-                    backgroundColor: active ? appColor.primary : "#FFF",
-                    borderColor: active ? appColor.primary : "#EEE",
-                  },
-                  disabled && styles.slotDisabled,
-                ]}
-              >
-                <TextComponent
-                  text={s.label}
-                  size={16}
-                  color={
-                    disabled ? appColor.gray2 : active ? "#FFF" : appColor.text
+          {daySlots.length === 0 ? (
+            <TextComponent
+              text="Không có khung giờ cho ngày này."
+              size={14}
+              color={appColor.gray2}
+            />
+          ) : (
+            daySlots.map((s: any) => {
+              const label = slotLabel(s);
+              const active = state.timeSlot === label;
+              const disabled = s.isActive === false || (s.capacity ?? 0) <= 0;
+              return (
+                <TouchableOpacity
+                  key={s.id || label}
+                  disabled={disabled}
+                  onPress={() =>
+                    dispatch({
+                      type: "SET",
+                      payload: {
+                        timeSlot: label,
+                        appointmentDate: selectedIso,
+                        serviceCenterSlotId: s.id,
+                      },
+                    })
                   }
-                />
-              </TouchableOpacity>
-            );
-          })}
+                  style={[
+                    styles.slot,
+                    {
+                      backgroundColor: active ? appColor.primary : "#FFF",
+                      borderColor: active ? appColor.primary : "#EEE",
+                    },
+                    disabled && styles.slotDisabled,
+                  ]}
+                >
+                  <TextComponent
+                    text={label}
+                    size={16}
+                    color={
+                      disabled
+                        ? appColor.gray2
+                        : active
+                        ? "#FFF"
+                        : appColor.text
+                    }
+                  />
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </SectionComponent>
     </View>

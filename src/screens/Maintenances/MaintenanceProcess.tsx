@@ -13,16 +13,38 @@ import { fontFamilies } from "../../constants/fontFamilies";
 import { getAppointmentDetail } from "../../services/appointment.service";
 import { globalStyle } from "../../styles/globalStyle";
 
+const mapStatusToStep = (status?: string) => {
+  const s = (status || "").toUpperCase();
+  if (s.includes("PENDING")) return 1; 
+  if (s.includes("CHECKED_IN")) return 2; 
+  if (
+    s.includes("MAINT") ||
+    s.includes("IN_PROGRESS") ||
+    s.includes("PROCESS") ||
+    s.includes("WORKING") ||
+    s.includes("PROCESSING")
+  )
+    return 3; 
+  if (s.includes("COMPLETE") || s.includes("COMPLETED") || s.includes("DONE"))
+    return 4; 
+  return 1;
+};
+
 const MaintenanceProcess = ({ navigation, route }: any) => {
   const { id } = route.params;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState<number>(1); // 1 = Đang xử lý yêu cầu
+  const [currentStep, setCurrentStep] = useState<number>(1); // default 1 = Đang xử lý yêu cầu
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const result = await getAppointmentDetail(id);
-      if (result.success) setData(result.data);
+      if (result.success) {
+        setData(result.data);
+        // set step based on status from API
+        setCurrentStep(mapStatusToStep(result.data?.status));
+      }
       setLoading(false);
     };
     fetchData();
@@ -107,10 +129,9 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                     style={[
                       styles.line,
                       {
+                        // sửa điều kiện: đường nối active khi index < currentStep
                         backgroundColor:
-                          index <= currentStep
-                            ? appColor.primary
-                            : appColor.gray,
+                          index < currentStep ? appColor.primary : appColor.gray,
                       },
                     ]}
                   />

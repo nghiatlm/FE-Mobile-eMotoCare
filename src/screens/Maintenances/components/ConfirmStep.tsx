@@ -1,7 +1,8 @@
 import { AntDesign, Fontisto } from "@expo/vector-icons";
-import React from "react";
-import { View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Platform, View } from "react-native";
 import {
+  RowComponent,
   SectionComponent,
   SpaceComponent,
   TextComponent,
@@ -10,8 +11,9 @@ import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
 
-const ConfirmStep = ({ state, center }: any) => {
-  const { appointmentDate, timeSlot, serviceCenterName, vehicleName } = state;
+const ConfirmStep = ({ state, center, vehicle }: any) => {
+  const { appointmentDate, timeSlot } = state;
+  const [isWarranty, setIsWarranty] = useState(false);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "";
@@ -23,6 +25,27 @@ const ConfirmStep = ({ state, center }: any) => {
       year: "numeric",
     });
   };
+
+  useEffect(() => {
+    const checkWarranty = () => {
+      if (!vehicle || !vehicle.warrantyExpiry) {
+        setIsWarranty(false);
+        return;
+      }
+      const exp = new Date(vehicle.warrantyExpiry);
+      if (isNaN(exp.getTime())) {
+        setIsWarranty(false);
+        return;
+      }
+      const now = new Date();
+      if (exp.getTime() < now.getTime()) {
+        setIsWarranty(false);
+      } else {
+        setIsWarranty(true);
+      }
+    };
+    checkWarranty();
+  }, [vehicle]);
 
   return (
     <View>
@@ -142,11 +165,50 @@ const ConfirmStep = ({ state, center }: any) => {
             font={fontFamilies.roboto_medium}
           />
           <SpaceComponent height={6} />
-          <TextComponent
-            text={vehicleName || "Vinfast Feliz Lite"}
-            size={18}
-            color={appColor.text}
-          />
+          <RowComponent justify="flex-start">
+            <TextComponent
+              text="Kiểu xe: "
+              size={Platform.OS === "android" ? 16 : 18}
+              font={fontFamilies.roboto_regular}
+              styles={{ marginRight: 12 }}
+            />
+            <TextComponent
+              text={vehicle?.modelName || "Thằng Thịnh làm sai"}
+              size={Platform.OS === "android" ? 16 : 18}
+              styles={{ marginRight: 12 }}
+            />
+          </RowComponent>
+          <SpaceComponent height={6} />
+
+          <RowComponent justify="flex-start">
+            <TextComponent
+              text="Số km: "
+              size={Platform.OS === "android" ? 16 : 18}
+              font={fontFamilies.roboto_regular}
+              styles={{ marginRight: 12 }}
+            />
+            <TextComponent
+              text={vehicle?.modelName || "Thằng Thịnh làm sai"}
+              size={Platform.OS === "android" ? 16 : 18}
+              styles={{ marginRight: 12 }}
+            />
+          </RowComponent>
+          <SpaceComponent height={6} />
+          <RowComponent justify="flex-start">
+            <TextComponent
+              text="Bảo hành: "
+              size={Platform.OS === "android" ? 16 : 18}
+              font={fontFamilies.roboto_regular}
+              styles={{ marginRight: 12 }}
+            />
+            <TextComponent
+              text={isWarranty ? "Còn bảo hành" : "Thằng Thịnh làm sai"}
+              size={Platform.OS === "android" ? 16 : 18}
+              styles={{ marginRight: 12 }}
+              color={isWarranty ? appColor.primary : appColor.danger}
+            />
+          </RowComponent>
+          <SpaceComponent height={6} />
         </View>
       </SectionComponent>
     </View>

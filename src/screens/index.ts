@@ -7,6 +7,7 @@ import RegisterScreen from "./auth/RegisterScreen";
 import Verification from "./auth/Verification";
 import HomeScreen from "./home/HomeScreen";
 import SuccessScreen from "./Maintenances/components/SuccessScreen";
+import WaitConfirm from "./Maintenances/components/WaitConfirm";
 import CreateMaintenance from "./Maintenances/CreateMaintenance";
 import MaintenanceDetailScreen from "./Maintenances/MaintenanceDetailScreen";
 import MaintenanceProcess from "./Maintenances/MaintenanceProcess";
@@ -32,4 +33,5 @@ export {
   SuccessScreen,
   AppointmentDetailScreen,
   MaintenanceProcess,
+  WaitConfirm,
 };

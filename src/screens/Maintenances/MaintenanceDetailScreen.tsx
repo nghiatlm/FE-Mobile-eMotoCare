@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -11,15 +11,29 @@ import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
 import { Image, View } from "react-native";
+import { getMaintenanceStageById } from "../../services/maintenanceStage.service";
 
 const MaintenanceDetailScreen = ({ navigation, route }: any) => {
-  const { maintenanceId } = route.params;
+  const { maintenanceStageId, stage } = route.params;
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!maintenanceStageId) return;
+      const res = await getMaintenanceStageById(maintenanceStageId);
+      if (res.success) {
+        console.log("Maintenance stage data:", res.data);
+        setData(res.data);
+      }
+    };
+    fetchData();
+  }, [maintenanceStageId]);
 
   const footer = (
     <ButtonComponent
       text="Đặt lịch bảo dưỡng"
       type="primary"
-      onPress={() => navigation.navigate("CreateMaintenance")}
+      onPress={() => navigation.navigate("CreateMaintenance", { stage })}
     />
   );
 
@@ -44,6 +58,7 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
           color={appColor.gray2}
         />
       </SectionComponent>
+
       <SectionComponent
         styles={[
           globalStyle.shadow,
@@ -57,7 +72,7 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
         ]}
       >
         <TextComponent
-          text="Bảo dưỡng tháng 12"
+          text={data?.name || "Bảo dưỡng định kỳ"}
           title
           size={20}
           color={appColor.primary}
@@ -71,7 +86,7 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
             font={fontFamilies.roboto_regular}
           />
           <TextComponent
-            text="2500 - 6000km"
+            text={String(data?.mileage ?? "")}
             color={appColor.text}
             size={18}
             font={fontFamilies.roboto_medium}
@@ -87,7 +102,7 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
             font={fontFamilies.roboto_regular}
           />
           <TextComponent
-            text="tháng 12"
+            text={String(data?.durationMonth ?? "")}
             color={appColor.text}
             size={18}
             font={fontFamilies.roboto_medium}
@@ -103,845 +118,129 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
           size={20}
           color={appColor.primary}
         />
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
 
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
+        {Array.isArray(data?.maintenanceStageDetails) &&
+        data.maintenanceStageDetails.length > 0 ? (
+          data.maintenanceStageDetails.map((item: any, index: number) => {
+            const title =
+              item?.part?.name ?? item?.name ?? `Hạng mục ${index + 1}`;
 
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
+            // normalize actionType to array of upper-case strings
+            const rawActions = item?.actionType;
+            const actionTypes: string[] = Array.isArray(rawActions)
+              ? rawActions.map((t: any) => String(t).trim().toUpperCase())
+              : rawActions
+              ? String(rawActions)
+                  .split(/[,\|;]/)
+                  .map((t) => t.trim().toUpperCase())
+              : [];
 
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
+            const translateAction = (type: string) =>
+              type === "INSPECTION"
+                ? "Kiểm tra"
+                : type === "LUBRICATION"
+                ? "Bôi trơn"
+                : type;
 
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
+            const actionColor = (type: string) =>
+              type === "INSPECTION"
+                ? appColor.primary
+                : type === "LUBRICATION"
+                ? appColor.warning
+                : appColor.gray;
 
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
-
-        <SpaceComponent height={12} />
-        <RowComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Image
-            source={require("../../assets/images/parts/dong-ho.png")}
-            style={{ height: 120, width: 150, resizeMode: "contain" }}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <TextComponent
-              text="Hệ thống phanh tay"
-              size={20}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <SpaceComponent height={10} />
-            <RowComponent justify="flex-start">
-              <TextComponent
-                text="Nội dung: "
-                font={fontFamilies.roboto_regular}
-                color={appColor.text}
-                size={18}
-              />
-              <TextComponent
-                text="Kiểm tra"
-                font={fontFamilies.roboto_regular}
-                color={appColor.warning}
-                size={18}
-                styles={{ marginLeft: 4 }}
-              />
-            </RowComponent>
-          </View>
-        </RowComponent>
+            return (
+              <React.Fragment key={item?.id ?? index}>
+                <SpaceComponent height={12} />
+                <RowComponent
+                  styles={[
+                    globalStyle.shadow,
+                    {
+                      backgroundColor: appColor.white,
+                      borderWidth: 1,
+                      borderColor: appColor.gray,
+                      borderRadius: 8,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={require("../../assets/images/parts/dong-ho.png")}
+                    style={{ height: 120, width: 150, resizeMode: "contain" }}
+                  />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <TextComponent
+                      text={title}
+                      size={20}
+                      font={fontFamilies.roboto_medium}
+                      color={appColor.text}
+                    />
+                    <SpaceComponent height={10} />
+                    {/* Hiển thị từng action type trên dòng riêng, màu khác nhau */}
+                    {actionTypes.length > 0 ? (
+                      actionTypes.map((t, i) => (
+                        <RowComponent
+                          key={`${item?.id ?? index}-action-${i}`}
+                          justify="flex-start"
+                          styles={{
+                            alignItems: "center",
+                            marginTop: i === 0 ? 0 : 8,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 10,
+                              height: 10,
+                              backgroundColor: actionColor(t),
+                              borderRadius: 4,
+                              marginRight: 8,
+                            }}
+                          />
+                          <TextComponent
+                            text={translateAction(t)}
+                            font={fontFamilies.roboto_regular}
+                            color={actionColor(t)}
+                            size={18}
+                          />
+                        </RowComponent>
+                      ))
+                    ) : (
+                      <RowComponent justify="flex-start">
+                        <TextComponent
+                          text="Nội dung: "
+                          font={fontFamilies.roboto_regular}
+                          color={appColor.text}
+                          size={18}
+                        />
+                        <TextComponent
+                          text="Không có mô tả"
+                          font={fontFamilies.roboto_regular}
+                          color={appColor.gray2}
+                          size={18}
+                          styles={{ marginLeft: 4 }}
+                        />
+                      </RowComponent>
+                    )}
+                    {item?.note ? (
+                      <>
+                        <SpaceComponent height={8} />
+                        <TextComponent
+                          text={item.note}
+                          size={14}
+                          color={appColor.gray2}
+                        />
+                      </>
+                    ) : null}
+                  </View>
+                </RowComponent>
+              </React.Fragment>
+            );
+          })
+        ) : (
+          <>
+            <SpaceComponent height={12} />
+            <TextComponent text="Không có nội dung thực hiện" size={14} />
+          </>
+        )}
       </SectionComponent>
     </BackgroundComponent>
   );

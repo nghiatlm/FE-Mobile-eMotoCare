@@ -1,10 +1,11 @@
 import React, { ReactNode } from "react";
 import {
-  StyleProp,
-  TextStyle,
   TouchableOpacity,
-  View,
+  Text,
+  StyleProp,
   ViewStyle,
+  TextStyle,
+  View,
 } from "react-native";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
@@ -14,14 +15,14 @@ import TextComponent from "./TextComponent";
 interface Props {
   icon?: ReactNode;
   text: string;
-  type?: "primary" | "text" | "link";
+  type?: "primary" | "text" | "link" | "secondary" | "ghost";
   color?: string;
   styles?: StyleProp<ViewStyle>;
   textColor?: string;
   textStyle?: StyleProp<TextStyle>;
   textFont?: string;
-  disbale?: boolean;
-  onPress?: () => void;
+  disabled?: boolean;
+  onPress?: () => void | Promise<void>; // allow async handlers
   iconFlex?: "right" | "left";
 }
 
@@ -37,13 +38,13 @@ const ButtonComponent = (props: Props) => {
     textFont,
     onPress,
     iconFlex,
-    disbale,
+    disabled,
   } = props;
 
   return type === "primary" ? (
     <View style={{ alignItems: "center" }}>
       <TouchableOpacity
-        disabled={disbale}
+        disabled={disabled}
         onPress={onPress}
         style={[
           globalStyle.button,
@@ -51,7 +52,7 @@ const ButtonComponent = (props: Props) => {
           {
             backgroundColor: color
               ? color
-              : disbale
+              : disabled
               ? appColor.gray
               : appColor.primary,
             marginBottom: 20,
@@ -90,7 +91,7 @@ const ButtonComponent = (props: Props) => {
   ) : (
     <View style={{ alignItems: "center" }}>
       <TouchableOpacity
-        disabled={disbale}
+        disabled={disabled}
         onPress={onPress}
         style={[
           globalStyle.button,

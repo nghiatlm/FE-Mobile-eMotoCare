@@ -1,8 +1,4 @@
-import {
-  AntDesign,
-  FontAwesome5,
-  Ionicons
-} from "@expo/vector-icons";
+import { AntDesign, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet, View } from "react-native";
 import {
@@ -20,7 +16,7 @@ import { globalStyle } from "../../styles/globalStyle";
 
 const AppointmentDetailScreen = ({ navigation, route }: any) => {
   // const { id } = route.params;
-  const id = "838bb043-b872-4fd6-ab5a-b0fb86f7e931";
+  const id = "871a5113-599b-4047-80e4-23e0259a7447";
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -58,7 +54,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
     );
   }
 
-  if (data) {
+  if (!data) {
     return (
       <BackgroundComponent back title="Đặt lịch bảo dưỡng">
         <TextComponent
@@ -209,14 +205,14 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
             />
             <SpaceComponent height={8} />
             <TextComponent
-              text="Thứ ba, 9 tháng 9, 2025"
+              text={data?.appointmentDate}
               font={fontFamilies.roboto_regular}
               size={16}
               color={appColor.gray2}
             />
             <SpaceComponent height={8} />
             <TextComponent
-              text="09:00"
+              text={data?.timeSlot}
               font={fontFamilies.roboto_regular}
               size={16}
               color={appColor.gray2}

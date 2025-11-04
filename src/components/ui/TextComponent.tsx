@@ -1,5 +1,5 @@
-import { View, Text, StyleProp, TextStyle } from "react-native";
 import React from "react";
+import { StyleProp, Text, TextStyle } from "react-native";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
@@ -12,12 +12,17 @@ interface Props {
   font?: string;
   styles?: StyleProp<TextStyle>;
   title?: boolean;
+  // added props to support truncation/ellipsis
+  numberOfLines?: number;
+  ellipsizeMode?: "head" | "middle" | "tail" | "clip";
 }
 
 const TextComponent = (props: Props) => {
-  const { text, color, size, flex, font, styles, title } = props;
+  const { text, color, size, flex, font, styles, title, numberOfLines, ellipsizeMode } = props;
   return (
     <Text
+      numberOfLines={numberOfLines}
+      ellipsizeMode={ellipsizeMode}
       style={[
         globalStyle.text,
         {

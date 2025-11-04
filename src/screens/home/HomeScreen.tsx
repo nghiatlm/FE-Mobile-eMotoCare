@@ -43,75 +43,10 @@ const HomeScreen = ({ navigation }: any) => {
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
   const [accountId, setAccountId] = useState("");
-  const [vehicleMaintenance, setVehicleMaintenance] = useState<any>(null);
-
-  const [mainDetailId, setMainDetailId] = useState(1);
-
-  const maintenanceItems = [
-    {
-      id: 0,
-      title: "Lịch bảo dưỡng tháng 12",
-      date: "20/12/2024",
-      status: "COMPLETED",
-      pillColor: appColor.primary,
-      cardBg: appColor.success50,
-      statusColor: appColor.primary,
-    },
-    {
-      id: 1,
-      title: "Lịch bảo dưỡng tháng 01",
-      date: "15/01/2025",
-      status: "COMPLETED",
-      pillColor: appColor.primary,
-      cardBg: appColor.success50,
-      statusColor: appColor.primary,
-    },
-    {
-      id: 2,
-      title: "Lịch bảo dưỡng tháng 02",
-      date: "10/02/2025",
-      status: "Quá hạn",
-      pillColor: appColor.danger,
-      cardBg: appColor.danger50,
-      statusColor: appColor.danger,
-    },
-    {
-      id: 3,
-      title: "Lịch bảo dưỡng tháng 03",
-      date: "05/03/2025",
-      status: "Sắp tới",
-      pillColor: appColor.warning,
-      cardBg: appColor.warning2,
-      statusColor: appColor.warning,
-    },
-    {
-      id: 4,
-      title: "Lịch bảo dưỡng tháng 04",
-      date: "01/04/2025",
-      status: "Chưa thực hiện",
-      pillColor: appColor.gray,
-      cardBg: appColor.white,
-      statusColor: appColor.gray,
-    },
-    {
-      id: 5,
-      title: "Lịch bảo dưỡng tháng 05",
-      date: "20/05/2025",
-      status: "Chưa thực hiện",
-      pillColor: appColor.gray,
-      cardBg: appColor.white,
-      statusColor: appColor.gray,
-    },
-    {
-      id: 6,
-      title: "Lịch bảo dưỡng tháng 06",
-      date: "30/06/2025",
-      status: "Chưa thực hiện",
-      pillColor: appColor.gray,
-      cardBg: appColor.white,
-      statusColor: appColor.gray,
-    },
-  ];
+  const [vehicleMaintenance, setVehicleMaintenance] = useState<any[]>([]);
+  const [mainDetailId, setMainDetailId] = useState<string | number | null>(
+    null
+  );
 
   useEffect(() => {
     const id = auth.accountResponse?.id ?? "";
@@ -185,8 +120,17 @@ const HomeScreen = ({ navigation }: any) => {
     try {
       const res = await getMaintenances(params);
       if (res.success) {
-        setVehicleMaintenance(res.data?.rowDatas ?? []);
-        console.log("Fetched maintenance data:", vehicleMaintenance);
+        const rows = res.data?.rowDatas ?? [];
+        setVehicleMaintenance(rows);
+        // reset selection to first item and set mainDetailId tương ứng
+        if (rows.length > 0) {
+          setSelectedMaintenance(0);
+          setMainDetailId(rows[0].id ?? null);
+        } else {
+          setSelectedMaintenance(0);
+          setMainDetailId(null);
+        }
+        console.log("Fetched maintenance data:", rows);
       } else {
         console.warn("fetchMaintenances:", res.message);
       }
@@ -194,6 +138,65 @@ const HomeScreen = ({ navigation }: any) => {
       console.error("fetchMaintenances error:", e);
     }
   };
+
+  // chuẩn hoá dữ liệu để render (chỉ từ API)
+  const displayed =
+    Array.isArray(vehicleMaintenance) && vehicleMaintenance.length > 0
+      ? vehicleMaintenance.map((m: any, idx: number) => {
+          const date = m?.dateOfImplementation
+            ? new Date(m.dateOfImplementation).toLocaleDateString()
+            : "Chưa có ngày";
+          const status = m?.status ?? "NO_START";
+          const pillColor =
+            status === "COMPLETED"
+              ? appColor.primary
+              : status === "UPCOMING"
+              ? appColor.warning
+              : status === "OVERDUE" || status === "EXPIRED"
+              ? appColor.danger
+              : appColor.gray;
+          const cardBg =
+            status === "COMPLETED"
+              ? appColor.success50
+              : status === "UPCOMING"
+              ? appColor.warning2
+              : status === "OVERDUE" || status === "EXPIRED"
+              ? appColor.danger50
+              : appColor.white;
+          const statusColor =
+            status === "COMPLETED"
+              ? appColor.primary
+              : status === "UPCOMING"
+              ? appColor.warning
+              : status === "OVERDUE"
+              ? appColor.danger
+              : appColor.gray;
+
+          return {
+            maintenanceId: m.id ?? `local-${idx}`,
+            id: m.id ?? idx,
+            title: m.title ?? `Lịch bảo dưỡng ${idx + 1}`,
+            date,
+            status,
+            pillColor,
+            cardBg,
+            statusColor,
+            raw: m,
+            maintenanceStageId: m.maintenanceStageId || null,
+          };
+        })
+      : [];
+
+  // đảm bảo selectedMaintenance hợp lệ khi displayed thay đổi
+  useEffect(() => {
+    if (!displayed || displayed.length === 0) {
+      setSelectedMaintenance(0);
+      return;
+    }
+    if (selectedMaintenance > displayed.length - 1) {
+      setSelectedMaintenance(0);
+    }
+  }, [displayed]);
 
   return (
     <View style={[globalStyle.container]}>
@@ -323,76 +326,125 @@ const HomeScreen = ({ navigation }: any) => {
               color={appColor.primary}
             />
             <View style={styles.line} />
-            <RowComponent justify="space-between">
-              {maintenanceItems.map((item, idx) => (
-                <TouchableOpacity
-                  key={item.id}
-                  onPress={() => setSelectedMaintenance(idx)}
-                  activeOpacity={0.8}
-                  style={{
-                    // nếu là item được chọn, tăng viền
-                    borderWidth: selectedMaintenance === idx ? 2 : 0,
-                    borderColor:
-                      selectedMaintenance === idx
-                        ? maintenanceItems[selectedMaintenance].pillColor
-                        : "transparent",
-                    borderRadius: 20,
-                    padding: 2,
+
+            {displayed.length > 0 ? (
+              <>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 8,
                   }}
                 >
-                  <View
-                    style={[
-                      styles.maintenanceStatus,
-                      {
-                        backgroundColor: item.pillColor,
-                        width: 46,
-                        height: 20,
-                      },
-                    ]}
-                  />
-                </TouchableOpacity>
-              ))}
-            </RowComponent>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    {displayed.map((item: any, idx: number) => (
+                      <TouchableOpacity
+                        key={item.maintenanceId ?? idx}
+                        onPress={() => {
+                          setSelectedMaintenance(idx);
+                          setMainDetailId(item.maintenanceId ?? null);
+                        }}
+                        activeOpacity={0.8}
+                        style={{
+                          borderWidth: selectedMaintenance === idx ? 2 : 0,
+                          borderColor:
+                            selectedMaintenance === idx
+                              ? item.pillColor
+                              : "transparent",
+                          borderRadius: 20,
+                          padding: 2,
+                          marginRight: 8,
+                          minWidth: 46,
+                          maxWidth: 60,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <View
+                          style={[
+                            styles.maintenanceStatus,
+                            {
+                              backgroundColor: item.pillColor,
+                              width: 46,
+                              height: 20,
+                            },
+                          ]}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+
+                <SpaceComponent height={12} />
+
+                {displayed[selectedMaintenance] ? (
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={{
+                      padding: 12,
+                      backgroundColor: displayed[selectedMaintenance].cardBg,
+                      borderWidth: 1,
+                      borderColor: displayed[selectedMaintenance].statusColor,
+                      borderRadius: 8,
+                    }}
+                    onPress={() => {
+                      const maintenanceStageId =
+                        displayed[selectedMaintenance]?.maintenanceStageId ??
+                        mainDetailId;
+                      const stage = displayed[selectedMaintenance]?.id;
+                      if (!maintenanceStageId) {
+                        console.warn("No maintenance id to navigate");
+                        return;
+                      }
+                      navigation.navigate("MaintenanceDetail", {
+                        maintenanceStageId,
+                        stage,
+                      });
+                      console.log(
+                        "Navigate to maintenanceId:",
+                        maintenanceStageId
+                      );
+                    }}
+                  >
+                    <TextComponent
+                      text={displayed[selectedMaintenance].title}
+                      size={18}
+                      color={appColor.text}
+                    />
+                    <RowComponent
+                      justify="flex-start"
+                      styles={{ marginTop: 8 }}
+                    >
+                      <TextComponent text="Thời gian: " size={18} />
+                      <TextComponent
+                        text={displayed[selectedMaintenance].date}
+                        size={18}
+                        font={fontFamilies.roboto_bold}
+                        styles={{ marginLeft: 4 }}
+                      />
+                    </RowComponent>
+                    <RowComponent
+                      justify="flex-start"
+                      styles={{ marginTop: 8 }}
+                    >
+                      <TextComponent text="Trạng thái: " size={18} />
+                      <TextComponent
+                        text={displayed[selectedMaintenance].status}
+                        size={18}
+                        font={fontFamilies.roboto_bold}
+                        styles={{ marginLeft: 4 }}
+                      />
+                    </RowComponent>
+                  </TouchableOpacity>
+                ) : (
+                  <TextComponent text="Không có lịch bảo dưỡng" size={14} />
+                )}
+              </>
+            ) : (
+              <TextComponent text="Không có lịch bảo dưỡng" size={14} />
+            )}
             <SpaceComponent height={12} />
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={{
-                padding: 12,
-                backgroundColor: maintenanceItems[selectedMaintenance].cardBg,
-                borderWidth: 1,
-                borderColor: maintenanceItems[selectedMaintenance].statusColor,
-                borderRadius: 8,
-              }}
-              onPress={() => {
-                navigation.navigate("MaintenanceDetail", {
-                  maintenanceId: mainDetailId,
-                });
-              }}
-            >
-              <TextComponent
-                text={maintenanceItems[selectedMaintenance].title}
-                size={18}
-                color={appColor.text}
-              />
-              <RowComponent justify="flex-start" styles={{ marginTop: 8 }}>
-                <TextComponent text="Thời gian: " size={18} />
-                <TextComponent
-                  text={maintenanceItems[selectedMaintenance].date}
-                  size={18}
-                  font={fontFamilies.roboto_bold}
-                  styles={{ marginLeft: 4 }}
-                />
-              </RowComponent>
-              <RowComponent justify="flex-start" styles={{ marginTop: 8 }}>
-                <TextComponent text="Trạng thái: " size={18} />
-                <TextComponent
-                  text={maintenanceItems[selectedMaintenance].status}
-                  size={18}
-                  font={fontFamilies.roboto_bold}
-                  styles={{ marginLeft: 4 }}
-                />
-              </RowComponent>
-            </TouchableOpacity>
           </View>
         </SectionComponent>
 
