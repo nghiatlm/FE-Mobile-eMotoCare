@@ -5,6 +5,7 @@ import LoginScreen from "./auth/LoginScreen";
 import OnbroadingScreen from "./auth/OnbroadingScreen";
 import RegisterScreen from "./auth/RegisterScreen";
 import Verification from "./auth/Verification";
+import InspectionResult from "./evchecks/InspectionResult";
 import HomeScreen from "./home/HomeScreen";
 import SuccessScreen from "./Maintenances/components/SuccessScreen";
 import WaitConfirm from "./Maintenances/components/WaitConfirm";
@@ -12,6 +13,7 @@ import CreateMaintenance from "./Maintenances/CreateMaintenance";
 import MaintenanceDetailScreen from "./Maintenances/MaintenanceDetailScreen";
 import MaintenanceProcess from "./Maintenances/MaintenanceProcess";
 import NotificationScreen from "./notifications/NotificationScreen";
+import PaymentInvoice from "./payments/PaymentInvoice";
 import ServiceScreen from "./services/ServiceScreen";
 import SettingScreen from "./setting/SettingScreen";
 import SplashScreen from "./SplashScreen";
@@ -34,4 +36,6 @@ export {
   AppointmentDetailScreen,
   MaintenanceProcess,
   WaitConfirm,
+  InspectionResult,
+  PaymentInvoice,
 };

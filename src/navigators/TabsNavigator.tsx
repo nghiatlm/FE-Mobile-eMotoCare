@@ -130,6 +130,8 @@ const TabsNavigator = () => {
               "AppointmentDetail",
               "MaintenanceProcess",
               "WaitConfirm",
+              "InspectionResult",
+              "PaymentInvoice",
             ].includes(routeName)
               ? { display: "none" }
               : undefined,

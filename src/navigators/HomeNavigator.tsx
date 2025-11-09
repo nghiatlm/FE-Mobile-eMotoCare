@@ -4,8 +4,10 @@ import {
   AppointmentDetailScreen,
   CreateMaintenance,
   HomeScreen,
+  InspectionResult,
   MaintenanceDetailScreen,
   MaintenanceProcess,
+  PaymentInvoice,
   SuccessScreen,
   WaitConfirm,
 } from "../screens";
@@ -27,6 +29,8 @@ const ExploreNavigator = () => {
         name="AppointmentDetail"
         component={AppointmentDetailScreen}
       />
+      <Stack.Screen name="InspectionResult" component={InspectionResult} />
+      <Stack.Screen name="PaymentInvoice" component={PaymentInvoice} />
     </Stack.Navigator>
   );
 };

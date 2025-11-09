@@ -4,6 +4,7 @@ import RowComponent from "./containers/RowComponent";
 import SectionComponent from "./containers/SectionComponent";
 import SpaceComponent from "./containers/SpaceComponent";
 import ButtonComponent from "./ui/ButtonComponent";
+import DividerWithLabelComponent from "./ui/DividerWithLabelComponent";
 import InputComponent from "./ui/InputComponent";
 import TextComponent from "./ui/TextComponent";
 
@@ -15,5 +16,6 @@ export {
   ContainerComponent,
   SectionComponent,
   RowComponent,
-  BackgroundComponent
+  BackgroundComponent,
+  DividerWithLabelComponent,
 };

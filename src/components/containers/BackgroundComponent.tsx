@@ -93,7 +93,7 @@ const BackgroundComponent = (props: Props) => {
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                paddingBottom: footer ? FOOTER_HEIGHT + 16 : 16,
+                paddingBottom: footer ? FOOTER_HEIGHT  : 16,
               }}
               style={{ flex: 1 }}
             >

@@ -18,10 +18,11 @@ import { fontFamilies } from "../../../constants/fontFamilies";
 import { appColor } from "../../../constants/appColor";
 
 const SuccessScreen = ({ navigation, route }: any) => {
-  const { id } = route.params;
+  const { id } = route.params || "e72a3f7c-2f3e-43a8-b54a-1c0106bb2283";
 
   const handleViewDetail = () => {
-    navigation.navigate("AppointmentDetail", { id });
+    navigation.navigate("AppointmentDetail", { id: id });
+    console.log("Viewing appointment detail for ID:", id);
   };
 
   return (

@@ -39,6 +39,26 @@ const buildMonthMatrix = (year: number, month: number) => {
   return weeks;
 };
 
+// helper: convert slotTime like "H07_08" -> "07:00 - 08:00"
+// or use startTime/endTime if present
+const slotTimeToLabel = (s: any) => {
+  const start = (s?.startTime || "").trim();
+  const end = (s?.endTime || "").trim();
+  if (start && end) return `${start} - ${end}`;
+
+  const st = (s?.slotTime || "").trim();
+  // pattern H07_08 or H7_8
+  const m = st.match(/H?0?(\d{1,2})[_\-]0?(\d{1,2})/i);
+  if (m) {
+    const a = m[1].padStart(2, "0");
+    const b = m[2].padStart(2, "0");
+    return `${a}:00 - ${b}:00`;
+  }
+
+  // fallback: use provided label or id
+  return s?.label || s?.name || st || "—";
+};
+
 const SelectTimeStep = ({ state, dispatch, center }: any) => {
   const today = new Date();
   const todayIso = isoDateLocal(today);
@@ -83,24 +103,43 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
     try {
       const res = await getServiceCenterSlots(centerId);
       if (res?.success) {
-        // find slots in several possible paths (tolerate API shape)
         const data = res.data || {};
-        let s: any[] =
-          data?.serviceCente?.slot ||
-          data?.servicecenter?.serviceCente?.slot ||
-          data?.servicecenter?.slot ||
-          data?.servicecenter?.serviceCenter?.slot ||
-          data?.slots ||
-          data?.slot ||
-          [];
 
-        // if nested under servicecenter key (common shape)
-        if (!s.length && data?.servicecenter) {
-          const sc = data.servicecenter;
-          s =
-            sc?.serviceCente?.slot || sc?.slot || sc?.serviceCenter?.slot || [];
+        // normalize slots from many possible shapes
+        let s: any[] = [];
+
+        // common shapes
+        if (Array.isArray(data?.slots)) s = data.slots;
+        else if (Array.isArray(data?.slot)) s = data.slot;
+        else if (Array.isArray(data?.serviceCente?.slot)) s = data.serviceCente.slot;
+        else if (Array.isArray(data?.servicecenter?.serviceCente?.slot))
+          s = data.servicecenter.serviceCente.slot;
+        else if (Array.isArray(data?.servicecenter?.slot))
+          s = data.servicecenter.slot;
+        else if (Array.isArray(data?.servicecenter?.serviceCenter?.slot))
+          s = data.servicecenter.serviceCenter.slot;
+        else if (data?.servicecenter && Array.isArray(data.servicecenter.serviceCente?.slot))
+          s = data.servicecenter.serviceCente.slot;
+
+        // deep search fallback: try to find first array inside object tree that looks like slots
+        if (!s.length) {
+          const findSlots = (obj: any): any[] | null => {
+            if (!obj || typeof obj !== "object") return null;
+            for (const key of Object.keys(obj)) {
+              const val = obj[key];
+              if (Array.isArray(val) && val.length && typeof val[0] === "object") return val;
+              if (typeof val === "object") {
+                const nested = findSlots(val);
+                if (nested) return nested;
+              }
+            }
+            return null;
+          };
+          const found = findSlots(data);
+          s = found || [];
         }
 
+        // ensure array
         setSlots(Array.isArray(s) ? s : []);
       } else {
         setSlots([]);
@@ -110,10 +149,6 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
       setSlots([]);
     }
   };
-
-  // label for slot: "HH:MM - HH:MM"
-  const slotLabel = (s: any) =>
-    `${s?.startTime?.trim() || ""} - ${s?.endTime?.trim() || ""}`;
 
   const isSameDay = (a: Date, bIso: string) => isoDateLocal(a) === bIso;
   const inSameMonth = (d: Date, monthDate: Date) =>
@@ -142,18 +177,21 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
       return sd === selectedIso;
     });
 
-    // sort by startTime if present (HH:MM)
+    // sort by startTime or by slotTime numeric part
     matched.sort((a: any, b: any) => {
-      const ta = (a?.startTime || "").trim();
-      const tb = (b?.startTime || "").trim();
+      const ta = (a?.startTime || a?.slotTime || "").trim();
+      const tb = (b?.startTime || b?.slotTime || "").trim();
       if (!ta && !tb) return 0;
       if (!ta) return 1;
       if (!tb) return -1;
-      return ta.localeCompare(tb);
+      return ta.localeCompare(tb, undefined, { numeric: true });
     });
 
     return matched;
   }, [selectedIso, slots]);
+
+  // label for slot: prefer startTime/endTime or map slotTime
+  const slotLabel = (s: any) => slotTimeToLabel(s);
 
   return (
     <View>
@@ -314,19 +352,38 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
           ) : (
             daySlots.map((s: any) => {
               const label = slotLabel(s);
-              const active = state.timeSlot === label;
+
+              // compute canonical slot code (H07_08) if provided or derive from label/startTime
+              const slotCode =
+                s?.slotTime ||
+                (() => {
+                  // try derive from startTime/endTime like "07:00 - 08:00"
+                  const m = label.match(/(\d{1,2}):\d{2}/g);
+                  if (m && m.length >= 2) {
+                    const a = m[0].slice(0, 2).padStart(2, "0");
+                    const b = m[1].slice(0, 2).padStart(2, "0");
+                    return `H${a}_${b}`;
+                  }
+                  return s?.id || label;
+                })();
+
+              const active =
+                state.slotTime === slotCode || state.timeSlot === label;
               const disabled = s.isActive === false || (s.capacity ?? 0) <= 0;
+
               return (
                 <TouchableOpacity
-                  key={s.id || label}
+                  key={s.id || slotCode}
                   disabled={disabled}
                   onPress={() =>
+                    // store both user-facing label and canonical code
                     dispatch({
                       type: "SET",
                       payload: {
-                        timeSlot: label,
+                        timeSlot: label,      // used for UI
+                        slotTime: slotCode,   // canonical value to submit (H07_08)
+                        selectedSlotId: s.id,
                         appointmentDate: selectedIso,
-                        serviceCenterSlotId: s.id,
                       },
                     })
                   }
@@ -342,13 +399,7 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
                   <TextComponent
                     text={label}
                     size={16}
-                    color={
-                      disabled
-                        ? appColor.gray2
-                        : active
-                        ? "#FFF"
-                        : appColor.text
-                    }
+                    color={disabled ? appColor.gray2 : active ? "#FFF" : appColor.text}
                   />
                 </TouchableOpacity>
               );

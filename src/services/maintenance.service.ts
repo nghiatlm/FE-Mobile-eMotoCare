@@ -1,5 +1,4 @@
 import { maintenances } from "../apis/maintenance.api";
-import { vehicles } from "../apis/vehicle.api";
 
 export const getMaintenances = async (params: any) => {
   try {

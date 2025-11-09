@@ -24,11 +24,8 @@ type State = {
   serviceCenterId?: string;
   customerId?: string;
   vehicleStageId?: string;
-  timeSlot?: string;
+  slotTime?: string;
   appointmentDate?: string;
-  serviceCenterSlotId?: string;
-  slot?: string;
-  notes?: string;
   type?: string;
 };
 
@@ -66,8 +63,7 @@ const CreateMaintenance = ({ navigation, route }: any) => {
     customerId: "",
     vehicleStageId: stage,
     appointmentDate: "",
-    timeSlot: "",
-    serviceCenterSlotId: "",
+    slotTime: "",
     type: "MAINTENANCE_TYPE",
   };
   const [step, setStep] = useState(0);
@@ -76,21 +72,29 @@ const CreateMaintenance = ({ navigation, route }: any) => {
   const [vehicle, setVehicle] = useState();
 
   const handleNext = async () => {
-    if (step < 2) setStep(step + 1);
-    else {
-      console.log("Submit:", state);
-      const result = await CreateAppointment(state);
-      if (result.success) {
-        console.log("Success: ", result.data);
-        navigation.navigate("WaitConfirm", {
-          id: "121234",
-        });
-      } else {
-        console.log("Failed: ", result.message);
-      }
-      navigation.navigate("SuccessScreen", {
-        id: "871a5113-599b-4047-80e4-23e0259a7447",
-      });
+    if (step < 2) {
+      setStep(step + 1);
+      return;
+    }
+
+    // Chỉ build payload gồm các trường cần thiết
+    const payload = {
+      serviceCenterId: state.serviceCenterId,
+      customerId: state.customerId,
+      vehicleStageId: state.vehicleStageId,
+      slotTime: state.slotTime,
+      appointmentDate: state.appointmentDate,
+      type: state.type,
+    };
+
+    console.log("Submit payload:", payload);
+
+    const result = await CreateAppointment(payload);
+    if (result.success) {
+      console.log("Success: ", result.data);
+      navigation.navigate("WaitConfirm", { id: result.data.id });
+    } else {
+      console.log("Failed: ", result.message);
     }
   };
 
@@ -122,25 +126,31 @@ const CreateMaintenance = ({ navigation, route }: any) => {
 
   const canNext = React.useMemo(() => {
     if (step === 0) return true;
-    if (step === 1) return !!(state.appointmentDate && state.timeSlot);
-    return true; 
-  }, [step, state.appointmentDate, state.timeSlot]);
+    if (step === 1) return !!(state.appointmentDate && state.slotTime);
+    return true;
+  }, [step, state.appointmentDate, state.slotTime]);
 
   const footer = (
-    <View style={{ paddingHorizontal: 8, width: "100%" }}>
+    <View style={{ paddingHorizontal: 2, width: "100%" }}>
       <View
         style={{
           flexDirection: "row",
           width: "100%",
-          marginVertical: 6,
+          marginVertical: -6,
           alignItems: "center",
         }}
       >
         <View style={{ flex: 1, marginRight: 8 }}>
           {step > 0 ? (
-            <ButtonComponent text="Quay lại" onPress={handleBack} />
+            <ButtonComponent
+              text="Quay lại"
+              onPress={handleBack}
+              styles={[{ marginBottom: -10 }]}
+            />
           ) : (
-            <View style={{ height: 48 /* giữ khoảng trống tương ứng button */ }} />
+            <View
+              style={{ height: 48 /* giữ khoảng trống tương ứng button */ }}
+            />
           )}
         </View>
 
@@ -149,7 +159,8 @@ const CreateMaintenance = ({ navigation, route }: any) => {
             text={step === 2 ? "Xác nhận" : "Tiếp theo"}
             type="primary"
             onPress={handleNext}
-            disabled={!canNext} 
+            disabled={!canNext}
+            styles={[{ marginBottom: -10 }]}
           />
         </View>
       </View>

@@ -14,9 +14,28 @@ import { fontFamilies } from "../../constants/fontFamilies";
 import { getAppointmentDetail } from "../../services/appointment.service";
 import { globalStyle } from "../../styles/globalStyle";
 
+const formatDate = (iso?: string) => {
+  if (!iso) return "";
+  // try parse YYYY-MM-DD first to avoid timezone shifts
+  const m = iso.toString().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  let d: Date;
+  if (m) {
+    d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  } else {
+    d = new Date(iso);
+  }
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 const AppointmentDetailScreen = ({ navigation, route }: any) => {
-  // const { id } = route.params;
-  const id = "871a5113-599b-4047-80e4-23e0259a7447";
+  // const {idPa} = route.params;
+  const id = "6f771d8c-466b-4ff7-bf77-8b7daa2e18d4";
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -205,7 +224,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
             />
             <SpaceComponent height={8} />
             <TextComponent
-              text={data?.appointmentDate}
+              text={formatDate(data?.appointmentDate)}
               font={fontFamilies.roboto_regular}
               size={16}
               color={appColor.gray2}

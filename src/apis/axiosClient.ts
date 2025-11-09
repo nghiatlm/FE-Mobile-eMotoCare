@@ -54,6 +54,7 @@ axiosClient.interceptors.response.use(
       status: error?.response?.status,
       data: error?.response?.data,
     });
+    console.log("Error response:", JSON.stringify(error, null, 2));
     return Promise.reject(error);
   }
 );

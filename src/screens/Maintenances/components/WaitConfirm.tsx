@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -9,84 +10,128 @@ import {
 } from "../../../components";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
-import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-import { appInfor } from "../../../constants/appInfor";
-import { useSelector } from "react-redux";
-import { authSelecter } from "../../../redux/reducers/authReducer";
+import useAppointmentHub from "../../../hooks/useAppointmentHub.hook";
+import { getAppointmentDetail } from "../../../services/appointment.service";
 
 const WaitConfirm = ({ navigation, route }: any) => {
   const { id } = route.params;
-  const auth = useSelector(authSelecter);
+  const dispatch = useDispatch();
+  const { status, description } = useAppointmentHub(id);
+  const [isHandled, setIsHandled] = useState(false);
+  const [appointmentStatus, setAppointmentStatus] = useState<string | null>(
+    null
+  );
+
+  // Khi appointment được APPROVED -> mark logged in success (không điều hướng đến SuccessScreen)
+  useEffect(() => {
+    if (status && !isHandled) {
+      console.log("📡 Appointment status:", status);
+
+      if (status === "APPROVED") {
+        setIsHandled(true);
+
+        // TODO: đổi tên action / payload theo reducer của bạn
+        dispatch({
+          type: "AUTH_SET_LOGGED_IN",
+          payload: {
+            isLoggedIn: true,
+          },
+        });
+
+        // Optional: hiển thị thông báo hoặc redirect đến Home
+        // navigation.navigate("Home");
+      }
+    }
+  }, [status, isHandled, id, navigation, dispatch]);
 
   useEffect(() => {
-    const token =
-      auth?.token ||
-      auth?.accessToken ||
-      auth?.accountResponse?.accessToken ||
-      "";
+    fetchAppoinment(id);
+  }, [id]);
 
-    if (!token) {
-      console.warn("SignalR: no auth token available for negotiation");
-    }
-
-    const hubUrl = `${appInfor.BASE_URL.replace(/\/$/, "")}/hubs/appointment`;
-
-    const connection = new HubConnectionBuilder()
-      .withUrl(hubUrl, {
-        accessTokenFactory: () => token,
-      })
-      .configureLogging(LogLevel.Information)
-      .build();
-
-    const startConnection = async () => {
-      try {
-        await connection.start();
-        console.log("Connected to SignalR");
-
-        try {
-          await connection.invoke("JoinAppointmentRoom", id);
-        } catch (invokeErr) {
-          console.log("JoinAppointmentRoom failed:", invokeErr);
+  const fetchAppoinment = async (id: string) => {
+    try {
+      const res = await getAppointmentDetail(id);
+      if (res.success) {
+        if (res.data?.status) {
+          setAppointmentStatus(res.data.status);
         }
-
-        connection.on("AppointmentConfirmed", (data) => {
-          console.log("Appointment confirmed:", data);
-          navigation.navigate("SuccessScreen", {
-            appointmentId: data.appointmentId,
-          });
-        });
-      } catch (err) {
-        console.log("SignalR connection start failed:", err);
       }
-    };
+    } catch (e) {
+      console.warn("fetchAppointment error", e);
+    }
+  };
 
-    startConnection();
-
-    return () => {
-      connection.stop().catch((e) => console.log("SignalR stop error:", e));
-    };
-  }, [id, navigation, auth]);
+  const isPending = appointmentStatus === "PENDING" || status === "PENDING";
+  const isCanceled =
+    status === "CANNCELED" ||
+    status === "CANCELED" ||
+    appointmentStatus === "CANNCELED" ||
+    appointmentStatus === "CANCELED";
 
   return (
     <BackgroundComponent back isScroll title="Đặt lịch bảo dưỡng">
-      <SectionComponent>
-        <TextComponent text="Chờ Xác nhận" title />
-        <TextComponent
-          text="Đang đợi xác nhận, vui lòng chờ trong giây lát"
-          size={18}
-          font={fontFamilies.roboto_medium}
-          color={appColor.text}
-        />
-      </SectionComponent>
+      {isPending && (
+        <SectionComponent>
+          <TextComponent
+            text="Chờ Xác nhận"
+            title
+            flex={1}
+            styles={{ textAlign: "center", marginTop: 50 }}
+          />
+          <TextComponent
+            text={
+              description ??
+              "Đang đợi xác nhận, vui lòng chờ trong giây lát..."
+            }
+            styles={{ textAlign: "center", marginTop: 20 }}
+            size={18}
+            font={fontFamilies.roboto_regular}
+            color={appColor.text}
+          />
+        </SectionComponent>
+      )}
+
+      {status === "APPROVED" && (
+        <SectionComponent>
+          <TextComponent
+            text="Yêu cầu đã được chấp nhận — bạn đã đăng nhập thành công."
+            size={14}
+            font={fontFamilies.roboto_medium}
+            color={appColor.primary}
+          />
+        </SectionComponent>
+      )}
+
+      {isCanceled && (
+        <SectionComponent>
+          <TextComponent
+            text="Yêu cầu của bạn đã bị từ chối."
+            size={14}
+            font={fontFamilies.roboto_medium}
+            color={appColor.primary}
+          />
+        </SectionComponent>
+      )}
+
       <SpaceComponent height={20} />
-      <SectionComponent>
-        <RowComponent>
-          <ButtonComponent text="Trang chủ" />
-          <ButtonComponent text="Xem chi tiết" />
+
+      <SectionComponent styles={{ paddingHorizontal: 8 }}>
+        <RowComponent justify="center" styles={{ alignItems: "center" }}>
+          <ButtonComponent
+            text="Trang chủ"
+            styles={{ width: "45%", marginRight: 5 }}
+            onPress={() => navigation.navigate("Home")}
+          />
+          <ButtonComponent
+            text="Xem chi tiết"
+            styles={{ width: "45%", marginLeft: 5 }}
+            onPress={() => navigation.navigate("AppointmentDetail", { id })}
+          />
         </RowComponent>
       </SectionComponent>
+
+      <SpaceComponent height={16} />
     </BackgroundComponent>
   );
 };
-
 export default WaitConfirm;
