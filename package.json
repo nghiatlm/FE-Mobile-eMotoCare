@@ -20,6 +20,7 @@
     "@reduxjs/toolkit": "^2.9.0",
     "axios": "^1.12.2",
     "expo": "54.0.13",
+    "expo-dev-client": "~6.0.17",
     "expo-firebase-recaptcha": "^2.3.1",
     "expo-font": "~14.0.9",
     "expo-status-bar": "~3.0.8",
@@ -47,5 +48,13 @@
     "@types/react-native-vector-icons": "^6.4.18",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "paymentConfig": {
+    "provider": "PayOS",
+    "environment": "sandbox",
+    "currency": "VND",
+    "returnUrl": "https://app.local/payment-callback",
+    "deepLink": "myapp://payment-callback",
+    "notifyUrl": "https://your-backend.example.com/api/payments/notify"
+  }
 }

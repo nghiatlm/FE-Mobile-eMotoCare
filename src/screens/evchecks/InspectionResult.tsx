@@ -59,14 +59,6 @@ const InspectionResult = ({ navigation, route }: any) => {
         } else {
           console.log("Failed: ", result.message);
         }
-    // navigation.navigate("MaintenanceProcess", {
-    //   evCheckId,
-    //   statusUpdate: {
-    //     step: 5,
-    //     title: "Sửa chữa",
-    //     desc: "Phương tiện của bạn đang được sửa chữa",
-    //   },
-    // });
   };
 
   const cancelHandler = () => navigation.goBack();

@@ -61,7 +61,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
       if (res.success) {
         setData(res.data);
         // if appointment contains evCheck id, keep it for evcheck hook
-        const foundEvcheckId =res.data?.evCheckId;
+        const foundEvcheckId = res.data?.evCheckId;
         if (foundEvcheckId) setEvcheckIdState(String(foundEvcheckId));
       } else {
         addRtLog("fetchAppointmentError", res.message);
@@ -168,121 +168,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <SpaceComponent height={10} />
 
-        {/* Appointment banner: show one of states */}
-        {/* <SectionComponent
-          styles={[globalStyle.shadow, { marginHorizontal: 8, padding: 12 }]}
-        >
-          {effectiveApptStatus.includes("COMPLETED") ? (
-            <TextComponent
-              text="Hoàn thành"
-              size={18}
-              font={fontFamilies.roboto_bold}
-              color={appColor.primary}
-            />
-          ) : effectiveApptStatus.includes("CHECKED_IN") ? (
-            <TextComponent
-              text="Đã check-in — Đang kiểm tra"
-              size={18}
-              font={fontFamilies.roboto_bold}
-              color={appColor.primary}
-            />
-          ) : effectiveApptStatus.includes("APPROVED") ? (
-            <TextComponent
-              text="Đã xác nhận"
-              size={18}
-              font={fontFamilies.roboto_bold}
-              color={appColor.primary}
-            />
-          ) : (
-            <TextComponent
-              text="Đang đợi xác nhận"
-              size={18}
-              font={fontFamilies.roboto_bold}
-              color={appColor.primary}
-            />
-          )}
-
-          {(apptDescription || evcheckDescription) && (
-            <TextComponent
-              text={apptDescription || evcheckDescription || ""}
-              size={14}
-              color={appColor.gray2}
-              styles={{ marginTop: 8 }}
-            />
-          )}
-        </SectionComponent> */}
-
         <SpaceComponent height={12} />
-
-        {/* EVCheck sections */}
-        {/* {effectiveEvcheckStatus.includes("INSPECTION_COMPLETED") && (
-          <SectionComponent styles={[globalStyle.shadow, styles.card]}>
-            <TextComponent
-              text="Kết quả kiểm tra"
-              size={18}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <TextComponent
-              text="Kỹ thuật đã hoàn tất kiểm tra. Xem chi tiết kết quả."
-              size={14}
-              color={appColor.gray2}
-              styles={{ marginTop: 8 }}
-            />
-            <SpaceComponent height={8} />
-            <ButtonComponent
-              text="Xem kết quả kiểm tra"
-              type="primary"
-              onPress={() =>
-                navigation.navigate("InspectionResult", { appointmentId: id })
-              }
-            />
-          </SectionComponent>
-        )}
-
-        {effectiveEvcheckStatus.includes("REPAIR_IN_PROGRESS") && (
-          <SectionComponent styles={[globalStyle.shadow, styles.card]}>
-            <TextComponent
-              text="Sửa chữa"
-              size={18}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <TextComponent
-              text="Xe đang trong quá trình sửa chữa."
-              size={14}
-              color={appColor.gray2}
-              styles={{ marginTop: 8 }}
-            />
-          </SectionComponent>
-        )}
-
-        {effectiveEvcheckStatus.includes("REPAIR_COMPLETED") && (
-          <SectionComponent styles={[globalStyle.shadow, styles.card]}>
-            <TextComponent
-              text="Thanh toán"
-              size={18}
-              font={fontFamilies.roboto_medium}
-              color={appColor.text}
-            />
-            <TextComponent
-              text="Sửa chữa đã hoàn tất. Vui lòng thanh toán."
-              size={14}
-              color={appColor.gray2}
-              styles={{ marginTop: 8 }}
-            />
-            <SpaceComponent height={8} />
-            <ButtonComponent
-              text="Xem hóa đơn thanh toán"
-              type="primary"
-              onPress={() =>
-                navigation.navigate("PaymentInvoice", { appointmentId: id })
-              }
-            />
-          </SectionComponent>
-        )}
-
-        <SpaceComponent height={12} /> */}
 
         <TextComponent
           text="Chi tiết dịch vụ"
@@ -437,11 +323,12 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                           textStyle={{
                             color: appColor.primary,
                           }}
-                          onPress={() =>
+                          onPress={() => {
+                            console.log("navigate to payment invoice:", id);
                             navigation.navigate("PaymentInvoice", {
                               appointmentId: id,
-                            })
-                          }
+                            });
+                          }}
                           styles={{
                             paddingVertical: 4,
                             paddingHorizontal: 0,
@@ -461,7 +348,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
 
         <RowComponent justify="space-between">
           <ButtonComponent
-            text="Hủy yêu cầu"
+            text="Trang chủ"
             type="text"
             styles={{
               flex: 0.48,
@@ -470,6 +357,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
               backgroundColor: appColor.white,
             }}
             textColor={appColor.text}
+            onPress={() => navigation.navigate("HomeScreen")}
           />
           <ButtonComponent
             text="Đặt lại lịch"
