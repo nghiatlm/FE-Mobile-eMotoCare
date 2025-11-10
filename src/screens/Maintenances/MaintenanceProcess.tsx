@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef, use } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import {
   BackgroundComponent,
@@ -12,9 +12,10 @@ import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { getAppointmentDetail } from "../../services/appointment.service";
 // optional: service to fetch evCheck details (create if not exist)
-import { getVehicleById } from "../../services/evcheck.service";
+import { getEvcheckDetail } from "../../services/evcheck.service";
 import { globalStyle } from "../../styles/globalStyle";
-import * as signalR from "@microsoft/signalr";
+import useAppointmentHub from "../../hooks/useAppointmentHub.hook";
+import useEvcheckHub from "../../hooks/useEVCheckHub";
 
 const mapStatusToStep = (status?: string) => {
   const s = (status || "").toUpperCase();
@@ -23,21 +24,20 @@ const mapStatusToStep = (status?: string) => {
   if (s.includes("CHECKED_IN") || s.includes("VEHICLE_INSPECTION")) return 3;
   if (s.includes("INSPECTION_COMPLETED") || s.includes("QUOTE_APPROVED"))
     return 4;
-  if (s.includes("REPAIR_IN_PROGRESS") || s.includes("REPAIR_COMPLETED"))
-    return 4;
+  if (s.includes("REPAIR_IN_PROGRESS")) return 5;
+  if (s.includes("REPAIR_COMPLETED")) return 6;
   if (s.includes("COMPLETE") || s.includes("COMPLETED") || s.includes("DONE"))
-    return 5;
+    return 7;
   return 1;
 };
 
 const MaintenanceProcess = ({ navigation, route }: any) => {
-  const id = "6f771d8c-466b-4ff7-bf77-8b7daa2e18d4";
-    // route?.params?.appointmentId || "afa36fe3-3e89-40d0-8ad5-9d3ce57c31de";
+  const id = route?.params?.id;
+
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState<number>(4);
-  const [statusInfo, setStatusInfo] = useState<any>(null);
-  const evCheckId = "14855464-7c39-428b-97d4-29fafc17c771";
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [evcheckIdState, setEvcheckIdState] = useState<string | null>(null);
   const [rtLogs, setRtLogs] = useState<string[]>([]);
   const logsRef = useRef<string[]>([]);
 
@@ -45,166 +45,80 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
     const line = `${new Date().toLocaleTimeString()} | ${label} | ${
       typeof payload === "object" ? JSON.stringify(payload) : String(payload)
     }`;
-    logsRef.current = [line, ...logsRef.current].slice(0, 50); // keep last 50
+    logsRef.current = [line, ...logsRef.current].slice(0, 50);
     setRtLogs([...logsRef.current]);
-    // also console
     console.log(line);
   };
 
-  useEffect(() => {
-    const update = route?.params?.statusUpdate;
-    if (!update) return;
-    // nếu backend gửi step dùng trực tiếp
-    if (typeof update.step === "number") {
-      setCurrentStep(update.step);
-    } else if (update.title) {
-      // nếu chỉ có title/desc, try map title -> step bằng mapStatusToStep
-      setCurrentStep(mapStatusToStep(update.title));
-    }
-    setStatusInfo({ title: update.title, desc: update.desc });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route?.params?.statusUpdate]);
-
-  // fetch function đặt trước để effect SignalR có thể gọi
+  const { status: apptStatus, description: apptDescription } =
+    useAppointmentHub(id);
+  const { status: evcheckStatus, description: evcheckDescription } =
+    useEvcheckHub(evcheckIdState || "");
   const fetchAppointment = async (appointmentId: string) => {
     try {
       setLoading(true);
       const res = await getAppointmentDetail(appointmentId);
       if (res.success) {
         setData(res.data);
-        setCurrentStep(mapStatusToStep(res.data?.status));
+        // if appointment contains evCheck id, keep it for evcheck hook
+        const foundEvcheckId =res.data?.evCheckId;
+        if (foundEvcheckId) setEvcheckIdState(String(foundEvcheckId));
       } else {
-        console.log("fetch appointment detail error:", res.message);
+        addRtLog("fetchAppointmentError", res.message);
       }
     } catch (err) {
-      console.log("fetchAppointment error:", err);
+      addRtLog("fetchAppointmentException", String(err));
     } finally {
       setLoading(false);
     }
   };
 
-  // thêm hàm fetchEvCheck để xử lý realtime evCheckId
   const fetchEvCheck = async (evCheckIdParam: string) => {
     try {
       setLoading(true);
-      // nếu bạn có service riêng cho evCheck -> dùng nó
-      const res = await getVehicleById(evCheckIdParam);
+      const res = await getEvcheckDetail(evCheckIdParam);
       if (res.success) {
-        console.log("fetched evCheck detail:", res.data);
-        // res.data có thể chứa thông
         setData((prev: any) => ({ ...prev, evCheck: res.data }));
-        // nếu evCheck có status, map sang step
-        if (res.data?.status) {
-          setCurrentStep(mapStatusToStep(res.data.status));
-        }
-        // nếu evCheck trả về appointmentId và bạn muốn cập nhật toàn bộ appointment data
-        if (res.data?.appointmentId) {
-          await fetchAppointment(String(res.data.appointmentId));
-        }
       } else {
-        console.log("fetch evCheck detail error:", res.message);
+        addRtLog("fetchEvCheckError", res.message);
       }
     } catch (err) {
-      console.log("fetchEvCheck error:", err);
+      addRtLog("fetchEvCheckException", String(err));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchAppointment(id);
-    };
-    fetchData();
+    if (!id) return;
+    fetchAppointment(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50SWQiOiIwOGRlMTc4OS1mMmY1LTRkNWYtODczMy05YjNlNjhiNjliNGIiLCJwaG9uZSI6IjAzODc3OTQ1NjAiLCJyb2xlIjoiUk9MRV9DVVNUT01FUiIsIm5iZiI6MTc2MjI4MDk4OSwiZXhwIjoxNzYyODg1Nzg5LCJpYXQiOjE3NjIyODA5ODksImlzcyI6ImVNb3RvQ2FyZUFQSSIsImF1ZCI6ImVNb3RvQ2FyZUNsaWVudCJ9.kxRpKI6A7MMXkKc21XlKGmOX8x_3S_ssFiQEQ08I_Ks";
-  // useEffect(() => {
-  //   const hubUrl = "http://bemodernestate.site/hubs/notify";
-  //   const connection = new signalR.HubConnectionBuilder()
-  //     .withUrl(hubUrl, {
-  //       accessTokenFactory: () => token,
-  //     })
-  //     .withAutomaticReconnect()
-  //     .configureLogging(signalR.LogLevel.Information)
-  //     .build();
-
-  //   let mounted = true;
-
-  //   const start = async () => {
-  //     try {
-  //       await connection.start();
-  //       if (!mounted) return;
-  //       console.log("SignalR Connected.");
-  //     } catch (err) {
-  //       console.log("SignalR connect failed:", err);
-  //     }
-  //   };
-  //   connection.on("ReceiveUpdate", async (entity: any, payload: any) => {
-  //     addRtLog("ReceiveUpdate", { entity, payload });
-
-  //     try {
-  //       const ent = String(entity || "").toUpperCase();
-  //       let candidate: string | undefined;
-
-  //       if (payload == null) {
-  //         candidate = undefined;
-  //       } else if (typeof payload === "string" || typeof payload === "number") {
-  //         candidate = String(payload);
-  //       } else if (typeof payload === "object") {
-  //         // Type guards to safely access properties on unknown objects
-  //         const isRecord = (v: unknown): v is Record<string, unknown> =>
-  //           v !== null && typeof v === "object";
-
-  //         if (isRecord(payload) && typeof payload.evCheckId === "string")
-  //           candidate = payload.evCheckId;
-  //         else if (isRecord(payload) && typeof payload.evcheckId === "string")
-  //           candidate = payload.evcheckId;
-  //         else if (isRecord(payload) && typeof payload.id === "string")
-  //           candidate = payload.id;
-  //         else if (
-  //           isRecord(payload) &&
-  //           isRecord(payload.id) &&
-  //           typeof payload.id.id === "string"
-  //         )
-  //           candidate = payload.id.id;
-  //       }
-
-  //       if (candidate) {
-  //         // only handle EVCheck updates (optional: check entity)
-  //         if (ent.includes("EVCHECK") || true) {
-  //           setEvCheckId(candidate);
-  //           addRtLog("evCheckIdDetected", candidate);
-  //           await fetchEvCheck(candidate);
-  //         }
-  //       }
-  //     } catch (err) {
-  //       addRtLog("ReceiveUpdateError", String(err));
-  //     }
-  //   });
-  //   connection.on("ReceiveDelete", (entity: any, id: any) =>
-  //     addRtLog("ReceiveDelete", { entity, id })
-  //   );
-
-  //   start();
-
-  //   return () => {
-  //     mounted = false;
-  //     try {
-  //       connection.off("StatusChanged");
-  //       connection.off("ReceiveUpdate");
-  //       connection.off("ReceiveDelete");
-  //       connection.stop().catch(() => {});
-  //     } catch {
-  //       // ignore
-  //     }
-  //   };
-  // }, [id]);
-
   useEffect(() => {
-    fetchEvCheck(evCheckId);
-  }, []);
+    if (evcheckIdState) fetchEvCheck(evcheckIdState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evcheckIdState]);
+
+  // derive effective statuses (prefer realtime values)
+  const effectiveApptStatus = (apptStatus || data?.status || "").toUpperCase();
+  const effectiveEvcheckStatus = (
+    evcheckStatus ||
+    data?.evCheck?.status ||
+    ""
+  ).toUpperCase();
+
+  // set currentStep based on evcheck status if present, otherwise appointment status
+  useEffect(() => {
+    const sourceStatus =
+      effectiveEvcheckStatus && effectiveEvcheckStatus !== ""
+        ? effectiveEvcheckStatus
+        : effectiveApptStatus;
+    if (sourceStatus) {
+      setCurrentStep(mapStatusToStep(sourceStatus));
+    }
+  }, [effectiveApptStatus, effectiveEvcheckStatus]);
+
   const steps = [
     {
       id: 1,
@@ -213,7 +127,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
     },
     {
       id: 2,
-      title: "Đã xử lý yêu cầu",
+      title: "Đã xác nhận",
     },
     {
       id: 3,
@@ -235,19 +149,141 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
       title: "Thanh toán",
       desc: "Phương tiện của bạn đã sữa chữa xong",
     },
+    {
+      id: 7,
+      title: "Hoàn thành",
+    },
   ];
 
   const filteredSteps = useMemo(() => {
-    if (currentStep >= 2) {
-      return steps.filter((s) => s.id !== 1);
-    }
-    return steps.filter((s) => s.id !== 2);
-  }, [currentStep]);
+    // if approved present, hide pending; otherwise show pending; keep other flow
+    return steps.filter((s) => {
+      if (s.id === 1 && effectiveApptStatus.includes("APPROVED")) return false;
+      return true;
+    });
+  }, [steps, effectiveApptStatus]);
 
   return (
     <BackgroundComponent back title="Quá trình bảo dưỡng">
       <ScrollView showsVerticalScrollIndicator={false}>
         <SpaceComponent height={10} />
+
+        {/* Appointment banner: show one of states */}
+        {/* <SectionComponent
+          styles={[globalStyle.shadow, { marginHorizontal: 8, padding: 12 }]}
+        >
+          {effectiveApptStatus.includes("COMPLETED") ? (
+            <TextComponent
+              text="Hoàn thành"
+              size={18}
+              font={fontFamilies.roboto_bold}
+              color={appColor.primary}
+            />
+          ) : effectiveApptStatus.includes("CHECKED_IN") ? (
+            <TextComponent
+              text="Đã check-in — Đang kiểm tra"
+              size={18}
+              font={fontFamilies.roboto_bold}
+              color={appColor.primary}
+            />
+          ) : effectiveApptStatus.includes("APPROVED") ? (
+            <TextComponent
+              text="Đã xác nhận"
+              size={18}
+              font={fontFamilies.roboto_bold}
+              color={appColor.primary}
+            />
+          ) : (
+            <TextComponent
+              text="Đang đợi xác nhận"
+              size={18}
+              font={fontFamilies.roboto_bold}
+              color={appColor.primary}
+            />
+          )}
+
+          {(apptDescription || evcheckDescription) && (
+            <TextComponent
+              text={apptDescription || evcheckDescription || ""}
+              size={14}
+              color={appColor.gray2}
+              styles={{ marginTop: 8 }}
+            />
+          )}
+        </SectionComponent> */}
+
+        <SpaceComponent height={12} />
+
+        {/* EVCheck sections */}
+        {/* {effectiveEvcheckStatus.includes("INSPECTION_COMPLETED") && (
+          <SectionComponent styles={[globalStyle.shadow, styles.card]}>
+            <TextComponent
+              text="Kết quả kiểm tra"
+              size={18}
+              font={fontFamilies.roboto_medium}
+              color={appColor.text}
+            />
+            <TextComponent
+              text="Kỹ thuật đã hoàn tất kiểm tra. Xem chi tiết kết quả."
+              size={14}
+              color={appColor.gray2}
+              styles={{ marginTop: 8 }}
+            />
+            <SpaceComponent height={8} />
+            <ButtonComponent
+              text="Xem kết quả kiểm tra"
+              type="primary"
+              onPress={() =>
+                navigation.navigate("InspectionResult", { appointmentId: id })
+              }
+            />
+          </SectionComponent>
+        )}
+
+        {effectiveEvcheckStatus.includes("REPAIR_IN_PROGRESS") && (
+          <SectionComponent styles={[globalStyle.shadow, styles.card]}>
+            <TextComponent
+              text="Sửa chữa"
+              size={18}
+              font={fontFamilies.roboto_medium}
+              color={appColor.text}
+            />
+            <TextComponent
+              text="Xe đang trong quá trình sửa chữa."
+              size={14}
+              color={appColor.gray2}
+              styles={{ marginTop: 8 }}
+            />
+          </SectionComponent>
+        )}
+
+        {effectiveEvcheckStatus.includes("REPAIR_COMPLETED") && (
+          <SectionComponent styles={[globalStyle.shadow, styles.card]}>
+            <TextComponent
+              text="Thanh toán"
+              size={18}
+              font={fontFamilies.roboto_medium}
+              color={appColor.text}
+            />
+            <TextComponent
+              text="Sửa chữa đã hoàn tất. Vui lòng thanh toán."
+              size={14}
+              color={appColor.gray2}
+              styles={{ marginTop: 8 }}
+            />
+            <SpaceComponent height={8} />
+            <ButtonComponent
+              text="Xem hóa đơn thanh toán"
+              type="primary"
+              onPress={() =>
+                navigation.navigate("PaymentInvoice", { appointmentId: id })
+              }
+            />
+          </SectionComponent>
+        )}
+
+        <SpaceComponent height={12} /> */}
+
         <TextComponent
           text="Chi tiết dịch vụ"
           size={20}
@@ -262,51 +298,68 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
         />
         <SpaceComponent height={20} />
 
-        {/* Thẻ thông tin trung tâm dịch vụ */}
+        {/* Service center card */}
         <SectionComponent styles={[globalStyle.shadow, styles.card]}>
           <TextComponent
-            text="Trung tâm dịch vụ"
+            text="Trung tâm dịch vụ: "
             font={fontFamilies.roboto_medium}
             color={appColor.text}
-            size={16}
+            size={18}
+          />
+          <TextComponent
+            text={data?.serviceCenter?.name}
+            size={18}
+            color={appColor.primary}
+            font={fontFamilies.roboto_medium}
+            flex={1}
+            styles={{ marginTop: 4, marginLeft: 4 }}
           />
           <TextComponent
             text="Xem vấn đề của xe"
             size={13}
             color={appColor.primary}
-            styles={{ marginTop: 4 }}
+            styles={{ marginTop: 4, marginLeft: 4 }}
           />
           <SpaceComponent height={10} />
           <TextComponent
-            text={`Th, ${new Date().toLocaleDateString("vi-VN")}`}
+            text="Thời gian: "
+            size={18}
+            font={fontFamilies.roboto_regular}
             color={appColor.text}
           />
           <TextComponent
-            text={`Thời gian: ${data?.timeSlot || "08:00"}`}
+            text={`${formatDateDDMMYYYY(
+              data?.appointmentDate
+            )} ${slotCodeToTimeLabel(data?.slotTime)}`}
             color={appColor.text}
+            size={18}
+            font={fontFamilies.roboto_regular}
+            styles={{ marginTop: 4, marginLeft: 4 }}
           />
-          <SpaceComponent height={10} />
+          <SpaceComponent height={4} />
           <TextComponent
             text={`Địa chỉ: ${
               data?.serviceCenter?.address || "3, Lê Văn Khương, Gò Vấp"
             }`}
             color={appColor.gray2}
+            size={18}
           />
+          <SpaceComponent height={4} />
+
           <TextComponent
             text={`Mã dịch vụ: ${data?.code || "6M78239A23P"}`}
             color={appColor.gray2}
+            size={18}
           />
         </SectionComponent>
 
         <SpaceComponent height={25} />
 
-        {/* Tiến trình bảo dưỡng */}
+        {/* Timeline */}
         <View style={styles.timelineContainer}>
-          {filteredSteps.map((step, index) => (
+          {filteredSteps.map((step) => (
             <View key={step.id} style={styles.stepContainer}>
-              {/* Cột trái: đường nối + chấm tròn */}
               <View style={styles.timelineColumn}>
-                {/* Đường nối trên (nếu step.id > 1) */}
                 {step.id > 1 && (
                   <View
                     style={[
@@ -321,7 +374,6 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                   />
                 )}
 
-                {/* Chấm tròn */}
                 <View
                   style={[
                     styles.circle,
@@ -335,7 +387,6 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                 />
               </View>
 
-              {/* Nội dung bên phải */}
               <View style={{ flex: 1 }}>
                 <TextComponent
                   text={step.title}
@@ -365,7 +416,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                           type="text"
                           onPress={() =>
                             navigation.navigate("InspectionResult", {
-                              appointmentId: id,
+                              evcheck: evcheckIdState,
                             })
                           }
                           styles={{
@@ -408,7 +459,6 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
         </View>
         <SpaceComponent height={40} />
 
-        {/* Nút hành động */}
         <RowComponent justify="space-between">
           <ButtonComponent
             text="Hủy yêu cầu"
@@ -468,3 +518,29 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   },
 });
+
+const parseISOToDate = (iso?: string): Date | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+};
+const formatDateDDMMYYYY = (iso?: string) => {
+  const d = parseISOToDate(iso);
+  if (!d) return "";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+};
+
+const slotCodeToTimeLabel = (code?: string) => {
+  if (!code) return "";
+  const m = String(code).match(/(\d{1,2})[_\-](\d{1,2})/);
+  if (m) {
+    const a = m[1].padStart(2, "0");
+    const b = m[2].padStart(2, "0");
+    return `${a}:00 - ${b}:00`;
+  }
+  if (code.includes(":")) return code;
+  return String(code);
+};

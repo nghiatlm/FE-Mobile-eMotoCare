@@ -34,8 +34,7 @@ const formatDate = (iso?: string) => {
 };
 
 const AppointmentDetailScreen = ({ navigation, route }: any) => {
-  // const {idPa} = route.params;
-  const id = "6f771d8c-466b-4ff7-bf77-8b7daa2e18d4";
+  const {id} = route.params;
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -124,7 +123,11 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
 
         <SpaceComponent height={16} />
         <Image
-          source={require("../../assets/images/qrcode.png")}
+          source={
+            data?.checkinQRCode
+              ? { uri: data.checkinQRCode }
+              : require("../../assets/images/qrcode.png")
+          }
           style={styles.qrImage}
         />
         <SpaceComponent height={12} />

@@ -1,6 +1,7 @@
 import { evcheckId } from "../apis/evcheck.api";
+import evCheckAPI from "../apis/evcheck2.api";
 
-export const getVehicleById = async (id: string) => {
+export const getEvcheckDetail = async (id: string) => {
   try {
     const response = await evcheckId(id);
     return { success: true, data: response.data };
@@ -18,3 +19,34 @@ export const getVehicleById = async (id: string) => {
     return { success: false, message };
   }
 };
+
+
+export const approveEvcheck = async (id: string) => {
+  try {
+    const res = await evCheckAPI.HandleEVCheck(
+      `evchecks/${id}/approve-quote`,
+      null,
+      "put"
+    );
+    if (res.data.success) {
+      return { success: true, data: res.data.data };
+    } else {
+      return {
+        success: false,
+        message: res.data.message || "Xác nhận thất bại.",
+      };
+    }
+  } catch (error: any) {
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data ||
+      error?.message;
+    console.error("Get Failed:", apiMessage ?? error);
+    return {
+      success: false,
+      message: apiMessage ?? "Xác nhận thất bại thất bại. Vui lòng thử lại.",
+    };
+  }
+};
+

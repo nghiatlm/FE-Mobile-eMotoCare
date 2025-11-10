@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useSelector } from "react-redux";
 import { authSelecter } from "../redux/reducers/authReducer";
-import { getAppointmentDetail } from "../services/appointment.service";
+import { getEvcheckDetail } from "../services/evcheck.service";
 
-export default function useAppointmentHub(appointmentId: string) {
+export default function useEvcheckHub(evcheckId: string) {
   const [status, setStatus] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const auth = useSelector(authSelecter);
 
-  const fetchAppoinment = async (id: string) => {
-    const res = await getAppointmentDetail(id);
+  const fetchEvcheck = async (id: string) => {
+    const res = await getEvcheckDetail(id);
     if (res.success) {
       setStatus(res.data.status);
       setDescription(res.data.description ?? "");
@@ -20,7 +20,7 @@ export default function useAppointmentHub(appointmentId: string) {
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
-        "https://5baf5a624772.ngrok-free.app/hubs/notifyappointment",
+        "https://5baf5a624772.ngrok-free.app/hubs/notify",
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
@@ -39,23 +39,13 @@ export default function useAppointmentHub(appointmentId: string) {
       console.log("📩 ReceiveUpdate:", entity, data);
 
       // Nếu là dữ liệu của Appointment và ID trùng
-      if (entity === "Appointment" && data?.id === appointmentId) {
-        fetchAppoinment(appointmentId);
-      }
-    });
-
-    connection.on("ReceiveApproved", (entity: string, data: any) => {
-      console.log("📩 ReceiveApproved:", entity, data);
-
-      // Nếu là dữ liệu của Appointment và ID trùng
-      
-      if (entity === "Appointment" && data?.id === appointmentId) {
-        fetchAppoinment(appointmentId);
+      if (entity === "EVCheck" && data?.id === evcheckId) {
+        fetchEvcheck(evcheckId);
       }
     });
     return () => {
       connection.stop();
     };
-  }, [appointmentId]);
+  }, [evcheckId]);
   return { status, description };
 }

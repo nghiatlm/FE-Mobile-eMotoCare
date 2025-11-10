@@ -3,7 +3,7 @@ import { maintenances } from "../apis/maintenance.api";
 export const getMaintenances = async (params: any) => {
   try {
     const response = await maintenances(params);
-    console.log("Maintenances data fetched:", response.data);
+    // console.log("Maintenances data fetched:", response.data);
     return { success: true, data: response.data };
   } catch (error: any) {
     console.error("Get Maintenances failed:", {

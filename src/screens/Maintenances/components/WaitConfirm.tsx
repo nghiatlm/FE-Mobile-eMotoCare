@@ -12,6 +12,7 @@ import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import useAppointmentHub from "../../../hooks/useAppointmentHub.hook";
 import { getAppointmentDetail } from "../../../services/appointment.service";
+import { Image } from "react-native";
 
 const WaitConfirm = ({ navigation, route }: any) => {
   const { id } = route.params;
@@ -29,6 +30,7 @@ const WaitConfirm = ({ navigation, route }: any) => {
 
       if (status === "APPROVED") {
         setIsHandled(true);
+        setAppointmentStatus(status);
 
         // TODO: đổi tên action / payload theo reducer của bạn
         dispatch({
@@ -80,8 +82,7 @@ const WaitConfirm = ({ navigation, route }: any) => {
           />
           <TextComponent
             text={
-              description ??
-              "Đang đợi xác nhận, vui lòng chờ trong giây lát..."
+              description ?? "Đang đợi xác nhận, vui lòng chờ trong giây lát..."
             }
             styles={{ textAlign: "center", marginTop: 20 }}
             size={18}
@@ -93,11 +94,30 @@ const WaitConfirm = ({ navigation, route }: any) => {
 
       {status === "APPROVED" && (
         <SectionComponent>
+          <Image
+            source={require("../../../assets/images/check-success.png")}
+            style={{
+              height: 120,
+              width: 150,
+              resizeMode: "contain",
+              alignSelf: "center",
+              marginTop: 50,
+            }}
+          />
           <TextComponent
-            text="Yêu cầu đã được chấp nhận — bạn đã đăng nhập thành công."
-            size={14}
+            text="Đã xác nhận"
+            title
+            flex={1}
             font={fontFamilies.roboto_medium}
             color={appColor.primary}
+            styles={{ textAlign: "center", marginTop: 50 }}
+          />
+          <TextComponent
+            text="Đặt lịch thành công! Bạn có thể quay về trang chủ hoặc xem chi tiết lịch hẹn."
+            size={14}
+            font={fontFamilies.roboto_regular}
+            color={appColor.text}
+            styles={{ textAlign: "center", marginTop: 10 }}
           />
         </SectionComponent>
       )}
@@ -119,12 +139,12 @@ const WaitConfirm = ({ navigation, route }: any) => {
         <RowComponent justify="center" styles={{ alignItems: "center" }}>
           <ButtonComponent
             text="Trang chủ"
-            styles={{ width: "45%", marginRight: 5 }}
-            onPress={() => navigation.navigate("Home")}
+            styles={{ width: "70%", marginRight: 5 }}
+            onPress={() => navigation.navigate("HomeScreen")}
           />
           <ButtonComponent
             text="Xem chi tiết"
-            styles={{ width: "45%", marginLeft: 5 }}
+            styles={{ width: "70%", marginLeft: 5 }}
             onPress={() => navigation.navigate("AppointmentDetail", { id })}
           />
         </RowComponent>

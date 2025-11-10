@@ -90,6 +90,7 @@ const CreateMaintenance = ({ navigation, route }: any) => {
     console.log("Submit payload:", payload);
 
     const result = await CreateAppointment(payload);
+    console.log("Create appointment result:", result.message);
     if (result.success) {
       console.log("Success: ", result.data);
       navigation.navigate("WaitConfirm", { id: result.data.id });

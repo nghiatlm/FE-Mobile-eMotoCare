@@ -26,6 +26,8 @@ import { getCustomerByAccount } from "../../services/customer.service";
 import { getVehicle } from "../../services/vehicle.service";
 import { globalStyle } from "../../styles/globalStyle";
 import { getMaintenances } from "../../services/maintenance.service";
+import ActivityComponent from "./components/ActivityComponent";
+import { getAppointments } from "../../services/appointment.service";
 
 interface CustomerType {
   id?: string;
@@ -39,6 +41,7 @@ const HomeScreen = ({ navigation }: any) => {
   const [selectedMaintenance, setSelectedMaintenance] = useState(0);
   const [vehicle, setVehicle] = useState<any>(null);
   const [customer, setCustomer] = useState<CustomerType | null>(null);
+  const [activity, setActivity] = useState<any[]>([]);
 
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
@@ -74,6 +77,7 @@ const HomeScreen = ({ navigation }: any) => {
       const res = await getCustomerByAccount(id);
       if (res.success) {
         setCustomer(res.data);
+        fetchActivity();
       } else {
         setCustomer(null);
       }
@@ -130,12 +134,27 @@ const HomeScreen = ({ navigation }: any) => {
           setSelectedMaintenance(0);
           setMainDetailId(null);
         }
-        console.log("Fetched maintenance data:", rows);
+        // console.log("Fetched maintenance data:", rows);
       } else {
         console.warn("fetchMaintenances:", res.message);
       }
     } catch (e) {
       console.error("fetchMaintenances error:", e);
+    }
+  };
+
+  const fetchActivity = async () => {
+    const params = {
+      customerId: customer?.id,
+      page: 1,
+      pageSize: 10,
+    };
+    const result = await getAppointments(params);
+    if (result?.success) {
+      console.log("Fetched appointments for activity:", result.data);
+      setActivity(result.data?.rowDatas || []);
+    } else {
+      console.warn("fetchActivity:", result?.message || "Unknown error");
     }
   };
 
@@ -448,6 +467,36 @@ const HomeScreen = ({ navigation }: any) => {
           </View>
         </SectionComponent>
 
+        <SpaceComponent height={20} />
+
+        <SectionComponent
+          styles={[
+            globalStyle.shadow,
+            {
+              backgroundColor: appColor.white,
+              padding: 16,
+              borderRadius: 12,
+              marginHorizontal: 8,
+              borderWidth: 1,
+              borderColor: appColor.gray,
+            },
+          ]}
+        >
+          <TextComponent
+            text="Lịch sử hoạt động"
+            title
+            size={20}
+            color={appColor.primary}
+          />
+          <View style={styles.line} />
+          <ActivityComponent activities={activity}/>
+          <ButtonComponent
+            text="xem thêm"
+            type="link"
+            styles={[{ alignItems: "center" }]}
+          />
+        </SectionComponent>
+
         <SectionComponent>
           <View style={[{ flex: 1 }]}>
             <ButtonComponent
@@ -464,6 +513,7 @@ const HomeScreen = ({ navigation }: any) => {
               }}
             />
           </View>
+          
         </SectionComponent>
       </ScrollView>
     </View>
@@ -474,7 +524,7 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   line: {
-    height: 1,
+    height: 1.2,
     backgroundColor: appColor.gray,
     marginVertical: 8,
   },
