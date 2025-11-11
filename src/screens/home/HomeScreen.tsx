@@ -507,7 +507,7 @@ const HomeScreen = ({ navigation }: any) => {
                 await AsyncStorage.removeItem("auth");
                 await AsyncStorage.removeItem("ACCESS_TOKEN");
                 // gọi action remove trong redux
-                dispatch(removeAuth());
+                // dispatch(removeAuth());
                 // tuỳ chọn: chuyển về màn hình login
                 // navigation.replace("Login");
               }}

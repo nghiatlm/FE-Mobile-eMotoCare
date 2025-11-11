@@ -14,6 +14,8 @@ import MaintenanceDetailScreen from "./Maintenances/MaintenanceDetailScreen";
 import MaintenanceProcess from "./Maintenances/MaintenanceProcess";
 import NotificationScreen from "./notifications/NotificationScreen";
 import PaymentInvoice from "./payments/PaymentInvoice";
+import ChooseVehicle from "./repairs/components/ChooseVehicle";
+import CreateRepairScreen from "./repairs/CreateRepairScreen";
 import ServiceScreen from "./services/ServiceScreen";
 import SettingScreen from "./setting/SettingScreen";
 import SplashScreen from "./SplashScreen";
@@ -38,4 +40,6 @@ export {
   WaitConfirm,
   InspectionResult,
   PaymentInvoice,
+  CreateRepairScreen,
+  ChooseVehicle,
 };

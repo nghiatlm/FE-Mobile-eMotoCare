@@ -20,7 +20,7 @@ export default function useEvcheckHub(evcheckId: string) {
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
-        "https://5baf5a624772.ngrok-free.app/hubs/notify",
+        "https://bedding-scholar-theaters-knowing.trycloudflare.com/hubs/notify",
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,

@@ -114,7 +114,21 @@ const TabsNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="Service" component={ServiceNavigator} />
+      <Tab.Screen
+        name="Service"
+        component={ServiceNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+          return {
+            headerShown: false,
+            tabBarStyle: ["CreateRepairScreen"].includes(
+              routeName
+            )
+              ? { display: "none" }
+              : undefined,
+          };
+        }}
+      />
       <Tab.Screen name="Activity" component={ActivityNavigator} />
       <Tab.Screen
         name="Home"

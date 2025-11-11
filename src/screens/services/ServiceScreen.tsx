@@ -7,7 +7,7 @@ import {
 } from "../../components";
 import { fontFamilies } from "../../constants/fontFamilies";
 
-const ServiceScreen = () => {
+const ServiceScreen = ({ navigation }: any) => {
   return (
     <BackgroundComponent title="Dịch vụ">
       <SectionComponent>
@@ -19,7 +19,12 @@ const ServiceScreen = () => {
           }}
         />
         <ButtonComponent
-          text="Bảo dưỡng"
+          text="Sửa chữa"
+          textStyle={{ fontFamily: fontFamilies.roboto_bold, fontSize: 20 }}
+          onPress={() => navigation.navigate("CreateRepairScreen")}
+        />
+        <ButtonComponent
+          text="Bảo hành"
           textStyle={{ fontFamily: fontFamilies.roboto_bold, fontSize: 20 }}
         />
       </SectionComponent>
