@@ -1,5 +1,6 @@
 {
   "expo": {
+    "schema": "myapp",
     "name": "eMotoCare",
     "slug": "eMotoCare",
     "version": "1.0.0",

@@ -292,7 +292,7 @@ const HomeScreen = ({ navigation }: any) => {
               <View
                 style={{
                   position: "absolute",
-                  bottom: 20,
+                  top: 18,
                   marginLeft: "50%",
                   transform: [{ translateX: "-50%" }],
                   backgroundColor: "#E8F5FF",
@@ -305,7 +305,6 @@ const HomeScreen = ({ navigation }: any) => {
               >
                 <TextComponent text={vehicle?.vinNumber} size={12} />
               </View>
-
               <ButtonComponent
                 text="Xem thêm"
                 type="link"
@@ -313,7 +312,7 @@ const HomeScreen = ({ navigation }: any) => {
                   position: "absolute",
                   marginLeft: "50%",
                   transform: [{ translateX: "-50%" }],
-                  bottom: -16,
+                  bottom: Platform.OS === "ios" ? -16 : -3,
                   backgroundColor: appColor.white,
                   borderWidth: 1,
                   borderColor: appColor.gray,
@@ -321,6 +320,12 @@ const HomeScreen = ({ navigation }: any) => {
                   paddingHorizontal: 8,
                   paddingVertical: 8,
                 }}
+                onPress={() =>
+                  navigation.navigate("Vehicles", {
+                    screen: "VehicleDetail",
+                    params: { id: vehicle?.id },
+                  })
+                }
               />
             </View>
           </View>
@@ -489,7 +494,7 @@ const HomeScreen = ({ navigation }: any) => {
             color={appColor.primary}
           />
           <View style={styles.line} />
-          <ActivityComponent activities={activity}/>
+          <ActivityComponent activities={activity} />
           <ButtonComponent
             text="xem thêm"
             type="link"
@@ -513,7 +518,6 @@ const HomeScreen = ({ navigation }: any) => {
               }}
             />
           </View>
-          
         </SectionComponent>
       </ScrollView>
     </View>

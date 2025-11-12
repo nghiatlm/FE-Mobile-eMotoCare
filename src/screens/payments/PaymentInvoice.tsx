@@ -158,23 +158,20 @@ const PaymentInvoice = ({ navigation, route }: Props) => {
 
       // read return/deepLink from package.json (fallbacks)
       const paymentConfig = packageJson?.paymentConfig;
-      const webReturnUrl =
-        paymentConfig.returnUrl ?? "https://app.local/payment-callback";
-      const deepLink = paymentConfig.deepLink ?? "myapp://payment-callback";
+      const webReturnUrl = paymentConfig.returnUrl ?? "myapp://success";
+      const deepLink = paymentConfig.deepLink ?? "myapp://cancel";
 
       const normalizedAmount = Math.round(Number(evPartsTotal) || 0);
 
       const payload: any = {
         appointmentId: id,
-        // backend may expect Amount or amount — include both to be safe
-        Amount: normalizedAmount,
         amount: normalizedAmount,
         currency: "VND",
         paymentMethod: "PAY_OS_APP",
         // ask backend to use this return url (gateway redirect)
-        returnUrl: webReturnUrl,
+        returnUrl: "myapp://success",
         // optional deep link if gateway supports app-scheme redirect
-        callbackUrl: deepLink,
+        callbackUrl: "myapp://cancel",
       };
 
       console.log("Creating payment with payload:", payload);

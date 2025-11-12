@@ -20,7 +20,7 @@ export default function useAppointmentHub(appointmentId: string) {
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
-        "https://bedding-scholar-theaters-knowing.trycloudflare.com/hubs/notifyappointment",
+        "https://glvmsfwl-8080.asse.devtunnels.ms/hubs/notifyappointment",
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,

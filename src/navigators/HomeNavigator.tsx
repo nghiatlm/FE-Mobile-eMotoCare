@@ -11,6 +11,7 @@ import {
   SuccessScreen,
   WaitConfirm,
 } from "../screens";
+import VehicleNavigator from "./VehicleNavigator";
 
 const ExploreNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -31,6 +32,7 @@ const ExploreNavigator = () => {
       />
       <Stack.Screen name="InspectionResult" component={InspectionResult} />
       <Stack.Screen name="PaymentInvoice" component={PaymentInvoice} />
+      <Stack.Screen name="Vehicles" component={VehicleNavigator} />
     </Stack.Navigator>
   );
 };

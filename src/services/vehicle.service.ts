@@ -1,4 +1,4 @@
-import { vehicles, vehicleStage } from "../apis/vehicle.api";
+import { vehicle, vehicles, vehicleStage } from "../apis/vehicle.api";
 
 export const getVehicle = async (params: any) => {
   try {
@@ -22,7 +22,7 @@ export const getVehicle = async (params: any) => {
 
 export const getVehicleById = async (id: string) => {
   try {
-    const response = await vehicles({ id });
+    const response = await vehicle(id);
     return { success: true, data: response.data };
   } catch (error: any) {
     console.error("Get vehicle by ID failed:", {

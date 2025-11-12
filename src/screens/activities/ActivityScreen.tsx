@@ -1,11 +1,11 @@
-import { View, Text } from "react-native";
 import React from "react";
+import { BackgroundComponent, TextComponent } from "../../components";
 
 const ActivityScreen = () => {
   return (
-    <View>
-      <Text>ActivityScreen</Text>
-    </View>
+    <BackgroundComponent title="Hoạt động gần đây" back isScroll>
+      <TextComponent text="Activity Screen" />
+    </BackgroundComponent>
   );
 };
 
