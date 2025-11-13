@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -184,108 +184,96 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
         />
         <SpaceComponent height={20} />
 
-        {/* Service center card */}
+        {/* Service center card (two-column) */}
         <SectionComponent styles={[globalStyle.shadow, styles.card]}>
-          <TextComponent
-            text="Trung tâm dịch vụ: "
-            font={fontFamilies.roboto_medium}
-            color={appColor.text}
-            size={18}
-          />
-          <TextComponent
-            text={data?.serviceCenter?.name}
-            size={18}
-            color={appColor.primary}
-            font={fontFamilies.roboto_medium}
-            flex={1}
-            styles={{ marginTop: 4, marginLeft: 4 }}
-          />
-          <TextComponent
-            text="Xem vấn đề của xe"
-            size={13}
-            color={appColor.primary}
-            styles={{ marginTop: 4, marginLeft: 4 }}
-          />
-          <SpaceComponent height={10} />
-          <TextComponent
-            text="Thời gian: "
-            size={18}
-            font={fontFamilies.roboto_regular}
-            color={appColor.text}
-          />
-          <TextComponent
-            text={`${formatDateDDMMYYYY(
-              data?.appointmentDate
-            )} ${slotCodeToTimeLabel(data?.slotTime)}`}
-            color={appColor.text}
-            size={18}
-            font={fontFamilies.roboto_regular}
-            styles={{ marginTop: 4, marginLeft: 4 }}
-          />
-          <SpaceComponent height={4} />
-          <TextComponent
-            text={`Địa chỉ: ${
-              data?.serviceCenter?.address || "3, Lê Văn Khương, Gò Vấp"
-            }`}
-            color={appColor.gray2}
-            size={18}
-          />
-          <SpaceComponent height={4} />
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <TextComponent
+                text="Trung tâm dịch vụ"
+                font={fontFamilies.roboto_medium}
+                color={appColor.text}
+                size={16}
+              />
+              <TextComponent
+                text={data?.serviceCenter?.name}
+                size={18}
+                color={appColor.primary}
+                font={fontFamilies.roboto_bold}
+                flex={1}
+                styles={{ marginTop: 6 }}
+              />
+              <View style={{ flexDirection: 'row', marginTop: 8, alignItems: 'center' }}>
+                <View style={styles.statusChip}>
+                  <TextComponent text={String(data?.status || '').replace(/_/g, ' ')} size={12} color={appColor.white} />
+                </View>
+              </View>
+            </View>
 
-          <TextComponent
-            text={`Mã dịch vụ: ${data?.code || "6M78239A23P"}`}
-            color={appColor.gray2}
-            size={18}
-          />
+            <TouchableOpacity onPress={() => navigation.navigate('InspectionResult', { evcheck: evcheckIdState })}>
+              <TextComponent
+                text="Xem vấn đề của xe"
+                size={14}
+                color={appColor.primary}
+                styles={{ textDecorationLine: 'underline' }}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <SpaceComponent height={10} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View>
+              <TextComponent
+                text="Thời gian"
+                size={14}
+                color={appColor.gray2}
+              />
+              <TextComponent
+                text={`${formatDateDDMMYYYY(data?.appointmentDate)} ${slotCodeToTimeLabel(data?.slotTime)}`}
+                color={appColor.text}
+                size={16}
+                styles={{ marginTop: 4 }}
+              />
+            </View>
+
+            <View style={{ alignItems: 'flex-end' }}>
+              <TextComponent text={`Mã: ${data?.code || '6M78239A23P'}`} color={appColor.gray2} size={14} />
+              <TextComponent text={data?.serviceCenter?.address || ''} color={appColor.gray2} size={13} styles={{ marginTop: 8, maxWidth: 180 }} />
+            </View>
+          </View>
         </SectionComponent>
 
         <SpaceComponent height={25} />
 
         {/* Timeline */}
         <View style={styles.timelineContainer}>
+          {/* full vertical line */}
+          <View style={[styles.timelineFullLine, { backgroundColor: appColor.gray }]} />
           {filteredSteps.map((step) => (
             <View key={step.id} style={styles.stepContainer}>
               <View style={styles.timelineColumn}>
-                {step.id > 1 && (
-                  <View
-                    style={[
-                      styles.line,
-                      {
-                        backgroundColor:
-                          step.id <= currentStep
-                            ? appColor.primary
-                            : appColor.gray,
-                      },
-                    ]}
-                  />
-                )}
-
-                <View
-                  style={[
-                    styles.circle,
-                    {
-                      backgroundColor:
-                        step.id <= currentStep
-                          ? appColor.primary
-                          : appColor.gray,
-                    },
-                  ]}
-                />
+                <View style={[styles.circle, step.id <= currentStep ? styles.circleActive : null]} />
               </View>
 
               <View style={{ flex: 1 }}>
-                <TextComponent
-                  text={step.title}
-                  color={
-                    step.id === currentStep ? appColor.primary : appColor.text
-                  }
-                  font={
-                    step.id === currentStep
-                      ? fontFamilies.roboto_bold
-                      : fontFamilies.roboto_medium
-                  }
-                  size={16}
-                />
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextComponent
+                    text={step.title}
+                    color={
+                      step.id === currentStep ? appColor.primary : appColor.text
+                    }
+                    font={
+                      step.id === currentStep
+                        ? fontFamilies.roboto_bold
+                        : fontFamilies.roboto_medium
+                    }
+                    size={16}
+                  />
+                  {step.id === currentStep && (
+                    <View style={{ marginLeft: 8 }}>
+                      <TextComponent text="Hiện tại" size={12} color={appColor.primary} />
+                    </View>
+                  )}
+                </View>
                 {step.desc ? (
                   <View>
                     <TextComponent
@@ -384,6 +372,7 @@ const styles = StyleSheet.create({
   timelineContainer: {
     marginLeft: 8,
     marginTop: 8,
+    position: 'relative',
   },
   stepContainer: {
     flexDirection: "row",
@@ -404,6 +393,32 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
+  },
+  circleActive: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: appColor.primary,
+    borderWidth: 2,
+    borderColor: appColor.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  timelineFullLine: {
+    position: 'absolute',
+    left: 22,
+    top: 0,
+    bottom: 0,
+    width: 2,
+  },
+  statusChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: appColor.primary,
   },
 });
 

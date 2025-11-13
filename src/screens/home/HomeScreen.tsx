@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -8,7 +10,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,8 +22,7 @@ import {
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
-import { authSelecter } from "../../redux/reducers/authReducer";
-import { removeAuth } from "../../redux/reducers/authReducer";
+import { authSelecter, removeAuth } from "../../redux/reducers/authReducer";
 import { getAppointments } from "../../services/appointment.service";
 import { getCustomerByAccount } from "../../services/customer.service";
 import { getMaintenances } from "../../services/maintenance.service";
@@ -58,91 +58,100 @@ const HomeScreen = ({ navigation }: any) => {
     null
   );
 
+  // keep accountId in sync with auth state
   useEffect(() => {
     const id = auth.accountResponse?.id ?? "";
     setAccountId(id);
+  }, [auth.accountResponse?.id]);
+
+  // extract loadAll so it can be called on focus
+  const loadAll = useCallback(async (idParam?: string) => {
+    const id = idParam ?? auth.accountResponse?.id ?? accountId;
     if (!id || String(id).trim() === "") return;
+    try {
+      setLoadingCustomer(true);
+      const custRes = await getCustomerByAccount(String(id).trim());
+      if (custRes?.success) {
+        const cust = custRes.data;
+        setCustomer(cust);
 
-    const loadAll = async () => {
-      try {
-        setLoadingCustomer(true);
-        const custRes = await getCustomerByAccount(String(id).trim());
-        if (custRes?.success) {
-          const cust = custRes.data;
-          setCustomer(cust);
+        // fetch vehicle
+        setLoadingVehicle(true);
+        try {
+          const vehRes = await getVehicle({ customerId: String(cust.id), page: 1, pageSize: 10 });
+          if (vehRes?.success) {
+            const data = vehRes.data?.rowDatas[0];
+            setVehicle(data);
 
-          // fetch vehicle
-          setLoadingVehicle(true);
-          try {
-            const vehRes = await getVehicle({ customerId: String(cust.id), page: 1, pageSize: 10 });
-            if (vehRes?.success) {
-              const data = vehRes.data?.rowDatas[0];
-              setVehicle(data);
-
-              // fetch maintenances for vehicle
-              if (data?.id) {
-                setLoadingMaintenance(true);
-                try {
-                  const maintRes = await getMaintenances({ vehicleId: String(data.id), page: 1, pageSize: 10 });
-                  if (maintRes?.success) {
-                    const rows = maintRes.data?.rowDatas ?? [];
-                    setVehicleMaintenance(rows);
-                    if (rows.length > 0) {
-                      setSelectedMaintenance(0);
-                      setMainDetailId(rows[0].id ?? null);
-                    } else {
-                      setSelectedMaintenance(0);
-                      setMainDetailId(null);
-                    }
+            // fetch maintenances for vehicle
+            if (data?.id) {
+              setLoadingMaintenance(true);
+              try {
+                const maintRes = await getMaintenances({ vehicleId: String(data.id), page: 1, pageSize: 10 });
+                if (maintRes?.success) {
+                  const rows = maintRes.data?.rowDatas ?? [];
+                  setVehicleMaintenance(rows);
+                  if (rows.length > 0) {
+                    setSelectedMaintenance(0);
+                    setMainDetailId(rows[0].id ?? null);
+                  } else {
+                    setSelectedMaintenance(0);
+                    setMainDetailId(null);
                   }
-                } catch (e) {
-                  console.warn("fetchMaintenances error:", e);
-                } finally {
-                  setLoadingMaintenance(false);
                 }
+              } catch (e) {
+                console.warn("fetchMaintenances error:", e);
+              } finally {
+                setLoadingMaintenance(false);
               }
             }
-          } catch (e) {
-            console.warn("fetchVehicle error:", e);
-          } finally {
-            setLoadingVehicle(false);
           }
-
-          // fetch maintenances for vehicle (handled above while vehicle was set)
-
-          // fetch activities AFTER vehicle + maintenances to follow top-down order
-          setLoadingActivity(true);
-          try {
-            const actRes = await getAppointments({ customerId: cust.id, page: 1, pageSize: 10 });
-            if (actRes?.success) setActivity(actRes.data?.rowDatas || []);
-          } catch (e) {
-            console.warn("fetchActivity error:", e);
-          } finally {
-            setLoadingActivity(false);
-          }
+        } catch (e) {
+          console.warn("fetchVehicle error:", e);
+        } finally {
+          setLoadingVehicle(false);
         }
-      } catch (e) {
-        console.error("loadAll error:", e);
-      } finally {
-        setLoadingCustomer(false);
+
+        // fetch activities AFTER vehicle + maintenances to follow top-down order
+        setLoadingActivity(true);
+        try {
+          const actRes = await getAppointments({ customerId: cust.id, page: 1, pageSize: 10 });
+          if (actRes?.success) setActivity(actRes.data?.rowDatas || []);
+        } catch (e) {
+          console.warn("fetchActivity error:", e);
+        } finally {
+          setLoadingActivity(false);
+        }
       }
-    };
-    loadAll();
-  }, [auth]);
+    } catch (e) {
+      console.error("loadAll error:", e);
+    } finally {
+      setLoadingCustomer(false);
+    }
+  }, [accountId, auth.accountResponse]);
+
+  // call loadAll whenever the screen regains focus so data refreshes when user returns
+  useFocusEffect(
+    useCallback(() => {
+      const id = auth.accountResponse?.id ?? accountId;
+      if (!id || String(id).trim() === "") return;
+      loadAll(id);
+    }, [auth.accountResponse?.id, accountId, loadAll])
+  );
 
   useEffect(() => {
     if (loadingVehicle || loadingCustomer) return;
     if (!customer?.id) return;
     if (vehicle) return;
     fetchVehicle();
-  }, [customer]);
+  },);
 
   useEffect(() => {
     if (loadingMaintenance || loadingVehicle) return;
     if (!vehicle?.id) return;
     if (vehicleMaintenance && vehicleMaintenance.length > 0) return;
     fetchMaintenances();
-  }, [vehicle]);
+  }, );
 
   const fetchCustomer = async (id: string) => {
     try {
@@ -351,7 +360,7 @@ const HomeScreen = ({ navigation }: any) => {
           loading={loadingMaintenance}
         />
 
-        <SpaceComponent height={20} />
+        <SpaceComponent height={14} />
 
         <SectionComponent
           styles={[
@@ -373,12 +382,18 @@ const HomeScreen = ({ navigation }: any) => {
             color={appColor.primary}
           />
           <View style={styles.line} />
-          <ActivityComponent activities={activity} loading={loadingActivity} />
-          <ButtonComponent
-            text="xem thêm"
-            type="link"
-            styles={[{ alignItems: "center" }]}
-          />
+          <View style={{ maxHeight: 160, overflow: 'hidden' }}>
+            <ActivityComponent activities={activity?.slice(0, 1)} loading={loadingActivity} />
+          </View>
+          {Array.isArray(activity) && activity.length > 1 ? (
+            <View style={{ alignItems: 'center' }}>
+              <ButtonComponent
+                text="xem thêm"
+                type="link"
+                onPress={() => navigation.navigate('Activity')}
+              />
+            </View>
+          ) : null}
         </SectionComponent>
 
         <SectionComponent>

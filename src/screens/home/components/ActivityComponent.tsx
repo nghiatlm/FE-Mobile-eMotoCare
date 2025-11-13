@@ -1,16 +1,15 @@
 import { FontAwesome6 } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import {
   ButtonComponent,
-  RowComponent,
-  SpaceComponent,
-  TextComponent,
+  TextComponent
 } from "../../../components";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
-import { useNavigation } from "@react-navigation/native";
-import { statusActivities } from "../../../utils/generateStatus";
+import { statusActivities, statusColor } from "../../../utils/generateStatus";
+import { generateServiceType } from '../../../utils/generateServiceType';
 
 interface Props {
   activities?: any[];
@@ -74,7 +73,7 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
           const statusInfo = statusActivities(activity.status);
           const statusText = typeof statusInfo === 'string' ? statusInfo : statusInfo?.label ?? JSON.stringify(statusInfo);
 
-          const statusIsDone = String(statusText).toLowerCase().includes("hoàn thành") || String(statusText).toLowerCase().includes("completed");
+          const statusTextColor = statusColor(activity.status);
 
           return (
             <View key={activity.id ?? index} style={styles.cardWrap}>
@@ -89,7 +88,9 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
 
                 <View style={styles.content}>
                   <TextComponent
-                    text={activity.type || "Kiểm tra định kỳ"}
+                    text={
+                      generateServiceType(activity.type) || activity.type || "Kiểm tra định kỳ"
+                    }
                     size={15}
                     font={fontFamilies.roboto_medium}
                     color={appColor.text}
@@ -110,21 +111,22 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
                     text={statusText || "Chưa có"}
                     size={13}
                     font={fontFamilies.roboto_medium}
-                    color={statusIsDone ? appColor.primary : appColor.text}
+                    color={statusTextColor || appColor.text}
                     styles={{ marginTop: 6 }}
                   />
                 </View>
               </View>
-              <ButtonComponent
-                text="Xem chi tiết"
-                type="link"
-                onPress={() =>
-                  navigation.navigate("MaintenanceProcess", {
-                    id: activity.id,
-                  })
-                }
-                styles={{ paddingHorizontal: 6 }}
-              />
+              <View style={{ alignItems: 'center', marginTop: 8 }}>
+                <ButtonComponent
+                  text="Xem chi tiết"
+                  type="link"
+                  onPress={() =>
+                    navigation.navigate("MaintenanceProcess", {
+                      id: activity.id,
+                    })
+                  }
+                />
+              </View>
             </View>
           );
         })
@@ -158,7 +160,7 @@ const styles = StyleSheet.create({
   },
   cardRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   iconWrap: {
     width: 42,

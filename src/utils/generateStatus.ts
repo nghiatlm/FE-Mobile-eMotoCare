@@ -39,3 +39,26 @@ export const statusLabel = (status: string): string => {
       return "Không xác định";
   }
 };
+
+// Trả về màu chữ tương ứng với trạng thái (dựa trên statusLabel)
+export const statusColor = (status: string): string => {
+  if (!status) return "#120D26";
+  switch (status) {
+    case "UPCOMING":
+      return "#2F766B"; // primary (teal)
+    case "SUCCESS":
+    case "COMPLETED":
+      return "#80CF95"; // success50
+    case "NO_START":
+      return "#64748B"; // gray2
+    case "EXPIRED":
+    case "EXPAIRED":
+      return "#EF2A39"; // danger
+    case "OVERDUE":
+      return "#EF2A39"; // danger
+    case "PENDING":
+      return "#F4C03E"; // warning
+    default:
+      return "#120D26"; // text
+  }
+};

@@ -1,21 +1,13 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import React, { ReactNode } from "react";
-import { Platform, View } from "react-native";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
+import React from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from "react-native-vector-icons/Ionicons";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { Motorbike } from "../assets/svg";
-import { TextComponent } from "../components";
-import { appColor } from "../constants/appColor";
-import { globalStyle } from "../styles/globalStyle";
+import CustomTabBar from "../components/CustomTabBar";
 import ActivityNavigator from "./ActivityNavigator";
 import HomeNavigator from "./HomeNavigator";
 import NotificationNavigator from "./NotificationNavigator";
 import ServiceNavigator from "./ServiceNavigator";
 import SettingNavigator from "./SettingNavigator";
-import CustomTabBar from "../components/CustomTabBar";
-import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 const TabsNavigator = () => {
   const Tab = createBottomTabNavigator();

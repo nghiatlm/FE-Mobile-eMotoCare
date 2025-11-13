@@ -11,6 +11,7 @@ import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
 import { Image, View } from "react-native";
+import { getKMLabel, getDurationLabel } from "../../utils/generateKM";
 import { getMaintenanceStageById } from "../../services/maintenanceStage.service";
 
 const MaintenanceDetailScreen = ({ navigation, route }: any) => {
@@ -64,17 +65,17 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
           globalStyle.shadow,
           {
             backgroundColor: appColor.white,
-            borderRadius: 8,
+            borderRadius: 12,
             borderWidth: 1,
             borderColor: appColor.gray,
-            padding: 16,
+            padding: 14,
           },
         ]}
       >
         <TextComponent
           text={data?.name || "Bảo dưỡng định kỳ"}
           title
-          size={20}
+          size={18}
           color={appColor.primary}
         />
         <SpaceComponent height={10} />
@@ -86,9 +87,9 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
             font={fontFamilies.roboto_regular}
           />
           <TextComponent
-            text={String(data?.mileage ?? "")}
+            text={getKMLabel(data?.mileage ?? null)}
             color={appColor.text}
-            size={18}
+            size={16}
             font={fontFamilies.roboto_medium}
           />
         </RowComponent>
@@ -102,7 +103,7 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
             font={fontFamilies.roboto_regular}
           />
           <TextComponent
-            text={String(data?.durationMonth ?? "")}
+            text={getDurationLabel(data?.durationMonth ?? null)}
             color={appColor.text}
             size={18}
             font={fontFamilies.roboto_medium}
@@ -118,129 +119,136 @@ const MaintenanceDetailScreen = ({ navigation, route }: any) => {
           size={20}
           color={appColor.primary}
         />
+          {Array.isArray(data?.maintenanceStageDetails) &&
+          data.maintenanceStageDetails.length > 0 ? (
+            data.maintenanceStageDetails.map((item: any, index: number) => {
+              const title =
+                item?.part?.name ?? item?.name ?? `Hạng mục ${index + 1}`;
+              
+              const image = item?.part?.image || null;
+              console.log("Part image:", image);
 
-        {Array.isArray(data?.maintenanceStageDetails) &&
-        data.maintenanceStageDetails.length > 0 ? (
-          data.maintenanceStageDetails.map((item: any, index: number) => {
-            const title =
-              item?.part?.name ?? item?.name ?? `Hạng mục ${index + 1}`;
+              // normalize actionType to array of upper-case strings
+              const rawActions = item?.actionType;
+              const actionTypes: string[] = Array.isArray(rawActions)
+                ? rawActions.map((t: any) => String(t).trim().toUpperCase())
+                : rawActions
+                ? String(rawActions)
+                    .split(/[,\|;]/)
+                    .map((t) => t.trim().toUpperCase())
+                : [];
 
-            // normalize actionType to array of upper-case strings
-            const rawActions = item?.actionType;
-            const actionTypes: string[] = Array.isArray(rawActions)
-              ? rawActions.map((t: any) => String(t).trim().toUpperCase())
-              : rawActions
-              ? String(rawActions)
-                  .split(/[,\|;]/)
-                  .map((t) => t.trim().toUpperCase())
-              : [];
+              const translateAction = (type: string) =>
+                type === "INSPECTION"
+                  ? "Kiểm tra"
+                  : type === "LUBRICATION"
+                  ? "Bôi trơn"
+                  : type;
 
-            const translateAction = (type: string) =>
-              type === "INSPECTION"
-                ? "Kiểm tra"
-                : type === "LUBRICATION"
-                ? "Bôi trơn"
-                : type;
+              const actionColor = (type: string) =>
+                type === "INSPECTION"
+                  ? appColor.primary
+                  : type === "LUBRICATION"
+                  ? appColor.warning
+                  : appColor.gray;
 
-            const actionColor = (type: string) =>
-              type === "INSPECTION"
-                ? appColor.primary
-                : type === "LUBRICATION"
-                ? appColor.warning
-                : appColor.gray;
-
-            return (
-              <React.Fragment key={item?.id ?? index}>
-                <SpaceComponent height={12} />
-                <RowComponent
-                  styles={[
-                    globalStyle.shadow,
+              return (
+                <React.Fragment key={item?.id ?? index}>
+                  <SpaceComponent height={12} />
+                  <RowComponent
+                    styles={[
+                      globalStyle.shadow,
+                      {
+                        backgroundColor: appColor.white,
+                        borderWidth: 1,
+                        borderColor: appColor.gray,
+                        borderRadius: 8,
+                      },
+                    ]}
+                  >
                     {
-                      backgroundColor: appColor.white,
-                      borderWidth: 1,
-                      borderColor: appColor.gray,
-                      borderRadius: 8,
-                    },
-                  ]}
-                >
-                  <Image
-                    source={require("../../assets/images/parts/dong-ho.png")}
-                    style={{ height: 120, width: 150, resizeMode: "contain" }}
-                  />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <TextComponent
-                      text={title}
-                      size={20}
-                      font={fontFamilies.roboto_medium}
-                      color={appColor.text}
+                      // remote image must be passed as { uri }
+                    }
+                    <Image
+                      source={
+                        image
+                          ? { uri: String(image) }
+                          : require("../../assets/images/parts/dong-ho.png")
+                      }
+                      style={{ height: 100, width: 100, resizeMode: "cover", borderRadius: 8, backgroundColor: appColor.gray3 }}
                     />
-                    <SpaceComponent height={10} />
-                    {/* Hiển thị từng action type trên dòng riêng, màu khác nhau */}
-                    {actionTypes.length > 0 ? (
-                      actionTypes.map((t, i) => (
-                        <RowComponent
-                          key={`${item?.id ?? index}-action-${i}`}
-                          justify="flex-start"
-                          styles={{
-                            alignItems: "center",
-                            marginTop: i === 0 ? 0 : 8,
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: 10,
-                              height: 10,
-                              backgroundColor: actionColor(t),
-                              borderRadius: 4,
-                              marginRight: 8,
-                            }}
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <TextComponent
+                        text={title}
+                        size={18}
+                        font={fontFamilies.roboto_medium}
+                        color={appColor.text}
+                      />
+                      <SpaceComponent height={10} />
+                      {/* Render action types as compact pills */}
+                      {actionTypes.length > 0 ? (
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                          {actionTypes.map((t: string, i: number) => (
+                            <View
+                              key={`${item?.id ?? index}-action-${i}`}
+                              style={{
+                                borderWidth: 1,
+                                borderColor: actionColor(t),
+                                paddingVertical: 6,
+                                paddingHorizontal: 10,
+                                borderRadius: 16,
+                                marginRight: 8,
+                                marginTop: i === 0 ? 0 : 8,
+                                backgroundColor: appColor.white,
+                              }}
+                            >
+                              <TextComponent
+                                text={translateAction(t)}
+                                font={fontFamilies.roboto_regular}
+                                color={actionColor(t)}
+                                size={14}
+                              />
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <RowComponent justify="flex-start">
+                          <TextComponent
+                            text="Nội dung: "
+                            font={fontFamilies.roboto_regular}
+                            color={appColor.text}
+                            size={16}
                           />
                           <TextComponent
-                            text={translateAction(t)}
+                            text="Không có mô tả"
                             font={fontFamilies.roboto_regular}
-                            color={actionColor(t)}
-                            size={18}
+                            color={appColor.gray2}
+                            size={16}
+                            styles={{ marginLeft: 4 }}
                           />
                         </RowComponent>
-                      ))
-                    ) : (
-                      <RowComponent justify="flex-start">
-                        <TextComponent
-                          text="Nội dung: "
-                          font={fontFamilies.roboto_regular}
-                          color={appColor.text}
-                          size={18}
-                        />
-                        <TextComponent
-                          text="Không có mô tả"
-                          font={fontFamilies.roboto_regular}
-                          color={appColor.gray2}
-                          size={18}
-                          styles={{ marginLeft: 4 }}
-                        />
-                      </RowComponent>
-                    )}
-                    {item?.note ? (
-                      <>
-                        <SpaceComponent height={8} />
-                        <TextComponent
-                          text={item.note}
-                          size={14}
-                          color={appColor.gray2}
-                        />
-                      </>
-                    ) : null}
-                  </View>
-                </RowComponent>
-              </React.Fragment>
-            );
-          })
-        ) : (
-          <>
-            <SpaceComponent height={12} />
-            <TextComponent text="Không có nội dung thực hiện" size={14} />
-          </>
-        )}
+                      )}
+                      {item?.note ? (
+                        <>
+                          <SpaceComponent height={8} />
+                          <TextComponent
+                            text={item.note}
+                            size={14}
+                            color={appColor.gray2}
+                          />
+                        </>
+                      ) : null}
+                    </View>
+                  </RowComponent>
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <>
+              <SpaceComponent height={12} />
+              <TextComponent text="Không có nội dung thực hiện" size={14} />
+            </>
+          )}
       </SectionComponent>
     </BackgroundComponent>
   );

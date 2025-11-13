@@ -12,7 +12,7 @@ import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import useAppointmentHub from "../../../hooks/useAppointmentHub.hook";
 import { getAppointmentDetail } from "../../../services/appointment.service";
-import { Image } from "react-native";
+import { Image, View } from "react-native";
 
 const WaitConfirm = ({ navigation, route }: any) => {
   const { id } = route.params;
@@ -73,19 +73,17 @@ const WaitConfirm = ({ navigation, route }: any) => {
   return (
     <BackgroundComponent back isScroll title="Đặt lịch bảo dưỡng">
       {isPending && (
-        <SectionComponent>
+        <SectionComponent styles={{ alignItems: "center", paddingVertical: 30 }}>
           <TextComponent
-            text="Chờ Xác nhận"
+            text="Đang chờ xác nhận"
             title
             flex={1}
-            styles={{ textAlign: "center", marginTop: 50 }}
+            styles={{ textAlign: "center", marginTop: 12 }}
           />
           <TextComponent
-            text={
-              description ?? "Đang đợi xác nhận, vui lòng chờ trong giây lát..."
-            }
-            styles={{ textAlign: "center", marginTop: 20 }}
-            size={18}
+            text={description ?? "Đang đợi xác nhận, vui lòng chờ trong giây lát..."}
+            styles={{ textAlign: "center", marginTop: 12 }}
+            size={16}
             font={fontFamilies.roboto_regular}
             color={appColor.text}
           />
@@ -93,61 +91,60 @@ const WaitConfirm = ({ navigation, route }: any) => {
       )}
 
       {status === "APPROVED" && (
-        <SectionComponent>
+        <SectionComponent styles={{ alignItems: "center", paddingVertical: 20 }}>
           <Image
             source={require("../../../assets/images/check-success.png")}
-            style={{
-              height: 120,
-              width: 150,
-              resizeMode: "contain",
-              alignSelf: "center",
-              marginTop: 50,
-            }}
+            style={{ height: 140, width: 180, resizeMode: "contain", marginTop: 20 }}
           />
           <TextComponent
             text="Đã xác nhận"
             title
-            flex={1}
             font={fontFamilies.roboto_medium}
             color={appColor.primary}
-            styles={{ textAlign: "center", marginTop: 50 }}
+            styles={{ textAlign: "center", marginTop: 18 }}
           />
           <TextComponent
             text="Đặt lịch thành công! Bạn có thể quay về trang chủ hoặc xem chi tiết lịch hẹn."
             size={14}
             font={fontFamilies.roboto_regular}
             color={appColor.text}
-            styles={{ textAlign: "center", marginTop: 10 }}
+            styles={{ textAlign: "center", marginTop: 8 }}
           />
         </SectionComponent>
       )}
 
       {isCanceled && (
-        <SectionComponent>
+        <SectionComponent styles={{ alignItems: "center", paddingVertical: 20 }}>
           <TextComponent
             text="Yêu cầu của bạn đã bị từ chối."
-            size={14}
+            size={16}
             font={fontFamilies.roboto_medium}
-            color={appColor.primary}
+            color={appColor.danger}
+            styles={{ textAlign: "center" }}
           />
         </SectionComponent>
       )}
 
-      <SpaceComponent height={20} />
+      <SpaceComponent height={18} />
 
-      <SectionComponent styles={{ paddingHorizontal: 8 }}>
-        <RowComponent justify="center" styles={{ alignItems: "center" }}>
-          <ButtonComponent
-            text="Trang chủ"
-            styles={{ width: "70%", marginRight: 5 }}
-            onPress={() => navigation.navigate("HomeScreen")}
-          />
-          <ButtonComponent
-            text="Xem chi tiết"
-            styles={{ width: "70%", marginLeft: 5 }}
-            onPress={() => navigation.navigate("AppointmentDetail", { id })}
-          />
-        </RowComponent>
+      <SectionComponent styles={{ paddingHorizontal: 12 }}>
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ flex: 1, marginRight: 6 }}>
+            <ButtonComponent
+              text="Trang chủ"
+              type="primary"
+              styles={{ width: "100%" }}
+              onPress={() => navigation.navigate("HomeScreen")}
+            />
+          </View>
+          <View style={{ flex: 1, marginLeft: 6 }}>
+            <ButtonComponent
+              text="Xem chi tiết"
+              styles={{ width: "100%" }}
+              onPress={() => navigation.navigate("AppointmentDetail", { id })}
+            />
+          </View>
+        </View>
       </SectionComponent>
 
       <SpaceComponent height={16} />

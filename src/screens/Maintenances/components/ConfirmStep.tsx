@@ -10,6 +10,7 @@ import {
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
+import { getKMLabel } from "../../../utils/generateKM";
 
 const ConfirmStep = ({ state, center, vehicle }: any) => {
   const { appointmentDate, timeSlot } = state;
@@ -38,11 +39,7 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
         return;
       }
       const now = new Date();
-      if (exp.getTime() < now.getTime()) {
-        setIsWarranty(false);
-      } else {
-        setIsWarranty(true);
-      }
+      setIsWarranty(exp.getTime() >= now.getTime());
     };
     checkWarranty();
   }, [vehicle]);
@@ -66,7 +63,7 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
 
       <SpaceComponent height={16} />
 
-      {/* ---- Trung tâm ---- */}
+      {/* Trung tâm */}
       <SectionComponent
         styles={[
           globalStyle.shadow,
@@ -89,21 +86,15 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
             font={fontFamilies.roboto_medium}
           />
           <SpaceComponent height={6} />
-          <TextComponent
-            text={center.name || "Chưa chọn"}
-            size={18}
-            color={appColor.text}
-          />
+          <TextComponent text={center?.name || "Chưa chọn"} size={18} color={appColor.text} />
           <SpaceComponent height={6} />
-          <TextComponent
-            text={center.address || "Chưa chọn"}
-            size={16}
-            color={appColor.gray}
-          />
+          <TextComponent text={center?.address || "Chưa chọn"} size={16} color={appColor.gray} />
         </View>
       </SectionComponent>
 
-      {/* ---- Thời gian ---- */}
+      <SpaceComponent height={16} />
+
+      {/* Thời gian */}
       <SectionComponent
         styles={[
           globalStyle.shadow,
@@ -120,28 +111,17 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
       >
         <Fontisto name="date" size={24} color={appColor.primary} />
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <TextComponent
-            text="Thời gian:"
-            size={18}
-            color={appColor.primary}
-            font={fontFamilies.roboto_medium}
-          />
+          <TextComponent text="Thời gian:" size={18} color={appColor.primary} font={fontFamilies.roboto_medium} />
           <SpaceComponent height={6} />
-          <TextComponent
-            text={formatDate(appointmentDate)}
-            size={18}
-            color={appColor.text}
-          />
+          <TextComponent text={formatDate(appointmentDate) || "Chưa chọn"} size={18} color={appColor.text} />
           <SpaceComponent height={4} />
-          <TextComponent
-            text={timeSlot || "Chưa chọn"}
-            size={18}
-            color={appColor.text}
-          />
+          <TextComponent text={timeSlot || "Chưa chọn"} size={18} color={appColor.text} />
         </View>
       </SectionComponent>
 
-      {/* ---- Xe ---- */}
+      <SpaceComponent height={16} />
+
+      {/* Xe */}
       <SectionComponent
         styles={[
           globalStyle.shadow,
@@ -158,55 +138,29 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
       >
         <AntDesign name="info-circle" size={24} color={appColor.primary} />
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <TextComponent
-            text="Thông tin xe:"
-            size={18}
-            color={appColor.primary}
-            font={fontFamilies.roboto_medium}
-          />
+          <TextComponent text="Thông tin xe:" size={18} color={appColor.primary} font={fontFamilies.roboto_medium} />
           <SpaceComponent height={6} />
+
           <RowComponent justify="flex-start">
-            <TextComponent
-              text="Kiểu xe: "
-              size={Platform.OS === "android" ? 16 : 18}
-              font={fontFamilies.roboto_regular}
-              styles={{ marginRight: 12 }}
-            />
-            <TextComponent
-              text={vehicle?.modelName || "Thằng Thịnh làm sai"}
-              size={Platform.OS === "android" ? 16 : 18}
-              styles={{ marginRight: 12 }}
-            />
+            <TextComponent text="Kiểu xe:" size={Platform.OS === "android" ? 16 : 18} font={fontFamilies.roboto_regular} styles={{ marginRight: 12 }} />
+            <TextComponent text={vehicle?.modelName || "Chưa có dữ liệu"} size={Platform.OS === "android" ? 16 : 18} styles={{ marginRight: 12, flex: 1 }} />
           </RowComponent>
           <SpaceComponent height={6} />
 
           <RowComponent justify="flex-start">
-            <TextComponent
-              text="Số km: "
-              size={Platform.OS === "android" ? 16 : 18}
-              font={fontFamilies.roboto_regular}
-              styles={{ marginRight: 12 }}
-            />
-            <TextComponent
-              text={vehicle?.modelName || "Thằng Thịnh làm sai"}
-              size={Platform.OS === "android" ? 16 : 18}
-              styles={{ marginRight: 12 }}
-            />
+            <TextComponent text="Số km:" size={Platform.OS === "android" ? 16 : 18} font={fontFamilies.roboto_regular} styles={{ marginRight: 12 }} />
+            <TextComponent text={getKMLabel(vehicle?.mileage ?? vehicle?.km ?? null)} size={Platform.OS === "android" ? 16 : 18} styles={{ marginRight: 12 }} />
           </RowComponent>
           <SpaceComponent height={6} />
-          <RowComponent justify="flex-start">
-            <TextComponent
-              text="Bảo hành: "
-              size={Platform.OS === "android" ? 16 : 18}
-              font={fontFamilies.roboto_regular}
-              styles={{ marginRight: 12 }}
-            />
-            <TextComponent
-              text={isWarranty ? "Còn bảo hành" : "Thằng Thịnh làm sai"}
-              size={Platform.OS === "android" ? 16 : 18}
-              styles={{ marginRight: 12 }}
-              color={isWarranty ? appColor.primary : appColor.danger}
-            />
+
+          <RowComponent justify="flex-start" styles={{ alignItems: "center" }}>
+            <TextComponent text="Bảo hành:" size={Platform.OS === "android" ? 16 : 18} font={fontFamilies.roboto_regular} styles={{ marginRight: 12 }} />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <TextComponent text={isWarranty ? "Còn bảo hành" : "Hết bảo hành"} size={Platform.OS === "android" ? 16 : 18} styles={{ marginRight: 8 }} color={isWarranty ? appColor.primary : appColor.danger} />
+              <View style={{ backgroundColor: isWarranty ? appColor.primary : appColor.danger, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
+                <TextComponent text={isWarranty ? "Warranty" : "Expired"} size={12} color={appColor.white} />
+              </View>
+            </View>
           </RowComponent>
           <SpaceComponent height={6} />
         </View>
