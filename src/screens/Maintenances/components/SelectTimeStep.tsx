@@ -272,7 +272,7 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
         <SpaceComponent height={12} />
 
         {/* ---- Header thứ ---- */}
-        <View style={styles.weekRow}>
+          <View style={styles.weekRow}>
           {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((w) => (
             <View key={w} style={styles.dayCellHeader}>
               <TextComponent text={w} size={12} color={appColor.gray2} />
@@ -300,6 +300,10 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
                   }
                   style={styles.dayCell}
                   activeOpacity={isPast ? 1 : 0.7}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: isPast, selected: active }}
+                  disabled={isPast}
                 >
                   <View
                     style={[
@@ -380,8 +384,8 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
                     dispatch({
                       type: "SET",
                       payload: {
-                        timeSlot: label,      // used for UI
-                        slotTime: slotCode,   // canonical value to submit (H07_08)
+                        timeSlot: label, // used for UI
+                        slotTime: slotCode, // canonical value to submit (H07_08)
                         selectedSlotId: s.id,
                         appointmentDate: selectedIso,
                       },
@@ -389,16 +393,16 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
                   }
                   style={[
                     styles.slot,
-                    {
-                      backgroundColor: active ? appColor.primary : "#FFF",
-                      borderColor: active ? appColor.primary : "#EEE",
-                    },
+                    active ? styles.slotActive : {},
                     disabled && styles.slotDisabled,
                   ]}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled, selected: active }}
                 >
                   <TextComponent
                     text={label}
-                    size={16}
+                    size={15}
                     color={disabled ? appColor.gray2 : active ? "#FFF" : appColor.text}
                   />
                 </TouchableOpacity>
@@ -412,18 +416,25 @@ const SelectTimeStep = ({ state, dispatch, center }: any) => {
 };
 
 const styles = StyleSheet.create({
-  navBtn: { padding: 4, borderRadius: 6 },
+  navBtn: { padding: 8, borderRadius: 8 },
   weekRow: { flexDirection: "row", justifyContent: "space-between" },
   dayCellHeader: { width: `${100 / 7}%`, alignItems: "center" },
   dayCell: { width: `${100 / 7}%`, alignItems: "center", paddingVertical: 6 },
   dayNumberWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
   },
-  dayNumberActive: { backgroundColor: appColor.primary },
+  dayNumberActive: {
+    backgroundColor: appColor.primary,
+    elevation: 3,
+    shadowColor: appColor.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+  },
   slotsWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -431,11 +442,21 @@ const styles = StyleSheet.create({
   },
   slot: {
     width: "48%",
-    paddingVertical: 14,
-    borderRadius: 8,
+    paddingVertical: 16,
+    borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 12,
     alignItems: "center",
+    minHeight: 44,
+  },
+  slotActive: {
+    backgroundColor: appColor.primary,
+    borderColor: appColor.primary,
+    elevation: 2,
+    shadowColor: appColor.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
   },
   slotDisabled: {
     backgroundColor: "#F5F5F5",

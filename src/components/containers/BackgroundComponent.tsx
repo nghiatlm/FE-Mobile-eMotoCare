@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { appColor } from "../../constants/appColor";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontFamilies } from "../../constants/fontFamilies";
 import TextComponent from "../ui/TextComponent";
 
@@ -25,9 +26,10 @@ const BackgroundComponent = (props: Props) => {
   const navigation = useNavigation();
 
   const topPadding =
-    Platform.OS === "android" ? StatusBar.currentHeight || 30 : 60;
+    Platform.OS === "android" ? StatusBar.currentHeight || 24 : 54;
 
-  const FOOTER_HEIGHT = 64;
+  const insets = useSafeAreaInsets();
+  const FOOTER_HEIGHT = 72;
 
   return (
     <View
@@ -41,13 +43,13 @@ const BackgroundComponent = (props: Props) => {
       <View
         style={{
           paddingTop: topPadding,
-          paddingBottom: 30,
+          paddingBottom: 18,
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: appColor.primary,
           width: "100%",
-          borderBottomLeftRadius: 42,
-          borderBottomRightRadius: 42,
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
           overflow: "hidden",
         }}
       >
@@ -76,11 +78,11 @@ const BackgroundComponent = (props: Props) => {
         style={{
           flex: 1,
           backgroundColor: appColor.white,
-          marginTop: -6,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          paddingTop: 12,
-          paddingHorizontal: 12,
+          marginTop: -12,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          paddingTop: 10,
+          paddingHorizontal: 16,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.08,
@@ -91,16 +93,16 @@ const BackgroundComponent = (props: Props) => {
         <View style={{ flex: 1 }}>
           {isScroll ? (
             <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingBottom: footer ? FOOTER_HEIGHT  : 16,
-              }}
-              style={{ flex: 1 }}
-            >
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingBottom: footer ? FOOTER_HEIGHT + (insets?.bottom ?? 0) : (insets?.bottom ?? 0) + 100,
+                }}
+                style={{ flex: 1 }}
+              >
               {children}
             </ScrollView>
           ) : (
-            <View style={{ flex: 1 }}>{children}</View>
+            <View style={{ flex: 1, paddingBottom: footer ? FOOTER_HEIGHT + (insets?.bottom ?? 0) : (insets?.bottom ?? 0) + 16 }}>{children}</View>
           )}
         </View>
 
@@ -111,8 +113,7 @@ const BackgroundComponent = (props: Props) => {
               left: 0,
               right: 0,
               bottom: 0,
-              height: 100,
-              // paddingVertical: 30,
+              height: FOOTER_HEIGHT,
               backgroundColor: appColor.white,
               justifyContent: "center",
               alignItems: "center",

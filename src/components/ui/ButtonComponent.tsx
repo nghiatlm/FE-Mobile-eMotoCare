@@ -14,6 +14,8 @@ import TextComponent from "./TextComponent";
 
 interface Props {
   icon?: ReactNode;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
   text: string;
   type?: "primary" | "text" | "link" | "secondary" | "ghost";
   color?: string;
@@ -29,6 +31,8 @@ interface Props {
 const ButtonComponent = (props: Props) => {
   const {
     icon,
+    leftIcon,
+    rightIcon,
     text,
     type,
     color,
@@ -40,6 +44,13 @@ const ButtonComponent = (props: Props) => {
     iconFlex,
     disabled,
   } = props;
+
+  // determine icons (prefer explicit leftIcon/rightIcon, fallback to legacy icon+iconFlex)
+  const left = leftIcon ?? (icon && iconFlex === "left" ? icon : null);
+  const right = rightIcon ?? (icon && iconFlex === "right" ? icon : null);
+  const rightContainer = right ? (
+    <View style={{ flex: 1, alignItems: "flex-end" }}>{right}</View>
+  ) : null;
 
   return type === "primary" ? (
     <View style={{ alignItems: "center" }}>
@@ -55,13 +66,13 @@ const ButtonComponent = (props: Props) => {
               : disabled
               ? appColor.gray
               : appColor.primary,
-            marginBottom: 20,
+            marginBottom: 12,
             width: "100%",
           },
           styles,
         ]}
       >
-        {icon && iconFlex === "left" && icon}
+        {left}
         <TextComponent
           text={text}
           color={textColor ?? appColor.white}
@@ -69,24 +80,29 @@ const ButtonComponent = (props: Props) => {
           styles={[
             textStyle,
             {
-              marginLeft: icon ? 12 : 0,
+              marginLeft: left ? 12 : 0,
               fontSize: 16,
-              textAlign: "center",
+              textAlign: "left",
             },
           ]}
-          flex={icon && iconFlex === "right" ? 1 : 0}
+          flex={0}
         />
-        {icon && iconFlex === "right" && icon}
+        {rightContainer}
       </TouchableOpacity>
     </View>
   ) : type === "text" || type == "link" ? (
-    <TouchableOpacity onPress={onPress} style={styles}>
+    <TouchableOpacity onPress={onPress} style={[{ flexDirection: 'row', alignItems: 'center' }, styles]}
+      activeOpacity={0.7}
+    >
+      {left}
       <TextComponent
         flex={0}
         text={text}
         size={12}
-        color={type === "link" ? appColor.primary : appColor.text}
+        color={textColor ?? (type === "link" ? appColor.primary : appColor.text)}
+        styles={[{ marginLeft: left ? 8 : 0 }, textStyle]}
       />
+      {rightContainer ?? right}
     </TouchableOpacity>
   ) : (
     <View style={{ alignItems: "center" }}>
@@ -100,12 +116,12 @@ const ButtonComponent = (props: Props) => {
             borderWidth: 1,
             borderColor: appColor.gray,
             width: "100%",
-            marginBottom: 20,
+            marginBottom: 12,
           },
           styles,
         ]}
       >
-        {icon && iconFlex === "left" && icon}
+        {left}
         <TextComponent
           text={text}
           color={textColor ?? appColor.text}
@@ -113,13 +129,13 @@ const ButtonComponent = (props: Props) => {
           styles={[
             textStyle,
             {
-              marginLeft: icon ? 12 : 0,
+              marginLeft: left ? 12 : 0,
               fontSize: 16,
-              textAlign: "center",
+              textAlign: "left",
             },
           ]}
         />
-        {icon && iconFlex === "right" && icon}
+        {rightContainer}
       </TouchableOpacity>
     </View>
   );

@@ -34,7 +34,7 @@ const formatDate = (iso?: string) => {
 };
 
 const AppointmentDetailScreen = ({ navigation, route }: any) => {
-  const {id} = route.params;
+  const { id } = route.params;
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -45,6 +45,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
       const result = await getAppointmentDetail(id);
       if (result.success) {
         setData(result.data);
+        console.log("Fetched appointment detail:", result.data);
       } else {
         console.log("Get Appointment Failed: ", result.message);
       }
@@ -53,6 +54,30 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
 
     fetchData();
   }, [id]);
+
+  const statusInfo = (s?: string) => {
+    if (!s) return { label: "", color: appColor.gray2 };
+    const key = String(s).toUpperCase();
+    if (key === "PENDING")
+      return { label: "Chờ xác nhận", color: appColor.warning };
+    if (key === "APPROVED")
+      return { label: "Đã xác nhận", color: appColor.primary };
+    if (key === "CANCELED" || key === "CANNCELED")
+      return { label: "Đã huỷ", color: appColor.danger };
+    return { label: key, color: appColor.gray2 };
+  };
+
+  const slotCodeToTimeLabel = (code?: string) => {
+    if (!code) return "";
+    const m = String(code).match(/(\d{1,2})[_\-](\d{1,2})/);
+    if (m) {
+      const a = m[1].padStart(2, "0");
+      const b = m[2].padStart(2, "0");
+      return `${a}:00 - ${b}:00`;
+    }
+    if (code.includes(":")) return code;
+    return String(code);
+  };
 
   const footer = (
     <View style={styles.footer}>
@@ -107,7 +132,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
         styles={[
           globalStyle.shadow,
           styles.card,
-          { alignItems: "center", paddingVertical: 24 },
+          { alignItems: "center", paddingVertical: 24, position: "relative" },
         ]}
       >
         <RowComponent justify="center">
@@ -122,6 +147,27 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
         </RowComponent>
 
         <SpaceComponent height={16} />
+        {/* status badge */}
+        {data?.status
+          ? (() => {
+              const info = statusInfo(data.status);
+              return (
+                <View style={{ position: "absolute", top: -14, right: 12 }}>
+                  <View
+                    style={{
+                      backgroundColor: info.color,
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      borderRadius: 14,
+                    }}
+                  >
+                    <TextComponent text={info.label} size={12} color="#fff" />
+                  </View>
+                </View>
+              );
+            })()
+          : null}
+
         <Image
           source={
             data?.checkinQRCode
@@ -170,7 +216,10 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
           },
         ]}
       >
-        <RowComponent justify="flex-start">
+        <RowComponent
+          justify="flex-start"
+          styles={{ alignItems: "flex-start" }}
+        >
           <FontAwesome5
             name="map-marker-alt"
             size={20}
@@ -213,7 +262,10 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
           },
         ]}
       >
-        <RowComponent justify="flex-start">
+        <RowComponent
+          justify="flex-start"
+          styles={{ alignItems: "flex-start" }}
+        >
           <Ionicons name="today-outline" size={20} color={appColor.primary} />
           <View
             style={{
@@ -234,7 +286,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
             />
             <SpaceComponent height={8} />
             <TextComponent
-              text={data?.timeSlot}
+              text={slotCodeToTimeLabel(data?.slotTime)}
               font={fontFamilies.roboto_regular}
               size={16}
               color={appColor.gray2}
@@ -259,8 +311,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   qrImage: {
-    height: 160,
-    width: 160,
+    height: 200,
+    width: 200,
     resizeMode: "contain",
   },
   card: {

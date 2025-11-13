@@ -20,7 +20,7 @@ export default function useEvcheckHub(evcheckId: string) {
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
-        "https://glvmsfwl-8080.asse.devtunnels.ms/hubs/notify",
+        `${process.env.EXPO_PUBLIC_SIGNALR_SERVER_URL}/hubs/notify`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,

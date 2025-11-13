@@ -137,7 +137,7 @@ const CreateMaintenance = ({ navigation, route }: any) => {
         style={{
           flexDirection: "row",
           width: "100%",
-          marginVertical: -6,
+          marginVertical: -2,
           alignItems: "center",
         }}
       >
@@ -165,15 +165,6 @@ const CreateMaintenance = ({ navigation, route }: any) => {
           />
         </View>
       </View>
-
-      {!canNext && step === 1 && (
-        <TextComponent
-          text="Vui lòng chọn ngày và khung giờ để tiếp tục"
-          color={appColor.gray2}
-          size={12}
-          styles={{ marginTop: 8 }}
-        />
-      )}
     </View>
   );
 
@@ -193,28 +184,39 @@ const CreateMaintenance = ({ navigation, route }: any) => {
             return (
               <View style={{ alignItems: "center" }}>
                 <View
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: done0 ? appColor.primary : appColor.white,
-                    borderWidth: 1.5,
-                    borderColor: done0 ? appColor.primary : appColor.gray,
-                    width: 50,
-                    height: 50,
-                    borderRadius: 50,
-                  }}
+                  style={[
+                    {
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: done0 ? appColor.primary : appColor.white,
+                      borderWidth: 1.5,
+                      borderColor: done0 ? appColor.primary : appColor.gray,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                    },
+                    done0
+                      ? {
+                          elevation: 3,
+                          shadowColor: appColor.primary,
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.18,
+                          shadowRadius: 4,
+                        }
+                      : {},
+                  ]}
                 >
                   <BrifecaseTimer
-                    size={24}
+                    size={20}
                     color={done0 ? appColor.white : appColor.gray}
                     variant="Outline"
                   />
                 </View>
-                <SpaceComponent height={4} />
+                <SpaceComponent height={6} />
                 <TextComponent
                   text="Trung tâm"
                   font={fontFamilies.roboto_regular}
-                  size={16}
+                  size={14}
                   color={done0 ? appColor.primary : appColor.text}
                 />
               </View>
@@ -227,28 +229,39 @@ const CreateMaintenance = ({ navigation, route }: any) => {
             return (
               <View style={{ alignItems: "center" }}>
                 <View
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: done1 ? appColor.primary : appColor.white,
-                    borderWidth: 1.5,
-                    borderColor: done1 ? appColor.primary : appColor.gray,
-                    width: 50,
-                    height: 50,
-                    borderRadius: 50,
-                  }}
+                  style={[
+                    {
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: done1 ? appColor.primary : appColor.white,
+                      borderWidth: 1.5,
+                      borderColor: done1 ? appColor.primary : appColor.gray,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                    },
+                    done1
+                      ? {
+                          elevation: 3,
+                          shadowColor: appColor.primary,
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.18,
+                          shadowRadius: 4,
+                        }
+                      : {},
+                  ]}
                 >
                   <CalendarTick
-                    size="28"
+                    size="22"
                     color={done1 ? appColor.white : appColor.gray}
                     variant="Outline"
                   />
                 </View>
-                <SpaceComponent height={4} />
+                <SpaceComponent height={6} />
                 <TextComponent
                   text="Thời gian"
                   font={fontFamilies.roboto_regular}
-                  size={16}
+                  size={14}
                   color={done1 ? appColor.primary : appColor.text}
                 />
               </View>
@@ -261,28 +274,39 @@ const CreateMaintenance = ({ navigation, route }: any) => {
             return (
               <View style={{ alignItems: "center" }}>
                 <View
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: done2 ? appColor.primary : appColor.white,
-                    borderWidth: 1.5,
-                    borderColor: done2 ? appColor.primary : appColor.gray,
-                    width: 50,
-                    height: 50,
-                    borderRadius: 50,
-                  }}
+                  style={[
+                    {
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: done2 ? appColor.primary : appColor.white,
+                      borderWidth: 1.5,
+                      borderColor: done2 ? appColor.primary : appColor.gray,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                    },
+                    done2
+                      ? {
+                          elevation: 3,
+                          shadowColor: appColor.primary,
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.18,
+                          shadowRadius: 4,
+                        }
+                      : {},
+                  ]}
                 >
                   <AntDesign
                     name="check-circle"
-                    size={28}
+                    size={22}
                     color={done2 ? appColor.white : appColor.gray}
                   />
                 </View>
-                <SpaceComponent height={4} />
+                <SpaceComponent height={6} />
                 <TextComponent
                   text="Xác nhận"
                   font={fontFamilies.roboto_regular}
-                  size={16}
+                  size={14}
                   color={done2 ? appColor.primary : appColor.text}
                 />
               </View>

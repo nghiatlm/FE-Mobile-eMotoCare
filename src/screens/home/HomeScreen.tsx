@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -19,15 +21,16 @@ import {
   TextComponent,
 } from "../../components";
 import { appColor } from "../../constants/appColor";
-import { appInfor } from "../../constants/appInfor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { authSelecter, removeAuth } from "../../redux/reducers/authReducer";
+import { getAppointments } from "../../services/appointment.service";
 import { getCustomerByAccount } from "../../services/customer.service";
+import { getMaintenances } from "../../services/maintenance.service";
 import { getVehicle } from "../../services/vehicle.service";
 import { globalStyle } from "../../styles/globalStyle";
-import { getMaintenances } from "../../services/maintenance.service";
+import { formatMaintenances } from "../../utils/maintenance.utils";
 import ActivityComponent from "./components/ActivityComponent";
-import { getAppointments } from "../../services/appointment.service";
+import MaintenanceSection from "./components/MaintenanceSection";
 
 interface CustomerType {
   id?: string;
@@ -42,6 +45,10 @@ const HomeScreen = ({ navigation }: any) => {
   const [vehicle, setVehicle] = useState<any>(null);
   const [customer, setCustomer] = useState<CustomerType | null>(null);
   const [activity, setActivity] = useState<any[]>([]);
+  const [loadingCustomer, setLoadingCustomer] = useState(false);
+  const [loadingVehicle, setLoadingVehicle] = useState(false);
+  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
@@ -51,26 +58,100 @@ const HomeScreen = ({ navigation }: any) => {
     null
   );
 
+  // keep accountId in sync with auth state
   useEffect(() => {
     const id = auth.accountResponse?.id ?? "";
     setAccountId(id);
+  }, [auth.accountResponse?.id]);
+
+  // extract loadAll so it can be called on focus
+  const loadAll = useCallback(async (idParam?: string) => {
+    const id = idParam ?? auth.accountResponse?.id ?? accountId;
     if (!id || String(id).trim() === "") return;
+    try {
+      setLoadingCustomer(true);
+      const custRes = await getCustomerByAccount(String(id).trim());
+      if (custRes?.success) {
+        const cust = custRes.data;
+        setCustomer(cust);
 
-    const loadCustomer = async () => {
-      await fetchCustomer(String(id).trim());
-    };
-    loadCustomer();
-  }, [auth]);
+        // fetch vehicle
+        setLoadingVehicle(true);
+        try {
+          const vehRes = await getVehicle({ customerId: String(cust.id), page: 1, pageSize: 10 });
+          if (vehRes?.success) {
+            const data = vehRes.data?.rowDatas[0];
+            setVehicle(data);
+
+            // fetch maintenances for vehicle
+            if (data?.id) {
+              setLoadingMaintenance(true);
+              try {
+                const maintRes = await getMaintenances({ vehicleId: String(data.id), page: 1, pageSize: 10 });
+                if (maintRes?.success) {
+                  const rows = maintRes.data?.rowDatas ?? [];
+                  setVehicleMaintenance(rows);
+                  if (rows.length > 0) {
+                    setSelectedMaintenance(0);
+                    setMainDetailId(rows[0].id ?? null);
+                  } else {
+                    setSelectedMaintenance(0);
+                    setMainDetailId(null);
+                  }
+                }
+              } catch (e) {
+                console.warn("fetchMaintenances error:", e);
+              } finally {
+                setLoadingMaintenance(false);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("fetchVehicle error:", e);
+        } finally {
+          setLoadingVehicle(false);
+        }
+
+        // fetch activities AFTER vehicle + maintenances to follow top-down order
+        setLoadingActivity(true);
+        try {
+          const actRes = await getAppointments({ customerId: cust.id, page: 1, pageSize: 10 });
+          if (actRes?.success) setActivity(actRes.data?.rowDatas || []);
+        } catch (e) {
+          console.warn("fetchActivity error:", e);
+        } finally {
+          setLoadingActivity(false);
+        }
+      }
+    } catch (e) {
+      console.error("loadAll error:", e);
+    } finally {
+      setLoadingCustomer(false);
+    }
+  }, [accountId, auth.accountResponse]);
+
+  // call loadAll whenever the screen regains focus so data refreshes when user returns
+  useFocusEffect(
+    useCallback(() => {
+      const id = auth.accountResponse?.id ?? accountId;
+      if (!id || String(id).trim() === "") return;
+      loadAll(id);
+    }, [auth.accountResponse?.id, accountId, loadAll])
+  );
 
   useEffect(() => {
+    if (loadingVehicle || loadingCustomer) return;
     if (!customer?.id) return;
+    if (vehicle) return;
     fetchVehicle();
-  }, [customer]);
+  },);
 
   useEffect(() => {
+    if (loadingMaintenance || loadingVehicle) return;
     if (!vehicle?.id) return;
+    if (vehicleMaintenance && vehicleMaintenance.length > 0) return;
     fetchMaintenances();
-  }, [vehicle]);
+  }, );
 
   const fetchCustomer = async (id: string) => {
     try {
@@ -159,52 +240,7 @@ const HomeScreen = ({ navigation }: any) => {
   };
 
   // chuẩn hoá dữ liệu để render (chỉ từ API)
-  const displayed =
-    Array.isArray(vehicleMaintenance) && vehicleMaintenance.length > 0
-      ? vehicleMaintenance.map((m: any, idx: number) => {
-          const date = m?.dateOfImplementation
-            ? new Date(m.dateOfImplementation).toLocaleDateString()
-            : "Chưa có ngày";
-          const status = m?.status ?? "NO_START";
-          const pillColor =
-            status === "COMPLETED"
-              ? appColor.primary
-              : status === "UPCOMING"
-              ? appColor.warning
-              : status === "OVERDUE" || status === "EXPIRED"
-              ? appColor.danger
-              : appColor.gray;
-          const cardBg =
-            status === "COMPLETED"
-              ? appColor.success50
-              : status === "UPCOMING"
-              ? appColor.warning2
-              : status === "OVERDUE" || status === "EXPIRED"
-              ? appColor.danger50
-              : appColor.white;
-          const statusColor =
-            status === "COMPLETED"
-              ? appColor.primary
-              : status === "UPCOMING"
-              ? appColor.warning
-              : status === "OVERDUE"
-              ? appColor.danger
-              : appColor.gray;
-
-          return {
-            maintenanceId: m.id ?? `local-${idx}`,
-            id: m.id ?? idx,
-            title: m.title ?? `Lịch bảo dưỡng ${idx + 1}`,
-            date,
-            status,
-            pillColor,
-            cardBg,
-            statusColor,
-            raw: m,
-            maintenanceStageId: m.maintenanceStageId || null,
-          };
-        })
-      : [];
+  const displayed = formatMaintenances(vehicleMaintenance);
 
   // đảm bảo selectedMaintenance hợp lệ khi displayed thay đổi
   useEffect(() => {
@@ -278,201 +314,53 @@ const HomeScreen = ({ navigation }: any) => {
         </SectionComponent>
 
         <SectionComponent>
-          <View style={{ alignItems: "center" }}>
-            <View style={{ width: appInfor.size.width, height: 450 }}>
-              <Image
-                source={require("../../assets/images/vehicles/image.png")}
-                style={{
-                  borderRadius: 12,
-                  width: "100%",
-                  height: "100%",
-                  resizeMode: "contain",
-                }}
-              />
-              <View
-                style={{
-                  position: "absolute",
-                  top: 18,
-                  marginLeft: "50%",
-                  transform: [{ translateX: "-50%" }],
-                  backgroundColor: "#E8F5FF",
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  borderRadius: 20,
-                  borderWidth: 1,
-                  borderColor: "#D1E9FF",
-                }}
-              >
-                <TextComponent text={vehicle?.vinNumber} size={12} />
-              </View>
-              <ButtonComponent
-                text="Xem thêm"
-                type="link"
-                styles={{
-                  position: "absolute",
-                  marginLeft: "50%",
-                  transform: [{ translateX: "-50%" }],
-                  bottom: Platform.OS === "ios" ? -16 : -3,
-                  backgroundColor: appColor.white,
-                  borderWidth: 1,
-                  borderColor: appColor.gray,
-                  borderRadius: 40,
-                  paddingHorizontal: 8,
-                  paddingVertical: 8,
-                }}
-                onPress={() =>
-                  navigation.navigate("Vehicles", {
-                    screen: "VehicleDetail",
-                    params: { id: vehicle?.id },
-                  })
-                }
-              />
+          <View style={styles.vehicleCardWrap}>
+            <View style={styles.vehicleCard}>
+              {loadingVehicle ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 20 }}>
+                  <ActivityIndicator size="small" color={appColor.primary} />
+                </View>
+              ) : (
+                <>
+                  <Image
+                    source={require("../../assets/images/vehicles/image.png")}
+                    style={styles.vehicleImage}
+                  />
+                  <View style={styles.vehicleInfo}>
+                    <TextComponent text={vehicle?.modelName ?? "Xe của bạn"} size={18} font={fontFamilies.roboto_bold} color={appColor.text} />
+                    <TextComponent text={`Biển số: ${vehicle?.chassisNumber ?? "-"}`} size={13} color={appColor.gray} styles={{ marginTop: 6 }} />
+                    <View style={{ flexDirection: 'row', marginTop: 12, alignItems: 'center' }}>
+                      <ButtonComponent
+                        text="Chi tiết xe"
+                        type="text"
+                        onPress={() => navigation.navigate("Vehicles", { screen: "VehicleDetail", params: { id: vehicle?.id } })}
+                        styles={{ paddingHorizontal: 12, marginRight: 8 }}
+                      />
+                      <ButtonComponent
+                        text="Lịch sử"
+                        type="link"
+                        onPress={() => navigation.navigate('Maintenance')}
+                        styles={{ paddingHorizontal: 8 }}
+                      />
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
           </View>
         </SectionComponent>
         <SpaceComponent height={20} />
-        <SectionComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              backgroundColor: appColor.white,
-              padding: 16,
-              borderRadius: 12,
-              marginHorizontal: 8,
-            },
-          ]}
-        >
-          <View>
-            <TextComponent
-              text="Bảo dưỡng định kỳ"
-              title
-              font={fontFamilies.roboto_bold}
-              color={appColor.primary}
-            />
-            <View style={styles.line} />
+        <MaintenanceSection
+          displayed={displayed}
+          selectedMaintenance={selectedMaintenance}
+          setSelectedMaintenance={setSelectedMaintenance}
+          mainDetailId={mainDetailId}
+          setMainDetailId={setMainDetailId}
+          navigation={navigation}
+          loading={loadingMaintenance}
+        />
 
-            {displayed.length > 0 ? (
-              <>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingVertical: 6,
-                    paddingHorizontal: 8,
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    {displayed.map((item: any, idx: number) => (
-                      <TouchableOpacity
-                        key={item.maintenanceId ?? idx}
-                        onPress={() => {
-                          setSelectedMaintenance(idx);
-                          setMainDetailId(item.maintenanceId ?? null);
-                        }}
-                        activeOpacity={0.8}
-                        style={{
-                          borderWidth: selectedMaintenance === idx ? 2 : 0,
-                          borderColor:
-                            selectedMaintenance === idx
-                              ? item.pillColor
-                              : "transparent",
-                          borderRadius: 20,
-                          padding: 2,
-                          marginRight: 8,
-                          minWidth: 46,
-                          maxWidth: 60,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <View
-                          style={[
-                            styles.maintenanceStatus,
-                            {
-                              backgroundColor: item.pillColor,
-                              width: 46,
-                              height: 20,
-                            },
-                          ]}
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </ScrollView>
-
-                <SpaceComponent height={12} />
-
-                {displayed[selectedMaintenance] ? (
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    style={{
-                      padding: 12,
-                      backgroundColor: displayed[selectedMaintenance].cardBg,
-                      borderWidth: 1,
-                      borderColor: displayed[selectedMaintenance].statusColor,
-                      borderRadius: 8,
-                    }}
-                    onPress={() => {
-                      const maintenanceStageId =
-                        displayed[selectedMaintenance]?.maintenanceStageId ??
-                        mainDetailId;
-                      const stage = displayed[selectedMaintenance]?.id;
-                      if (!maintenanceStageId) {
-                        console.warn("No maintenance id to navigate");
-                        return;
-                      }
-                      navigation.navigate("MaintenanceDetail", {
-                        maintenanceStageId,
-                        stage,
-                      });
-                      console.log(
-                        "Navigate to maintenanceId:",
-                        maintenanceStageId
-                      );
-                    }}
-                  >
-                    <TextComponent
-                      text={displayed[selectedMaintenance].title}
-                      size={18}
-                      color={appColor.text}
-                    />
-                    <RowComponent
-                      justify="flex-start"
-                      styles={{ marginTop: 8 }}
-                    >
-                      <TextComponent text="Thời gian: " size={18} />
-                      <TextComponent
-                        text={displayed[selectedMaintenance].date}
-                        size={18}
-                        font={fontFamilies.roboto_bold}
-                        styles={{ marginLeft: 4 }}
-                      />
-                    </RowComponent>
-                    <RowComponent
-                      justify="flex-start"
-                      styles={{ marginTop: 8 }}
-                    >
-                      <TextComponent text="Trạng thái: " size={18} />
-                      <TextComponent
-                        text={displayed[selectedMaintenance].status}
-                        size={18}
-                        font={fontFamilies.roboto_bold}
-                        styles={{ marginLeft: 4 }}
-                      />
-                    </RowComponent>
-                  </TouchableOpacity>
-                ) : (
-                  <TextComponent text="Không có lịch bảo dưỡng" size={14} />
-                )}
-              </>
-            ) : (
-              <TextComponent text="Không có lịch bảo dưỡng" size={14} />
-            )}
-            <SpaceComponent height={12} />
-          </View>
-        </SectionComponent>
-
-        <SpaceComponent height={20} />
+        <SpaceComponent height={14} />
 
         <SectionComponent
           styles={[
@@ -494,12 +382,18 @@ const HomeScreen = ({ navigation }: any) => {
             color={appColor.primary}
           />
           <View style={styles.line} />
-          <ActivityComponent activities={activity} />
-          <ButtonComponent
-            text="xem thêm"
-            type="link"
-            styles={[{ alignItems: "center" }]}
-          />
+          <View style={{ maxHeight: 160, overflow: 'hidden' }}>
+            <ActivityComponent activities={activity?.slice(0, 1)} loading={loadingActivity} />
+          </View>
+          {Array.isArray(activity) && activity.length > 1 ? (
+            <View style={{ alignItems: 'center' }}>
+              <ButtonComponent
+                text="xem thêm"
+                type="link"
+                onPress={() => navigation.navigate('Activity')}
+              />
+            </View>
+          ) : null}
         </SectionComponent>
 
         <SectionComponent>
@@ -511,10 +405,10 @@ const HomeScreen = ({ navigation }: any) => {
                 // xóa token/auth trên storage
                 await AsyncStorage.removeItem("auth");
                 await AsyncStorage.removeItem("ACCESS_TOKEN");
-                // gọi action remove trong redux
-                // dispatch(removeAuth());
-                // tuỳ chọn: chuyển về màn hình login
-                // navigation.replace("Login");
+                //gọi action remove trong redux
+                dispatch(removeAuth({} as any));
+                //tuỳ chọn: chuyển về màn hình login
+                navigation.replace("LoginScreen");
               }}
             />
           </View>
@@ -537,5 +431,32 @@ const styles = StyleSheet.create({
     width: 46,
     backgroundColor: appColor.primary,
     borderRadius: 20,
+  },
+  vehicleCardWrap: {
+    paddingHorizontal: 6,
+  },
+  vehicleCard: {
+    flexDirection: "row",
+    backgroundColor: appColor.white,
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+    alignItems: 'center'
+  },
+  vehicleImage: {
+    width: 120,
+    height: 100,
+    borderRadius: 8,
+    resizeMode: 'cover',
+    marginRight: 12,
+    backgroundColor: appColor.gray3
+  },
+  vehicleInfo: {
+    flex: 1,
+    justifyContent: 'center'
   },
 });

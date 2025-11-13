@@ -185,18 +185,18 @@ const SelectCenterStep = ({ state, dispatch, onSelectCenter }: any) => {
                      color={appColor.text}
                      styles={{ flexShrink: 0 }}
                    />
-                   <TextComponent
-                     text={item.address}
-                     size={14}
-                     font={fontFamilies.roboto_regular}
-                     color={appColor.text}
-                     numberOfLines={1}
-                     ellipsizeMode="tail"
-                     styles={{
-                       marginLeft: 12,
-                       flex: 1,
-                     }}
-                   />
+                    <TextComponent
+                      text={item.address}
+                      size={14}
+                      font={fontFamilies.roboto_regular}
+                      color={appColor.text}
+                      numberOfLines={2}
+                      ellipsizeMode="tail"
+                      styles={{
+                        marginLeft: 12,
+                        flex: 1,
+                      }}
+                    />
                  </RowComponent>
                  <SpaceComponent height={6} />
                  <View style={styles.metaRow}>
@@ -218,20 +218,27 @@ const SelectCenterStep = ({ state, dispatch, onSelectCenter }: any) => {
                  </View>
                </View>
 
-               {isBest ? (
-                 <View style={styles.badgeWrapper}>
-                   <View style={styles.badge}>
-                     <TextComponent
-                       text="Lựa chọn tốt nhất"
-                       size={12}
-                       font={fontFamilies.roboto_medium}
-                       color={appColor.white}
-                     />
-                   </View>
-                 </View>
-               ) : (
-                 <View style={styles.placeholder} />
-               )}
+                  {isBest ? (
+                    <View style={styles.badgeWrapper}>
+                      <View style={styles.badge}>
+                        <TextComponent
+                          text="Lựa chọn tốt nhất"
+                          size={12}
+                          font={fontFamilies.roboto_medium}
+                          color={appColor.white}
+                        />
+                      </View>
+                    </View>
+                  ) : null}
+
+                  {/* selection radio on right */}
+                  <View style={styles.selectWrapper} accessible accessibilityRole="button" accessibilityState={{ selected }}>
+                    <View style={[styles.radio, selected && styles.radioSelected]}>
+                      {selected && (
+                        <MaterialIcons name="check" size={14} color={appColor.white} />
+                      )}
+                    </View>
+                  </View>
              </TouchableOpacity>
            );
          })
@@ -259,7 +266,7 @@ const styles = StyleSheet.create({
   badgeWrapper: {
     marginLeft: 12,
     position: "absolute",
-    top: -15,
+    top: 8,
     right: 12,
   },
   badge: {
@@ -269,10 +276,29 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    minWidth: 110,
+    minWidth: 100,
   },
   placeholder: {
     width: 12,
+  },
+  selectWrapper: {
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radio: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: appColor.white,
+  },
+  radioSelected: {
+    backgroundColor: appColor.primary,
+    borderColor: appColor.primary,
   },
 });
 

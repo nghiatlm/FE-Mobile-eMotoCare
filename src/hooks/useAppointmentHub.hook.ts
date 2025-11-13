@@ -20,7 +20,7 @@ export default function useAppointmentHub(appointmentId: string) {
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
-        "https://glvmsfwl-8080.asse.devtunnels.ms/hubs/notifyappointment",
+        `${process.env.EXPO_PUBLIC_SIGNALR_SERVER_URL}/hubs/notifyappointment`,
         {
           skipNegotiation: true,
           transport: signalR.HttpTransportType.WebSockets,
@@ -48,7 +48,7 @@ export default function useAppointmentHub(appointmentId: string) {
       console.log("📩 ReceiveApproved:", entity, data);
 
       // Nếu là dữ liệu của Appointment và ID trùng
-      
+
       if (entity === "Appointment" && data?.id === appointmentId) {
         fetchAppoinment(appointmentId);
       }
