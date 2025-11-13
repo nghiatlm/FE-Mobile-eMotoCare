@@ -1,6 +1,6 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import React from "react";
-import { View } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import {
   ButtonComponent,
   RowComponent,
@@ -10,9 +10,11 @@ import {
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { useNavigation } from "@react-navigation/native";
+import { statusActivities } from "../../../utils/generateStatus";
 
 interface Props {
   activities?: any[];
+  loading?: boolean;
 }
 
 const parseISOToDate = (iso?: string): Date | null => {
@@ -39,8 +41,16 @@ const slotCodeToTimeLabel = (code?: string) => {
   return String(code);
 };
 
-const ActivityComponent = ({ route, activities }: any) => {
+const ActivityComponent = ({ route, activities, loading }: any) => {
   const list: any[] = Array.isArray(activities) ? activities : [];
+
+  if (loading) {
+    return (
+      <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+        <ActivityIndicator size="small" color={appColor.primary} />
+      </View>
+    );
+  }
 
   const navigation = useNavigation<any>();
 
@@ -61,91 +71,60 @@ const ActivityComponent = ({ route, activities }: any) => {
               ? slotCodeToTimeLabel(activity.slotTime)
               : activity.time || "");
 
-          const statusText =
-            typeof activity.status === "string"
-              ? activity.status
-              : JSON.stringify(activity.status);
+          const statusInfo = statusActivities(activity.status);
+          const statusText = typeof statusInfo === 'string' ? statusInfo : statusInfo?.label ?? JSON.stringify(statusInfo);
+
+          const statusIsDone = String(statusText).toLowerCase().includes("hoàn thành") || String(statusText).toLowerCase().includes("completed");
 
           return (
-            <View key={activity.id ?? index} style={{ marginBottom: 20 }}>
-              <View
-                style={{
-                  paddingVertical: 6,
-                  paddingHorizontal: 8,
-                }}
-              >
-                <RowComponent justify="flex-start">
+            <View key={activity.id ?? index} style={styles.cardWrap}>
+              <View style={styles.cardRow}>
+                <View style={styles.iconWrap}>
                   <FontAwesome6
                     name="calendar"
-                    size={20}
-                    color={appColor.text}
+                    size={18}
+                    color={appColor.white}
                   />
+                </View>
+
+                <View style={styles.content}>
                   <TextComponent
                     text={activity.type || "Kiểm tra định kỳ"}
                     size={15}
                     font={fontFamilies.roboto_medium}
-                    flex={1}
-                    color={appColor.text}
-                    styles={{ marginLeft: 10 }}
-                  />
-                </RowComponent>
-                <SpaceComponent height={8} />
-                <RowComponent justify="flex-start" styles={{ marginLeft: 12 }}>
-                  <TextComponent
-                    text="Trung tâm dịch vụ: "
-                    size={13}
-                    font={fontFamilies.roboto_regular}
                     color={appColor.text}
                   />
                   <TextComponent
                     text={serviceCenterName}
                     size={13}
-                    font={fontFamilies.roboto_medium}
-                    color={appColor.text}
-                  />
-                </RowComponent>
-                <SpaceComponent height={4} />
-                <RowComponent justify="flex-start" styles={{ marginLeft: 12 }}>
-                  <TextComponent
-                    text="Thời gian: "
-                    size={13}
-                    font={fontFamilies.roboto_regular}
-                    color={appColor.text}
+                    color={appColor.gray2}
+                    styles={{ marginTop: 6 }}
                   />
                   <TextComponent
                     text={timeLabel || "Chưa có thời gian"}
                     size={13}
-                    font={fontFamilies.roboto_medium}
-                    color={appColor.text}
-                  />
-                </RowComponent>
-                <SpaceComponent height={4} />
-                <RowComponent justify="flex-start" styles={{ marginLeft: 12 }}>
-                  <TextComponent
-                    text="Trạng thái: "
-                    size={13}
-                    font={fontFamilies.roboto_regular}
-                    color={appColor.text}
+                    color={appColor.gray2}
+                    styles={{ marginTop: 4 }}
                   />
                   <TextComponent
                     text={statusText || "Chưa có"}
                     size={13}
                     font={fontFamilies.roboto_medium}
-                    color={
-                      String(statusText).toLowerCase().includes("hoàn thành")
-                        ? appColor.primary
-                        : appColor.text
-                    }
+                    color={statusIsDone ? appColor.primary : appColor.text}
+                    styles={{ marginTop: 6 }}
                   />
-                </RowComponent>
-                <SpaceComponent height={15} />
-                <ButtonComponent
-                  text="Xem chi tiết"
-                  onPress={() =>
-                    navigation.navigate("MaintenanceProcess", { id: activity.id })
-                  }
-                />
+                </View>
               </View>
+              <ButtonComponent
+                text="Xem chi tiết"
+                type="link"
+                onPress={() =>
+                  navigation.navigate("MaintenanceProcess", {
+                    id: activity.id,
+                  })
+                }
+                styles={{ paddingHorizontal: 6 }}
+              />
             </View>
           );
         })
@@ -163,3 +142,38 @@ const ActivityComponent = ({ route, activities }: any) => {
 };
 
 export default ActivityComponent;
+
+const styles = StyleSheet.create({
+  cardWrap: {
+    backgroundColor: appColor.white,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 8,
+    backgroundColor: appColor.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  content: {
+    flex: 1,
+  },
+  actionWrap: {
+    marginLeft: 8,
+    justifyContent: "center",
+  },
+});

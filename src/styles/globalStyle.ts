@@ -18,8 +18,8 @@ export const globalStyle = StyleSheet.create({
     alignItems: "center",
     backgroundColor: appColor.white,
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    minHeight: 56,
+    paddingVertical: 10,
+    minHeight: 44,
     flexDirection: "row",
   },
   section: {

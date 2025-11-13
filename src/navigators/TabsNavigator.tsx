@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React, { ReactNode } from "react";
 import { Platform, View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -13,106 +14,19 @@ import HomeNavigator from "./HomeNavigator";
 import NotificationNavigator from "./NotificationNavigator";
 import ServiceNavigator from "./ServiceNavigator";
 import SettingNavigator from "./SettingNavigator";
+import CustomTabBar from "../components/CustomTabBar";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 const TabsNavigator = () => {
   const Tab = createBottomTabNavigator();
+  const insets = useSafeAreaInsets();
+  const tabBarBottom = (insets?.bottom ?? 0) + 6;
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          height: Platform.OS === "ios" ? 88 : 78,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: appColor.white,
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let icon: ReactNode;
-          color = focused ? appColor.primary : appColor.gray;
-          size = 23;
-          switch (route.name) {
-            case "Home":
-              icon = (
-                <View
-                  style={[
-                    globalStyle.shadow,
-                    {
-                      width: 64,
-                      height: 64,
-                      borderRadius: 100,
-                      backgroundColor: focused
-                        ? appColor.primary
-                        : appColor.gray,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginTop: Platform.OS === "ios" ? -50 : -60,
-                    },
-                  ]}
-                >
-                  <Motorbike width={36} height={40} />
-                </View>
-              );
-              break;
-            case "Notification":
-              icon = (
-                <MaterialCommunityIcons
-                  name="message-text-outline"
-                  size={size}
-                  color={color}
-                />
-              );
-              break;
-            case "Service":
-              icon = (
-                <MaterialIcons
-                  name="miscellaneous-services"
-                  size={size}
-                  color={color}
-                />
-              );
-              break;
-            case "Setting":
-              icon = (
-                <Ionicons name="settings-outline" size={size} color={color} />
-              );
-              break;
-            case "Activity":
-              icon = (
-                <MaterialCommunityIcons
-                  name="chart-timeline-variant"
-                  size={size}
-                  color={color}
-                />
-              );
-              break;
-          }
-          return icon;
-        },
-        tabBarIconStyle: {
-          marginTop: 8,
-        },
-        tabBarLabel: ({ focused }) => {
-          if (route.name === "Home") return null;
-          const labels: Record<string, string> = {
-            Activity: "Hoạt động",
-            Notification: "Thông báo",
-            Service: "Dịch vụ",
-            Setting: "Cài đặt",
-          };
-          const label = labels[route.name] || route.name;
-          return focused ? (
-            <TextComponent
-              text={label}
-              flex={0}
-              size={12}
-              color={appColor.primary}
-              styles={{ marginBottom: 0 }}
-            />
-          ) : null;
-        },
-      })}
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen
         name="Service"
