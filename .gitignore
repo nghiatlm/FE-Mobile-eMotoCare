@@ -43,3 +43,4 @@ yarn-error.*
 # Firebase / private credentials
 emotocare-*-firebase-adminsdk-*.json
 google-services.json
+.env
