@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Firebase / private credentials
+emotocare-*-firebase-adminsdk-*.json
+google-services.json

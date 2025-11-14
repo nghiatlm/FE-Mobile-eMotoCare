@@ -1,0 +1,23 @@
+{
+    "id": "3f1a9b2d-6c4e-4b8f-9a2d-0c7e5a1f2b3c",
+    "firstName": "Nguyễn",
+    "code": "customer-123",
+    "lastName": "Văn A",
+    "address": "123 Đường Lê Lợi, Quận 1, TP. HCM",
+    "citizenId": "012345678901234",
+    "dateOfBirth": "1990-05-20T00:00:00Z",
+    "gender": "Male",
+    "avatarUrl": "https://cdn.example.com/avatars/3f1a9b2d.png",
+    "accountId": "a8d7c6e5-4b3a-2f1e-9d8c-7b6a5c4e3f2d",
+    "account": {
+        "id": "a1b2c3d4-0002-4b56-bb90-222222222222",
+        "phone": "0987654321",
+        "email": "customer1@gmail.com",
+        "password": "hashed_password_here",
+        "stattus": "Active",
+        "roleName": "ROLE_CUSTOMER"
+    },
+    "payments": [],
+    "appointments": [],
+    "rmas": []
+}
