@@ -19,6 +19,7 @@ import CreateRepairScreen from "./repairs/CreateRepairScreen";
 import ServiceScreen from "./services/ServiceScreen";
 import SettingScreen from "./setting/SettingScreen";
 import SplashScreen from "./SplashScreen";
+import VehicleHistorySreen from "./vehicles/VehicleHistorySreen";
 import VehiclesDetailScreen from "./vehicles/VehiclesDetailScreen";
 
 export {
@@ -43,5 +44,6 @@ export {
   PaymentInvoice,
   CreateRepairScreen,
   ChooseVehicle,
-  VehiclesDetailScreen
+  VehiclesDetailScreen,
+  VehicleHistorySreen,
 };

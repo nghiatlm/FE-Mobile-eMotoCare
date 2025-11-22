@@ -2,7 +2,6 @@ import React, { useEffect, useReducer, useState } from "react";
 import {
   BackgroundComponent,
   ButtonComponent,
-  InputComponent,
   RowComponent,
   SectionComponent,
   SpaceComponent,
@@ -12,7 +11,7 @@ import { fontFamilies } from "../../constants/fontFamilies";
 import { appColor } from "../../constants/appColor";
 import ChooseVehicle from "./components/ChooseVehicle";
 import { Vehicle } from "../../types/vehicle.type";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform, TextInput } from "react-native";
 import { BrifecaseTimer, CalendarTick } from "iconsax-react-nativejs";
 import { AntDesign } from "@expo/vector-icons";
 import SelectCenterStep from "./components/SelectCenterStep";
@@ -22,170 +21,171 @@ import { getCustomerByAccount } from "../../services/customer.service";
 import { useSelector } from "react-redux";
 import { authSelecter } from "../../redux/reducers/authReducer";
 import { CreateAppointment } from "../../services/appointment.service";
+import { getVehicle } from "../../services/vehicle.service";
 
 /* --- fake vehicles --- */
-const vehicles: Vehicle[] = [
-  {
-    id: "3asđsdgàqw2",
-    purchaseDate: "2022-06-01T00:00:00.000Z",
-    warrantyExpiry: "2024-06-01T00:00:00.000Z",
-    model: {
-      id: "m1",
-      code: "VF-E34",
-      name: "EvoGrand - 123235346",
-      manufacturer: "VinFast",
-      maintenancePlanId: "",
-    },
-    vinNUmber: "",
-    image: "",
-    color: "",
-    chassisNumber: "",
-    engineNumber: "",
-    status: "",
-    manufactureDate: "",
-    modelId: "m1",
-    customerId: "",
-    customer: {
-      id: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      citizenId: "",
-      dateOfBirth: "",
-      gender: "",
-      avatarUrl: "",
-      accountId: "",
-    },
-  },
-  {
-    id: "asdasd123213",
-    purchaseDate: "2020-03-15T00:00:00.000Z",
-    warrantyExpiry: "2021-03-15T00:00:00.000Z",
-    model: {
-      id: "m2",
-      code: "KY-I1",
-      name: "EvoSport - 987654321",
-      manufacturer: "KYMCO",
-      maintenancePlanId: "",
-    },
-    vinNUmber: "",
-    image: "",
-    color: "",
-    chassisNumber: "",
-    engineNumber: "",
-    status: "",
-    manufactureDate: "",
-    modelId: "m2",
-    customerId: "",
-    customer: {
-      id: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      citizenId: "",
-      dateOfBirth: "",
-      gender: "",
-      avatarUrl: "",
-      accountId: "",
-    },
-  },
-  {
-    id: "zxcqwe456789",
-    purchaseDate: "2023-01-10T00:00:00.000Z",
-    warrantyExpiry: "2025-01-10T00:00:00.000Z",
-    model: {
-      id: "m3",
-      code: "EV-CITY",
-      name: "EvoCity - 456123789",
-      manufacturer: "Generic",
-      maintenancePlanId: "",
-    },
-    vinNUmber: "",
-    image: "",
-    color: "",
-    chassisNumber: "",
-    engineNumber: "",
-    status: "",
-    manufactureDate: "",
-    modelId: "m3",
-    customerId: "",
-    customer: {
-      id: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      citizenId: "",
-      dateOfBirth: "",
-      gender: "",
-      avatarUrl: "",
-      accountId: "",
-    },
-  },
-  {
-    id: "fgdg",
-    purchaseDate: "2023-01-10T00:00:00.000Z",
-    warrantyExpiry: "2025-01-10T00:00:00.000Z",
-    model: {
-      id: "m3",
-      code: "EV-CITY",
-      name: "EvoCity - 456123789",
-      manufacturer: "Generic",
-      maintenancePlanId: "",
-    },
-    vinNUmber: "",
-    image: "",
-    color: "",
-    chassisNumber: "",
-    engineNumber: "",
-    status: "",
-    manufactureDate: "",
-    modelId: "m3",
-    customerId: "",
-    customer: {
-      id: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      citizenId: "",
-      dateOfBirth: "",
-      gender: "",
-      avatarUrl: "",
-      accountId: "",
-    },
-  },
-  {
-    id: "zxcqsdgsdge456789",
-    purchaseDate: "2023-01-10T00:00:00.000Z",
-    warrantyExpiry: "2025-01-10T00:00:00.000Z",
-    model: {
-      id: "m3",
-      code: "EV-CITY",
-      name: "EvoCity - 456123789",
-      manufacturer: "Generic",
-      maintenancePlanId: "",
-    },
-    vinNUmber: "",
-    image: "",
-    color: "",
-    chassisNumber: "",
-    engineNumber: "",
-    status: "",
-    manufactureDate: "",
-    modelId: "m3",
-    customerId: "",
-    customer: {
-      id: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      citizenId: "",
-      dateOfBirth: "",
-      gender: "",
-      avatarUrl: "",
-      accountId: "",
-    },
-  },
-];
+// const vehicles: Vehicle[] = [
+//   {
+//     id: "3asđsdgàqw2",
+//     purchaseDate: "2022-06-01T00:00:00.000Z",
+//     warrantyExpiry: "2024-06-01T00:00:00.000Z",
+//     model: {
+//       id: "m1",
+//       code: "VF-E34",
+//       name: "EvoGrand - 123235346",
+//       manufacturer: "VinFast",
+//       maintenancePlanId: "",
+//     },
+//     vinNUmber: "",
+//     image: "",
+//     color: "",
+//     chassisNumber: "",
+//     engineNumber: "",
+//     status: "",
+//     manufactureDate: "",
+//     modelId: "m1",
+//     customerId: "",
+//     customer: {
+//       id: "",
+//       firstName: "",
+//       lastName: "",
+//       address: "",
+//       citizenId: "",
+//       dateOfBirth: "",
+//       gender: "",
+//       avatarUrl: "",
+//       accountId: "",
+//     },
+//   },
+//   {
+//     id: "asdasd123213",
+//     purchaseDate: "2020-03-15T00:00:00.000Z",
+//     warrantyExpiry: "2021-03-15T00:00:00.000Z",
+//     model: {
+//       id: "m2",
+//       code: "KY-I1",
+//       name: "EvoSport - 987654321",
+//       manufacturer: "KYMCO",
+//       maintenancePlanId: "",
+//     },
+//     vinNUmber: "",
+//     image: "",
+//     color: "",
+//     chassisNumber: "",
+//     engineNumber: "",
+//     status: "",
+//     manufactureDate: "",
+//     modelId: "m2",
+//     customerId: "",
+//     customer: {
+//       id: "",
+//       firstName: "",
+//       lastName: "",
+//       address: "",
+//       citizenId: "",
+//       dateOfBirth: "",
+//       gender: "",
+//       avatarUrl: "",
+//       accountId: "",
+//     },
+//   },
+//   {
+//     id: "zxcqwe456789",
+//     purchaseDate: "2023-01-10T00:00:00.000Z",
+//     warrantyExpiry: "2025-01-10T00:00:00.000Z",
+//     model: {
+//       id: "m3",
+//       code: "EV-CITY",
+//       name: "EvoCity - 456123789",
+//       manufacturer: "Generic",
+//       maintenancePlanId: "",
+//     },
+//     vinNUmber: "",
+//     image: "",
+//     color: "",
+//     chassisNumber: "",
+//     engineNumber: "",
+//     status: "",
+//     manufactureDate: "",
+//     modelId: "m3",
+//     customerId: "",
+//     customer: {
+//       id: "",
+//       firstName: "",
+//       lastName: "",
+//       address: "",
+//       citizenId: "",
+//       dateOfBirth: "",
+//       gender: "",
+//       avatarUrl: "",
+//       accountId: "",
+//     },
+//   },
+//   {
+//     id: "fgdg",
+//     purchaseDate: "2023-01-10T00:00:00.000Z",
+//     warrantyExpiry: "2025-01-10T00:00:00.000Z",
+//     model: {
+//       id: "m3",
+//       code: "EV-CITY",
+//       name: "EvoCity - 456123789",
+//       manufacturer: "Generic",
+//       maintenancePlanId: "",
+//     },
+//     vinNUmber: "",
+//     image: "",
+//     color: "",
+//     chassisNumber: "",
+//     engineNumber: "",
+//     status: "",
+//     manufactureDate: "",
+//     modelId: "m3",
+//     customerId: "",
+//     customer: {
+//       id: "",
+//       firstName: "",
+//       lastName: "",
+//       address: "",
+//       citizenId: "",
+//       dateOfBirth: "",
+//       gender: "",
+//       avatarUrl: "",
+//       accountId: "",
+//     },
+//   },
+//   {
+//     id: "zxcqsdgsdge456789",
+//     purchaseDate: "2023-01-10T00:00:00.000Z",
+//     warrantyExpiry: "2025-01-10T00:00:00.000Z",
+//     model: {
+//       id: "m3",
+//       code: "EV-CITY",
+//       name: "EvoCity - 456123789",
+//       manufacturer: "Generic",
+//       maintenancePlanId: "",
+//     },
+//     vinNUmber: "",
+//     image: "",
+//     color: "",
+//     chassisNumber: "",
+//     engineNumber: "",
+//     status: "",
+//     manufactureDate: "",
+//     modelId: "m3",
+//     customerId: "",
+//     customer: {
+//       id: "",
+//       firstName: "",
+//       lastName: "",
+//       address: "",
+//       citizenId: "",
+//       dateOfBirth: "",
+//       gender: "",
+//       avatarUrl: "",
+//       accountId: "",
+//     },
+//   },
+// ];
 
 /* --- form state types & init --- */
 type RepairFormState = {
@@ -201,7 +201,7 @@ type RepairFormState = {
 const initState: RepairFormState = {
   serviceCenterId: "",
   customerId: "",
-  vehicleId: vehicles[0]?.id ?? "",
+  vehicleId: "",
   appointmentDate: "",
   slotTime: "",
   type: "REPAIR_TYPE",
@@ -230,6 +230,7 @@ const CreateRepairScreen = ({ navigation }: any) => {
   const [step, setStep] = useState<number>(0);
   const [serviceCenter, setServiceCenter] = useState<any>(null);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
   // stack of snapshots for "Quay lại"
   const [prevStack, setPrevStack] = useState<RepairFormState[]>([]);
@@ -243,6 +244,10 @@ const CreateRepairScreen = ({ navigation }: any) => {
     fetchCustomer();
   }, [accountId]);
 
+  useEffect(() => {
+    fetchVehicles();
+  }, [customer]);
+
   const fetchCustomer = async () => {
     if (!accountId) return;
     const res = await getCustomerByAccount(accountId);
@@ -252,6 +257,43 @@ const CreateRepairScreen = ({ navigation }: any) => {
       dispatch({ type: "SET", payload: { customerId: res.data?.id || "" } });
     } else {
       console.log("Failed to fetch customer:", res.message);
+    }
+  };
+
+  const fetchVehicles = async () => {
+    if (!customer || !customer.id) return;
+    const params = {
+      customerId: customer.id,
+      page: 1,
+      pageSize: 10,
+    };
+
+    try {
+      const res = await getVehicle(params);
+      console.log("Fetch vehicles response:", res);
+
+      if (res && res.success) {
+        const rows = res.data?.rowDatas ?? [];
+        console.log("Raw rows from API:", rows);
+        const items: Vehicle[] = rows.map((r: any) => {
+          if (Array.isArray(r) && r.length > 0) return r[0];
+          return r;
+        });
+
+        setVehicles(items);
+        if (items.length > 0) {
+          setVehicleSelectId(String(items[0].id));
+          setVehicle(items[0]);
+          dispatch({
+            type: "SET",
+            payload: { vehicleId: String(items[0].id) },
+          });
+        }
+      } else {
+        console.log("Failed to fetch vehicles:", res?.message);
+      }
+    } catch (err) {
+      console.log("Error fetching vehicles:", err);
     }
   };
 
@@ -313,30 +355,34 @@ const CreateRepairScreen = ({ navigation }: any) => {
   const footer = (() => {
     if (step === 3) {
       return (
-        <ButtonComponent
-          text="Đặt lịch"
-          type="primary"
-          onPress={handleSubmit}
-        />
+        <View style={styles.footerContainer}>
+          <ButtonComponent
+            text="Đặt lịch"
+            type="primary"
+            onPress={handleSubmit}
+          />
+        </View>
       );
     }
 
     if (step === 1) {
       return (
-        <View style={styles.footerRow}>
-          <View style={styles.footerBtn}>
-            <ButtonComponent
-              text="Quay lại"
-              type="secondary"
-              onPress={handleBack}
-            />
-          </View>
-          <View style={styles.footerBtn}>
-            <ButtonComponent
-              text="Tiếp tục"
-              type="primary"
-              onPress={handleNextStep}
-            />
+        <View style={styles.footerContainer}>
+          <View style={styles.footerRow}>
+            <View style={styles.footerBtn}>
+              <ButtonComponent
+                text="Quay lại"
+                type="secondary"
+                onPress={handleBack}
+              />
+            </View>
+            <View style={styles.footerBtn}>
+              <ButtonComponent
+                text="Tiếp tục"
+                type="primary"
+                onPress={handleNextStep}
+              />
+            </View>
           </View>
         </View>
       );
@@ -344,11 +390,13 @@ const CreateRepairScreen = ({ navigation }: any) => {
 
     // default for step 0,2,3
     return (
-      <ButtonComponent
-        text="Tiếp tục"
-        type="primary"
-        onPress={handleNextStep}
-      />
+      <View style={styles.footerContainer}>
+        <ButtonComponent
+          text="Tiếp tục"
+          type="primary"
+          onPress={handleNextStep}
+        />
+      </View>
     );
   })();
 
@@ -492,12 +540,23 @@ const CreateRepairScreen = ({ navigation }: any) => {
 
       {step === 0 && (
         <>
-          <ChooseVehicle
-            vehicles={vehicles}
-            onSelect={handleSelectVehicle}
-            initialSelectedId={vehicleSelectId}
-            errorMessage={errorMessage}
-          />
+          {vehicles.length === 0 ? (
+            <TextComponent
+              text="Bạn chưa có xe. Vui lòng thêm xe để đặt lịch."
+              size={14}
+              color={appColor.gray2}
+              styles={{ textAlign: "center" }}
+            />
+          ) : (
+            // use `key` so ChooseVehicle remounts when `vehicleSelectId` changes
+            <ChooseVehicle
+              key={vehicleSelectId || "choose-vehicle"}
+              vehicles={vehicles}
+              onSelect={handleSelectVehicle}
+              initialSelectedId={vehicleSelectId}
+              errorMessage={errorMessage}
+            />
+          )}
 
           <SectionComponent>
             <TextComponent
@@ -507,17 +566,17 @@ const CreateRepairScreen = ({ navigation }: any) => {
               color={appColor.text}
             />
             <SpaceComponent height={12} />
-            <InputComponent
-              allowClear
+            <TextInput
+              style={styles.textArea}
               value={state.description ?? ""}
-              onChange={(payload: any) => {
-                const value =
-                  typeof payload === "string"
-                    ? payload
-                    : payload?.nativeEvent?.text ?? payload?.text ?? "";
-                dispatch({ type: "SET", payload: { description: value } });
-              }}
+              onChangeText={(text) =>
+                dispatch({ type: "SET", payload: { description: text } })
+              }
               placeholder="Nhập trình trạng xe"
+              placeholderTextColor={appColor.gray}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
             />
           </SectionComponent>
         </>
@@ -561,6 +620,20 @@ const CreateRepairScreen = ({ navigation }: any) => {
 export default CreateRepairScreen;
 
 const styles = StyleSheet.create({
-  footerRow: { flexDirection: "row", gap: 8, width: "100%" },
+  footerRow: { flexDirection: "row", gap: 8, width: "100%"},
   footerBtn: { flex: 1 },
+  footerContainer: {
+    paddingHorizontal: 12,
+    paddingBottom: Platform.OS === "android" ? 48 : 16,
+    backgroundColor: "transparent",
+  },
+  textArea: {
+    borderWidth: 1,
+    borderColor: appColor.gray,
+    borderRadius: 8,
+    padding: 12,
+    minHeight: 100,
+    backgroundColor: "#fff",
+    color: appColor.text,
+  },
 });

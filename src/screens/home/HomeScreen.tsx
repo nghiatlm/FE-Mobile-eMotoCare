@@ -408,11 +408,12 @@ const HomeScreen = ({ navigation }: any) => {
                 //gọi action remove trong redux
                 dispatch(removeAuth({} as any));
                 //tuỳ chọn: chuyển về màn hình login
-                navigation.replace("LoginScreen");
+                // navigation.replace("LoginScreen");
               }}
             />
           </View>
         </SectionComponent>
+        <SpaceComponent height={50} />
       </ScrollView>
     </View>
   );

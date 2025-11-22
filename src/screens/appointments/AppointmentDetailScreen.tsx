@@ -12,7 +12,9 @@ import {
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { getAppointmentDetail } from "../../services/appointment.service";
+import useAppointmentHub from "../../hooks/useAppointmentHub.hook";
 import { globalStyle } from "../../styles/globalStyle";
+import { LoadingModal } from "../../modal";
 
 const formatDate = (iso?: string) => {
   if (!iso) return "";
@@ -38,6 +40,7 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { status: liveStatus } = useAppointmentHub(id);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +57,23 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
 
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (!liveStatus) return;
+    const s = String(liveStatus).toUpperCase();
+    if (s === "APPROVED") {
+      (async () => {
+        const result = await getAppointmentDetail(id);
+        if (result.success) {
+          setData(result.data);
+          console.log("Refreshed appointment after APPROVED:", result.data);
+        }
+      })();
+    } else {
+      // update status locally so UI reacts immediately
+      setData((prev: any) => (prev ? { ...prev, status: liveStatus } : prev));
+    }
+  }, [liveStatus, id]);
 
   const statusInfo = (s?: string) => {
     if (!s) return { label: "", color: appColor.gray2 };
@@ -167,15 +187,21 @@ const AppointmentDetailScreen = ({ navigation, route }: any) => {
               );
             })()
           : null}
+        {data?.status === "APRROVED" ? (
+          <Image source={{ uri: data.checkinQRCode }} style={styles.qrImage} />
+        ) : (
+          <View
+            style={[
+              styles.qrImage,
+              { alignItems: "center", justifyContent: "center" },
+            ]}
+          >
+            <ActivityIndicator size="large" color={appColor.primary} />
+            <SpaceComponent height={8} />
+            <TextComponent text="Đang đợi xác nhận" color={appColor.gray2} />
+          </View>
+        )}
 
-        <Image
-          source={
-            data?.checkinQRCode
-              ? { uri: data.checkinQRCode }
-              : require("../../assets/images/qrcode.png")
-          }
-          style={styles.qrImage}
-        />
         <SpaceComponent height={12} />
         <TextComponent
           text={data?.code || id}
@@ -314,6 +340,14 @@ const styles = StyleSheet.create({
     height: 200,
     width: 200,
     resizeMode: "contain",
+  },
+  qrPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: appColor.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: appColor.gray,
   },
   card: {
     backgroundColor: appColor.white,

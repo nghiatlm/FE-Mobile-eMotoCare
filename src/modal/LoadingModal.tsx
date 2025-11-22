@@ -31,7 +31,11 @@ const LoadingModal = (props: Props) => {
         }}
       >
         <ActivityIndicator color={appColor.white} size={32} />
-        <TextComponent text="Loading..." flex={0} color={appColor.white} />
+        <TextComponent
+          text={mess ?? "Loading..."}
+          flex={0}
+          color={appColor.white}
+        />
       </View>
     </Modal>
   );

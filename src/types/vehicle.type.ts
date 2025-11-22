@@ -23,6 +23,7 @@ export interface Vehicle {
   vinNUmber: string; // giữ nguyên theo API của bạn (chữ U viết hoa)
   image: string;
   color: string;
+  modelName: string;
   chassisNumber: string;
   engineNumber: string;
   status: string;

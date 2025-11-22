@@ -108,7 +108,7 @@ const ChooseVehicle = (props: Props) => {
                     <Motorbike width={52} height={56} />
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <TextComponent
-                        text={v.model?.name ?? "Không rõ"}
+                        text={v.modelName ?? "Không rõ"}
                         size={14}
                         color={selected ? appColor.white : appColor.text}
                         font={fontFamilies.roboto_medium}

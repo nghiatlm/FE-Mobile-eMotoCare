@@ -17,6 +17,7 @@ export class NotificationHandler {
 
   static getFcmToken = async () => {
     const fcmToken = await AsyncStorage.getItem("fcmToken");
+    console.log("Existing FCM Token:", fcmToken);
     if (!fcmToken) {
       try {
         const token = await messaging().getToken();
@@ -29,12 +30,18 @@ export class NotificationHandler {
         console.log("Error getting FCM token:", error);
       }
     } else {
-      console.log("FCM Token already exists:", fcmToken);
+      this.updateTokenForUser(fcmToken);
     }
   };
 
   static updateTokenForUser = async (token: string) => {
-    const res = await AsyncStorage.getItem("userData");
-    console.log("User data from storage:", res);
+    const res = await AsyncStorage.getItem("auth");
+    if (res) {
+      const auth = JSON.parse(res);
+      const { fcmTokens } = auth;
+      if (fcmTokens && !fcmTokens.includes(token)) {
+        fcmTokens.push(token);
+      }
+    }
   };
 }

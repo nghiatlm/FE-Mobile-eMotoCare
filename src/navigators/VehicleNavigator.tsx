@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import { VehiclesDetailScreen } from "../screens";
+import { VehicleHistorySreen, VehiclesDetailScreen } from "../screens";
 
 const Stack = createNativeStackNavigator();
 
@@ -8,6 +8,7 @@ const VehicleNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="VehicleDetail" component={VehiclesDetailScreen} />
+      <Stack.Screen name="VehicleHistory" component={VehicleHistorySreen} />
     </Stack.Navigator>
   );
 };

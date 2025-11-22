@@ -1,24 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Image, View, TouchableOpacity } from "react-native";
 import {
   BackgroundComponent,
+  ButtonComponent,
   RowComponent,
   SectionComponent,
   SpaceComponent,
   TextComponent,
 } from "../../components";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
-import { getVehicleById } from "../../services/vehicle.service";
-import { Image } from "react-native";
-import { fontFamilies } from "../../constants/fontFamilies";
+import StepProgress from "../../components/StepProgress";
 import { appColor } from "../../constants/appColor";
+import { fontFamilies } from "../../constants/fontFamilies";
+import { getVehicleById } from "../../services/vehicle.service";
 import { globalStyle } from "../../styles/globalStyle";
 import { statusActivities } from "../../utils/generateStatus";
+import {
+  AntDesign,
+  FontAwesome6,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 
 const VehiclesDetailScreen = ({ navigation, route }: any) => {
   const vehicleId = route.params?.id;
   const [isLoading, setIsLoading] = useState(false);
   const [vehicle, setVehicle] = useState<any>(null);
+  const [warrantyExpanded, setWarrantyExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     fetchVehicleDetail();
@@ -138,6 +145,362 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
           })()}
         </RowComponent>
       </SectionComponent>
+      <SpaceComponent height={16} />
+      <SectionComponent
+        styles={[
+          globalStyle.shadow,
+          {
+            padding: 16,
+            borderRadius: 8,
+            backgroundColor: appColor.white,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+          },
+        ]}
+      >
+        <TextComponent
+          text="Thông tin kiểm tra định kỳ "
+          size={18}
+          font={fontFamilies.roboto_medium}
+          color={appColor.text}
+        />
+        <SpaceComponent height={8} />
+
+        <RowComponent>
+          <StepProgress
+            steps={["Lần 1", "Lần 2", "Lần 3", "Lần 4", "Lần 5", "Lần 6"]}
+            current={vehicle?.currentCheckStep ?? 1}
+          />
+        </RowComponent>
+        <SpaceComponent height={12} />
+        <RowComponent justify="space-around">
+          <RowComponent>
+            <View
+              style={{
+                height: 10,
+                width: 10,
+                backgroundColor: appColor.primary,
+                borderRadius: 100,
+              }}
+            />
+            <TextComponent
+              text="Đúng hẹn"
+              size={14}
+              color={appColor.text}
+              font={fontFamilies.roboto_light}
+              styles={{ marginLeft: 8 }}
+            />
+          </RowComponent>
+
+          <RowComponent>
+            <View
+              style={{
+                height: 10,
+                width: 10,
+                backgroundColor: appColor.danger,
+                borderRadius: 100,
+              }}
+            />
+            <TextComponent
+              text="Quá hạn"
+              size={14}
+              color={appColor.text}
+              font={fontFamilies.roboto_light}
+              styles={{ marginLeft: 8 }}
+            />
+          </RowComponent>
+
+          <RowComponent>
+            <View
+              style={{
+                height: 10,
+                width: 10,
+                backgroundColor: appColor.warning,
+                borderRadius: 100,
+              }}
+            />
+            <TextComponent
+              text="Lần kế tiếp"
+              size={14}
+              color={appColor.text}
+              font={fontFamilies.roboto_light}
+              styles={{ marginLeft: 8 }}
+            />
+          </RowComponent>
+        </RowComponent>
+
+        <View
+          style={{
+            height: 2,
+            width: "100%",
+            backgroundColor: appColor.gray,
+            marginTop: 20,
+          }}
+        />
+        <SpaceComponent height={12} />
+        <RowComponent justify="space-between">
+          <TextComponent
+            text="Ngày KTĐK gần nhất (Lần 2): "
+            size={14}
+            font={fontFamilies.roboto_regular}
+            color={appColor.text}
+          />
+          <TextComponent
+            text="24/10/2025"
+            size={14}
+            font={fontFamilies.roboto_regular}
+            color={appColor.text}
+          />
+        </RowComponent>
+
+        <View
+          style={{
+            height: 2,
+            width: "100%",
+            backgroundColor: appColor.gray,
+            marginTop: 20,
+          }}
+        />
+        <SpaceComponent height={12} />
+        <RowComponent
+          justify="space-between"
+          styles={{ alignItems: "flex-start" }}
+        >
+          <TextComponent
+            text="Ngày hết hạn KTĐK tiếp theo (lần 5): "
+            size={14}
+            font={fontFamilies.roboto_regular}
+            color={appColor.text}
+            styles={{ maxWidth: "70%" }}
+          />
+          <TextComponent
+            text="16/08/2025"
+            size={14}
+            font={fontFamilies.roboto_regular}
+            color={appColor.text}
+          />
+        </RowComponent>
+        <SpaceComponent height={16} />
+        <ButtonComponent text="Đặt dịch vụ" type="primary" />
+      </SectionComponent>
+
+      <SpaceComponent height={16} />
+      <SectionComponent
+        styles={[
+          globalStyle.shadow,
+          {
+            padding: 16,
+            borderRadius: 8,
+            backgroundColor: appColor.white,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+          },
+        ]}
+      >
+        <RowComponent justify="space-between" styles={{ alignItems: "center" }}>
+          <TextComponent
+            text="Thông tin bảo hành"
+            size={18}
+            font={fontFamilies.roboto_medium}
+            color={appColor.text}
+          />
+          <TouchableOpacity
+            onPress={() => setWarrantyExpanded((s) => !s)}
+            style={{ padding: 8 }}
+            accessibilityLabel={warrantyExpanded ? "Thu gọn" : "Mở rộng"}
+          >
+            {!warrantyExpanded ? (
+              <AntDesign name="plus-circle" size={18} color={appColor.text} />
+            ) : (
+              <AntDesign name="minus-circle" size={18} color={appColor.text} />
+            )}
+          </TouchableOpacity>
+        </RowComponent>
+
+        {warrantyExpanded && (
+          <>
+            <View
+              style={{
+                height: 2,
+                width: "100%",
+                backgroundColor: appColor.gray,
+                marginTop: 20,
+              }}
+            />
+            <SpaceComponent height={8} />
+            <RowComponent
+              justify="space-between"
+              styles={{ alignItems: "flex-start" }}
+            >
+              <TextComponent
+                text="Ngày xuất xưởng: "
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+                styles={{ maxWidth: "70%" }}
+              />
+              <TextComponent
+                text="16/08/2024"
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+              />
+            </RowComponent>
+            <SpaceComponent height={8} />
+            <RowComponent
+              justify="space-between"
+              styles={{ alignItems: "flex-start" }}
+            >
+              <TextComponent
+                text="Ngày mua: "
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+                styles={{ maxWidth: "70%" }}
+              />
+              <TextComponent
+                text="16/08/2024"
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+              />
+            </RowComponent>
+            <SpaceComponent height={8} />
+            <RowComponent
+              justify="space-between"
+              styles={{ alignItems: "flex-start" }}
+            >
+              <TextComponent
+                text="Thời hạn bảo hành: "
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+                styles={{ maxWidth: "70%" }}
+              />
+              <TextComponent
+                text="24 tháng"
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+              />
+            </RowComponent>
+
+            <SpaceComponent height={8} />
+            <RowComponent
+              justify="space-between"
+              styles={{ alignItems: "flex-start" }}
+            >
+              <TextComponent
+                text="Tình trạng hiện tại: "
+                size={14}
+                font={fontFamilies.roboto_regular}
+                color={appColor.text}
+                styles={{ maxWidth: "70%" }}
+              />
+              <TextComponent
+                text="Còn"
+                size={14}
+                font={fontFamilies.roboto_medium}
+                color={appColor.primary}
+              />
+            </RowComponent>
+          </>
+        )}
+      </SectionComponent>
+      <SpaceComponent height={16} />
+      <SectionComponent
+        styles={[
+          globalStyle.shadow,
+          {
+            padding: 16,
+            borderRadius: 8,
+            backgroundColor: appColor.white,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+          },
+        ]}
+      >
+        <TextComponent
+          text="Nhắc nhở thay đổi phụ tùng"
+          size={18}
+          font={fontFamilies.roboto_medium}
+          color={appColor.text}
+        />
+        <View
+          style={{
+            height: 2,
+            width: "100%",
+            backgroundColor: appColor.gray,
+            marginTop: 20,
+          }}
+        />
+        <SpaceComponent height={12} />
+        <RowComponent styles={{ alignItems: "center" }}>
+          <Ionicons
+            name="information-circle-outline"
+            size={24}
+            color={appColor.text}
+            style={{ marginRight: 8 }}
+          />
+          <TextComponent
+            text="Bugi"
+            size={18}
+            font={fontFamilies.roboto_medium}
+            color={appColor.text}
+            flex={1}
+          />
+          <MaterialIcons
+            name="keyboard-arrow-right"
+            size={24}
+            color={appColor.text}
+          />
+        </RowComponent>
+
+        <View
+          style={{
+            height: 2,
+            width: "100%",
+            backgroundColor: appColor.gray,
+            marginTop: 20,
+          }}
+        />
+
+        <SpaceComponent height={12} />
+        <RowComponent styles={{ alignItems: "center" }}>
+          <Ionicons
+            name="information-circle-outline"
+            size={24}
+            color={appColor.text}
+            style={{ marginRight: 8 }}
+          />
+          <TextComponent
+            text="Dầu động cơ"
+            size={18}
+            font={fontFamilies.roboto_medium}
+            color={appColor.text}
+            flex={1}
+          />
+          <MaterialIcons
+            name="keyboard-arrow-right"
+            size={24}
+            color={appColor.text}
+          />
+        </RowComponent>
+      </SectionComponent>
+      <SpaceComponent height={16} />
+      <ButtonComponent
+        text="Lịch sử sửa chữa"
+        rightIcon={
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <FontAwesome6
+              name="chevron-right"
+              size={16}
+              color={appColor.gray2}
+            />
+          </View>
+        }
+        onPress={() => navigation.navigate("VehicleHistory", { id: vehicleId })}
+      />
     </BackgroundComponent>
   );
 };

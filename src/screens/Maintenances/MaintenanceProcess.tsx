@@ -186,7 +186,13 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
 
         {/* Service center card (two-column) */}
         <SectionComponent styles={[globalStyle.shadow, styles.card]}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
             <View style={{ flex: 1, paddingRight: 8 }}>
               <TextComponent
                 text="Trung tâm dịch vụ"
@@ -202,25 +208,47 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                 flex={1}
                 styles={{ marginTop: 6 }}
               />
-              <View style={{ flexDirection: 'row', marginTop: 8, alignItems: 'center' }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  marginTop: 8,
+                  alignItems: "center",
+                }}
+              >
                 <View style={styles.statusChip}>
-                  <TextComponent text={String(data?.status || '').replace(/_/g, ' ')} size={12} color={appColor.white} />
+                  <TextComponent
+                    text={String(data?.status || "").replace(/_/g, " ")}
+                    size={12}
+                    color={appColor.white}
+                  />
                 </View>
               </View>
             </View>
 
-            <TouchableOpacity onPress={() => navigation.navigate('InspectionResult', { evcheck: evcheckIdState })}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("InspectionResult", {
+                  evcheck: evcheckIdState,
+                })
+              }
+            >
               <TextComponent
                 text="Xem vấn đề của xe"
                 size={14}
                 color={appColor.primary}
-                styles={{ textDecorationLine: 'underline' }}
+                styles={{ textDecorationLine: "underline" }}
               />
             </TouchableOpacity>
           </View>
 
           <SpaceComponent height={10} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <View>
               <TextComponent
                 text="Thời gian"
@@ -228,16 +256,27 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                 color={appColor.gray2}
               />
               <TextComponent
-                text={`${formatDateDDMMYYYY(data?.appointmentDate)} ${slotCodeToTimeLabel(data?.slotTime)}`}
+                text={`${formatDateDDMMYYYY(
+                  data?.appointmentDate
+                )} ${slotCodeToTimeLabel(data?.slotTime)}`}
                 color={appColor.text}
                 size={16}
                 styles={{ marginTop: 4 }}
               />
             </View>
 
-            <View style={{ alignItems: 'flex-end' }}>
-              <TextComponent text={`Mã: ${data?.code || '6M78239A23P'}`} color={appColor.gray2} size={14} />
-              <TextComponent text={data?.serviceCenter?.address || ''} color={appColor.gray2} size={13} styles={{ marginTop: 8, maxWidth: 180 }} />
+            <View style={{ alignItems: "flex-end" }}>
+              <TextComponent
+                text={`Mã: ${data?.code || "6M78239A23P"}`}
+                color={appColor.gray2}
+                size={14}
+              />
+              <TextComponent
+                text={data?.serviceCenter?.address || ""}
+                color={appColor.gray2}
+                size={13}
+                styles={{ marginTop: 8, maxWidth: 180 }}
+              />
             </View>
           </View>
         </SectionComponent>
@@ -247,15 +286,25 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
         {/* Timeline */}
         <View style={styles.timelineContainer}>
           {/* full vertical line */}
-          <View style={[styles.timelineFullLine, { backgroundColor: appColor.gray }]} />
+          <View
+            style={[
+              styles.timelineFullLine,
+              { backgroundColor: appColor.gray },
+            ]}
+          />
           {filteredSteps.map((step) => (
             <View key={step.id} style={styles.stepContainer}>
               <View style={styles.timelineColumn}>
-                <View style={[styles.circle, step.id <= currentStep ? styles.circleActive : null]} />
+                <View
+                  style={[
+                    styles.circle,
+                    step.id <= currentStep ? styles.circleActive : null,
+                  ]}
+                />
               </View>
 
               <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <TextComponent
                     text={step.title}
                     color={
@@ -270,7 +319,11 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                   />
                   {step.id === currentStep && (
                     <View style={{ marginLeft: 8 }}>
-                      <TextComponent text="Hiện tại" size={12} color={appColor.primary} />
+                      <TextComponent
+                        text="Hiện tại"
+                        size={12}
+                        color={appColor.primary}
+                      />
                     </View>
                   )}
                 </View>
@@ -334,26 +387,19 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
         </View>
         <SpaceComponent height={40} />
 
-        <RowComponent justify="space-between">
-          <ButtonComponent
-            text="Trang chủ"
-            type="text"
-            styles={{
-              flex: 0.48,
-              borderWidth: 1,
-              borderColor: appColor.gray,
-              backgroundColor: appColor.white,
-            }}
-            textColor={appColor.text}
-            onPress={() => navigation.navigate("HomeScreen")}
-          />
-          <ButtonComponent
-            text="Đặt lại lịch"
-            type="primary"
-            styles={{ flex: 0.48 }}
-            onPress={() => navigation.navigate("AppointmentDetailScreen")}
-          />
-        </RowComponent>
+        <ButtonComponent
+          text="Trang chủ"
+          type="secondary"
+          styles={{
+            flex: 1,
+            marginRight: 8,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+            backgroundColor: appColor.white,
+          }}
+          textColor={appColor.text}
+          onPress={() => navigation.navigate("HomeScreen")}
+        />
 
         <SpaceComponent height={40} />
       </ScrollView>
@@ -372,7 +418,7 @@ const styles = StyleSheet.create({
   timelineContainer: {
     marginLeft: 8,
     marginTop: 8,
-    position: 'relative',
+    position: "relative",
   },
   stepContainer: {
     flexDirection: "row",
@@ -401,14 +447,14 @@ const styles = StyleSheet.create({
     backgroundColor: appColor.primary,
     borderWidth: 2,
     borderColor: appColor.white,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 2,
   },
   timelineFullLine: {
-    position: 'absolute',
+    position: "absolute",
     left: 22,
     top: 0,
     bottom: 0,
