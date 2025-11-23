@@ -20,6 +20,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import { checkWarranty, formatDateDDMMYYYY } from "../../utils/formatDate";
 
 const VehiclesDetailScreen = ({ navigation, route }: any) => {
   const vehicleId = route.params?.id;
@@ -40,6 +41,7 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
       console.log("Error fetching vehicle details", res.message);
     }
   };
+  const warrantyInfo = checkWarranty(vehicle?.warrantyExpiry);
   return (
     <BackgroundComponent title="Xe của tôi" back isScroll>
       <Image
@@ -340,7 +342,7 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
                 styles={{ maxWidth: "70%" }}
               />
               <TextComponent
-                text="16/08/2024"
+                text={formatDateDDMMYYYY(vehicle?.manufactureDate)}
                 size={14}
                 font={fontFamilies.roboto_regular}
                 color={appColor.text}
@@ -359,7 +361,7 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
                 styles={{ maxWidth: "70%" }}
               />
               <TextComponent
-                text="16/08/2024"
+                text={formatDateDDMMYYYY(vehicle?.purchaseDate)}
                 size={14}
                 font={fontFamilies.roboto_regular}
                 color={appColor.text}
@@ -398,10 +400,10 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
                 styles={{ maxWidth: "70%" }}
               />
               <TextComponent
-                text="Còn"
+                text={warrantyInfo?.remaining ?? ""}
                 size={14}
                 font={fontFamilies.roboto_medium}
-                color={appColor.primary}
+                color={warrantyInfo?.valid ? appColor.primary : appColor.danger}
               />
             </RowComponent>
           </>
