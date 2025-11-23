@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Image,
@@ -65,70 +65,85 @@ const HomeScreen = ({ navigation }: any) => {
   }, [auth.accountResponse?.id]);
 
   // extract loadAll so it can be called on focus
-  const loadAll = useCallback(async (idParam?: string) => {
-    const id = idParam ?? auth.accountResponse?.id ?? accountId;
-    if (!id || String(id).trim() === "") return;
-    try {
-      setLoadingCustomer(true);
-      const custRes = await getCustomerByAccount(String(id).trim());
-      if (custRes?.success) {
-        const cust = custRes.data;
-        setCustomer(cust);
+  const loadAll = useCallback(
+    async (idParam?: string) => {
+      const id = idParam ?? auth.accountResponse?.id ?? accountId;
+      if (!id || String(id).trim() === "") return;
+      try {
+        setLoadingCustomer(true);
+        const custRes = await getCustomerByAccount(String(id).trim());
+        if (custRes?.success) {
+          const cust = custRes.data;
+          setCustomer(cust);
 
-        // fetch vehicle
-        setLoadingVehicle(true);
-        try {
-          const vehRes = await getVehicle({ customerId: String(cust.id), page: 1, pageSize: 10 });
-          if (vehRes?.success) {
-            const data = vehRes.data?.rowDatas[0];
-            setVehicle(data);
+          // fetch vehicle
+          setLoadingVehicle(true);
+          try {
+            const vehRes = await getVehicle({
+              customerId: String(cust.id),
+              page: 1,
+              pageSize: 10,
+            });
+            if (vehRes?.success) {
+              const data = vehRes.data?.rowDatas[0];
+              setVehicle(data);
 
-            // fetch maintenances for vehicle
-            if (data?.id) {
-              setLoadingMaintenance(true);
-              try {
-                const maintRes = await getMaintenances({ vehicleId: String(data.id), page: 1, pageSize: 10 });
-                if (maintRes?.success) {
-                  const rows = maintRes.data?.rowDatas ?? [];
-                  setVehicleMaintenance(rows);
-                  if (rows.length > 0) {
-                    setSelectedMaintenance(0);
-                    setMainDetailId(rows[0].id ?? null);
-                  } else {
-                    setSelectedMaintenance(0);
-                    setMainDetailId(null);
+              // fetch maintenances for vehicle
+              if (data?.id) {
+                setLoadingMaintenance(true);
+                try {
+                  const maintRes = await getMaintenances({
+                    vehicleId: String(data.id),
+                    page: 1,
+                    pageSize: 10,
+                  });
+                  if (maintRes?.success) {
+                    const rows = maintRes.data?.rowDatas ?? [];
+                    setVehicleMaintenance(rows);
+                    if (rows.length > 0) {
+                      setSelectedMaintenance(0);
+                      setMainDetailId(rows[0].id ?? null);
+                    } else {
+                      setSelectedMaintenance(0);
+                      setMainDetailId(null);
+                    }
                   }
+                } catch (e) {
+                  console.warn("fetchMaintenances error:", e);
+                } finally {
+                  setLoadingMaintenance(false);
                 }
-              } catch (e) {
-                console.warn("fetchMaintenances error:", e);
-              } finally {
-                setLoadingMaintenance(false);
               }
             }
+          } catch (e) {
+            console.warn("fetchVehicle error:", e);
+          } finally {
+            setLoadingVehicle(false);
           }
-        } catch (e) {
-          console.warn("fetchVehicle error:", e);
-        } finally {
-          setLoadingVehicle(false);
-        }
 
-        // fetch activities AFTER vehicle + maintenances to follow top-down order
-        setLoadingActivity(true);
-        try {
-          const actRes = await getAppointments({ customerId: cust.id, page: 1, pageSize: 10 });
-          if (actRes?.success) setActivity(actRes.data?.rowDatas || []);
-        } catch (e) {
-          console.warn("fetchActivity error:", e);
-        } finally {
-          setLoadingActivity(false);
+          // fetch activities AFTER vehicle + maintenances to follow top-down order
+          setLoadingActivity(true);
+          try {
+            const actRes = await getAppointments({
+              customerId: cust.id,
+              page: 1,
+              pageSize: 10,
+            });
+            if (actRes?.success) setActivity(actRes.data?.rowDatas || []);
+          } catch (e) {
+            console.warn("fetchActivity error:", e);
+          } finally {
+            setLoadingActivity(false);
+          }
         }
+      } catch (e) {
+        console.error("loadAll error:", e);
+      } finally {
+        setLoadingCustomer(false);
       }
-    } catch (e) {
-      console.error("loadAll error:", e);
-    } finally {
-      setLoadingCustomer(false);
-    }
-  }, [accountId, auth.accountResponse]);
+    },
+    [accountId, auth.accountResponse]
+  );
 
   // call loadAll whenever the screen regains focus so data refreshes when user returns
   useFocusEffect(
@@ -144,14 +159,14 @@ const HomeScreen = ({ navigation }: any) => {
     if (!customer?.id) return;
     if (vehicle) return;
     fetchVehicle();
-  },);
+  });
 
   useEffect(() => {
     if (loadingMaintenance || loadingVehicle) return;
     if (!vehicle?.id) return;
     if (vehicleMaintenance && vehicleMaintenance.length > 0) return;
     fetchMaintenances();
-  }, );
+  });
 
   const fetchCustomer = async (id: string) => {
     try {
@@ -317,7 +332,14 @@ const HomeScreen = ({ navigation }: any) => {
           <View style={styles.vehicleCardWrap}>
             <View style={styles.vehicleCard}>
               {loadingVehicle ? (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 20 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingVertical: 20,
+                  }}
+                >
                   <ActivityIndicator size="small" color={appColor.primary} />
                 </View>
               ) : (
@@ -327,19 +349,40 @@ const HomeScreen = ({ navigation }: any) => {
                     style={styles.vehicleImage}
                   />
                   <View style={styles.vehicleInfo}>
-                    <TextComponent text={vehicle?.modelName ?? "Xe của bạn"} size={18} font={fontFamilies.roboto_bold} color={appColor.text} />
-                    <TextComponent text={`Biển số: ${vehicle?.chassisNumber ?? "-"}`} size={13} color={appColor.gray} styles={{ marginTop: 6 }} />
-                    <View style={{ flexDirection: 'row', marginTop: 12, alignItems: 'center' }}>
+                    <TextComponent
+                      text={vehicle?.modelName ?? "Xe của bạn"}
+                      size={18}
+                      font={fontFamilies.roboto_bold}
+                      color={appColor.text}
+                    />
+                    <TextComponent
+                      text={`Biển số: ${vehicle?.chassisNumber ?? "-"}`}
+                      size={13}
+                      color={appColor.gray}
+                      styles={{ marginTop: 6 }}
+                    />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        marginTop: 12,
+                        alignItems: "center",
+                      }}
+                    >
                       <ButtonComponent
                         text="Chi tiết xe"
                         type="text"
-                        onPress={() => navigation.navigate("Vehicles", { screen: "VehicleDetail", params: { id: vehicle?.id } })}
+                        onPress={() =>
+                          navigation.navigate("Vehicles", {
+                            screen: "VehicleDetail",
+                            params: { id: vehicle?.id },
+                          })
+                        }
                         styles={{ paddingHorizontal: 12, marginRight: 8 }}
                       />
                       <ButtonComponent
                         text="Lịch sử"
                         type="link"
-                        onPress={() => navigation.navigate('Maintenance')}
+                        onPress={() => navigation.navigate("Maintenance")}
                         styles={{ paddingHorizontal: 8 }}
                       />
                     </View>
@@ -382,18 +425,42 @@ const HomeScreen = ({ navigation }: any) => {
             color={appColor.primary}
           />
           <View style={styles.line} />
-          <View style={{ maxHeight: 160, overflow: 'hidden' }}>
-            <ActivityComponent activities={activity?.slice(0, 1)} loading={loadingActivity} />
+          <View style={{ maxHeight: 160, overflow: "hidden" }}>
+            <ActivityComponent
+              activities={activity?.slice(0, 1)}
+              loading={loadingActivity}
+            />
           </View>
           {Array.isArray(activity) && activity.length > 1 ? (
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ alignItems: "center" }}>
               <ButtonComponent
                 text="xem thêm"
                 type="link"
-                onPress={() => navigation.navigate('Activity')}
+                onPress={() => navigation.navigate("Activity")}
               />
             </View>
           ) : null}
+        </SectionComponent>
+        <SpaceComponent height={14} />
+        <SectionComponent
+          styles={[
+            globalStyle.shadow,
+            {
+              backgroundColor: appColor.white,
+              padding: 16,
+              borderRadius: 12,
+              marginHorizontal: 8,
+              borderWidth: 1,
+              borderColor: appColor.gray,
+            },
+          ]}
+        >
+          <TextComponent
+            text="Danh sách chiến dịch"
+            title
+            size={20}
+            color={appColor.primary}
+          />
         </SectionComponent>
 
         <SectionComponent>
@@ -446,18 +513,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
-    alignItems: 'center'
+    alignItems: "center",
   },
   vehicleImage: {
     width: 120,
     height: 100,
     borderRadius: 8,
-    resizeMode: 'cover',
+    resizeMode: "cover",
     marginRight: 12,
-    backgroundColor: appColor.gray3
+    backgroundColor: appColor.gray3,
   },
   vehicleInfo: {
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: "center",
   },
 });

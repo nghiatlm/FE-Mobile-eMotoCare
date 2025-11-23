@@ -18,6 +18,9 @@ export default function useEvcheckHub(evcheckId: string) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    let started = false;
+
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
         `${process.env.EXPO_PUBLIC_SIGNALR_SERVER_URL}/hubs/notify`,
@@ -30,21 +33,46 @@ export default function useEvcheckHub(evcheckId: string) {
       .withAutomaticReconnect()
       .build();
 
-    connection
-      .start()
-      .then(() => console.log("✅ Connected to appointment hub"))
-      .catch((err) => console.error("❌ Connection error:", err));
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        started = true;
+        console.log("✅ Connected to Evcheck hub");
+        if (!isMounted) {
+          await connection.stop();
+        }
+      } catch (err) {
+        console.error("❌ Connection error Evcheck:", err);
+      }
+    };
+
+    startConnection();
 
     connection.on("ReceiveUpdate", (entity: string, data: any) => {
       console.log("📩 ReceiveUpdate:", entity, data);
 
-      // Nếu là dữ liệu của Appointment và ID trùng
       if (entity === "EVCheck" && data?.id === evcheckId) {
         fetchEvcheck(evcheckId);
       }
     });
+
+    connection.onreconnecting((err) => {
+      console.info("SignalR reconnecting (evcheck):", err);
+    });
+
+    connection.onreconnected(() => {
+      console.info("SignalR reconnected (evcheck)");
+    });
+
+    connection.onclose((err) => {
+      console.info("SignalR connection closed (evcheck):", err);
+    });
+
     return () => {
-      connection.stop();
+      isMounted = false;
+      if (started) {
+        connection.stop().catch(() => {});
+      }
     };
   }, [evcheckId]);
   return { status, description };

@@ -1,21 +1,19 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
-import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   BackgroundComponent,
   ButtonComponent,
-  RowComponent,
   SectionComponent,
   SpaceComponent,
-  TextComponent,
+  TextComponent
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { getAppointmentDetail } from "../../services/appointment.service";
 // optional: service to fetch evCheck details (create if not exist)
-import { getEvcheckDetail } from "../../services/evcheck.service";
-import { globalStyle } from "../../styles/globalStyle";
 import useAppointmentHub from "../../hooks/useAppointmentHub.hook";
 import useEvcheckHub from "../../hooks/useEVCheckHub";
+import { getEvcheckDetail } from "../../services/evcheck.service";
 
 const mapStatusToStep = (status?: string) => {
   const s = (status || "").toUpperCase();
@@ -33,6 +31,10 @@ const mapStatusToStep = (status?: string) => {
 
 const MaintenanceProcess = ({ navigation, route }: any) => {
   const id = route?.params?.id;
+  // optional params passed when navigating back from InspectionResult
+  const initialEvcheckParam = route?.params?.evcheck || route?.params?.evcheckId;
+  const initialForceStep = route?.params?.forceStep;
+  const initialEvcheckStatus = route?.params?.evcheckStatus;
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -91,6 +93,14 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
 
   useEffect(() => {
     if (!id) return;
+    // if we were navigated here with an evcheck id (from InspectionResult), set it immediately
+    if (initialEvcheckParam) {
+      setEvcheckIdState(String(initialEvcheckParam));
+    }
+    // if forceStep provided (e.g. after approving evcheck), set current step right away
+    if (initialForceStep) {
+      setCurrentStep(Number(initialForceStep));
+    }
     fetchAppointment(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -156,7 +166,6 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
   ];
 
   const filteredSteps = useMemo(() => {
-    // if approved present, hide pending; otherwise show pending; keep other flow
     return steps.filter((s) => {
       if (s.id === 1 && effectiveApptStatus.includes("APPROVED")) return false;
       return true;
@@ -184,8 +193,15 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
         />
         <SpaceComponent height={20} />
 
-        {/* Service center card (two-column) */}
-        <SectionComponent styles={[globalStyle.shadow, styles.card]}>
+        <SectionComponent
+          styles={{
+            backgroundColor: appColor.white,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: appColor.gray,
+            padding: 16,
+          }}
+        >
           <View
             style={{
               flexDirection: "row",
@@ -242,50 +258,33 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
           </View>
 
           <SpaceComponent height={10} />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <View>
-              <TextComponent
-                text="Thời gian"
-                size={14}
-                color={appColor.gray2}
-              />
-              <TextComponent
-                text={`${formatDateDDMMYYYY(
-                  data?.appointmentDate
-                )} ${slotCodeToTimeLabel(data?.slotTime)}`}
-                color={appColor.text}
-                size={16}
-                styles={{ marginTop: 4 }}
-              />
-            </View>
-
-            <View style={{ alignItems: "flex-end" }}>
-              <TextComponent
-                text={`Mã: ${data?.code || "6M78239A23P"}`}
-                color={appColor.gray2}
-                size={14}
-              />
-              <TextComponent
-                text={data?.serviceCenter?.address || ""}
-                color={appColor.gray2}
-                size={13}
-                styles={{ marginTop: 8, maxWidth: 180 }}
-              />
-            </View>
+          <View>
+            <TextComponent text="Thời gian" size={14} color={appColor.gray2} />
+            <TextComponent
+              text={`${formatDateDDMMYYYY(
+                data?.appointmentDate
+              )} ${slotCodeToTimeLabel(data?.slotTime)}`}
+              color={appColor.text}
+              size={16}
+            />
+            <TextComponent text="Địa chỉ" size={14} color={appColor.gray2} />
+            <TextComponent
+              text={data?.serviceCenter?.address || ""}
+              color={appColor.gray2}
+              size={13}
+            />
+          </View>
+          <View>
+            <TextComponent
+              text={`Mã: ${data?.code || "6M78239A23P"}`}
+              color={appColor.gray2}
+              size={14}
+            />
           </View>
         </SectionComponent>
 
         <SpaceComponent height={25} />
-
-        {/* Timeline */}
         <View style={styles.timelineContainer}>
-          {/* full vertical line */}
           <View
             style={[
               styles.timelineFullLine,
@@ -336,49 +335,53 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
                       styles={{ marginTop: 4 }}
                     />
 
-                    {step.id === 4 && (
-                      <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
-                        <ButtonComponent
-                          text="Xem kết quả kiểm tra"
-                          type="text"
-                          onPress={() =>
-                            navigation.navigate("InspectionResult", {
-                              evcheck: evcheckIdState,
-                            })
-                          }
-                          styles={{
-                            paddingVertical: 4,
-                            paddingHorizontal: 0,
-                            backgroundColor: "transparent",
-                          }}
-                          textColor={appColor.primary}
-                        />
-                      </View>
-                    )}
+                    {step.id === 4 &&
+                      effectiveEvcheckStatus.includes(
+                        "INSPECTION_COMPLETED"
+                      ) && (
+                        <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
+                          <ButtonComponent
+                            text="Xem kết quả kiểm tra"
+                            type="text"
+                            onPress={() =>
+                              navigation.navigate("InspectionResult", {
+                                evcheck: evcheckIdState,
+                              })
+                            }
+                            styles={{
+                              paddingVertical: 4,
+                              paddingHorizontal: 0,
+                              backgroundColor: "transparent",
+                            }}
+                            textColor={appColor.primary}
+                          />
+                        </View>
+                      )}
 
-                    {step.id === 6 && (
-                      <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
-                        <ButtonComponent
-                          text="Xem hóa đơn thanh toán"
-                          type="text"
-                          textStyle={{
-                            color: appColor.primary,
-                          }}
-                          onPress={() => {
-                            console.log("navigate to payment invoice:", id);
-                            navigation.navigate("PaymentInvoice", {
-                              appointmentId: id,
-                            });
-                          }}
-                          styles={{
-                            paddingVertical: 4,
-                            paddingHorizontal: 0,
-                            backgroundColor: "transparent",
-                          }}
-                          textColor={appColor.primary}
-                        />
-                      </View>
-                    )}
+                    {step.id === 6 &&
+                      effectiveEvcheckStatus.includes("REPAIR_COMPLETED") && (
+                        <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
+                          <ButtonComponent
+                            text="Xem hóa đơn thanh toán"
+                            type="text"
+                            textStyle={{
+                              color: appColor.primary,
+                            }}
+                            onPress={() => {
+                              console.log("navigate to payment invoice:", id);
+                              navigation.navigate("PaymentInvoice", {
+                                appointmentId: id,
+                              });
+                            }}
+                            styles={{
+                              paddingVertical: 4,
+                              paddingHorizontal: 0,
+                              backgroundColor: "transparent",
+                            }}
+                            textColor={appColor.primary}
+                          />
+                        </View>
+                      )}
                   </View>
                 ) : null}
               </View>
@@ -391,8 +394,7 @@ const MaintenanceProcess = ({ navigation, route }: any) => {
           text="Trang chủ"
           type="secondary"
           styles={{
-            flex: 1,
-            marginRight: 8,
+            width: "100%",
             borderWidth: 1,
             borderColor: appColor.gray,
             backgroundColor: appColor.white,

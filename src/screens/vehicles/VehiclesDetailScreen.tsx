@@ -36,7 +36,6 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
     const res = await getVehicleById(vehicleId);
     if (res.success) {
       setVehicle(res.data);
-      console.log("Vehicle details fetched", res.data);
     } else {
       console.log("Error fetching vehicle details", res.message);
     }
@@ -502,6 +501,22 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
           </View>
         }
         onPress={() => navigation.navigate("VehicleHistory", { id: vehicleId })}
+        styles={[globalStyle.shadow]}
+      />
+
+      <ButtonComponent
+        text="Thông tin về pin xe"
+        rightIcon={
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <FontAwesome6
+              name="chevron-right"
+              size={16}
+              color={appColor.gray2}
+            />
+          </View>
+        }
+        onPress={() => navigation.navigate("VehicleHistory", { id: vehicleId })}
+        styles={[globalStyle.shadow]}
       />
     </BackgroundComponent>
   );

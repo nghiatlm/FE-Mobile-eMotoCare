@@ -1,13 +1,11 @@
 import { AntDesign, Ionicons, Octicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import {
+  FlatList,
   Image,
-  Platform,
-  View,
   ScrollView,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
+  View
 } from "react-native";
 import {
   BackgroundComponent,
@@ -20,8 +18,12 @@ import {
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
+import {
+  approveEvcheck,
+  getEvcheckDetail,
+  updateEvCheck,
+} from "../../services/evcheck.service";
 import { globalStyle } from "../../styles/globalStyle";
-import { approveEvcheck, getEvcheckDetail } from "../../services/evcheck.service";
 
 const InspectionResult = ({ navigation, route }: any) => {
   const evCheckId = route?.params?.evcheck || route?.params?.evCheckId;
@@ -52,16 +54,38 @@ const InspectionResult = ({ navigation, route }: any) => {
 
   const confirmHandler = async () => {
     const result = await approveEvcheck(evCheckId);
-        console.log("Approve result:", result.message);
-        if (result.success) {
-          console.log("Success: ", result.data);
-          navigation.navigate("MaintenanceProcess", { id: evCheck?.appointment?.id });
-        } else {
-          console.log("Failed: ", result.message);
-        }
+    console.log("Approve result:", result.message);
+    if (result.success) {
+      console.log("Success: ", result.data);
+      navigation.navigate("MaintenanceProcess", {
+        id: evCheck?.appointment?.id,
+        evcheckId: evCheckId,
+        forceStep: 4,
+        evcheckStatus: result.data?.status,
+      });
+    } else {
+      console.log("Failed: ", result.message);
+    }
   };
 
-  const cancelHandler = () => navigation.goBack();
+  const cancelHandler = async () => {
+    const data = {
+      status: "CANCELLED",
+    };
+    const res = await updateEvCheck(evCheckId, data);
+    console.log("Cancel result:", res);
+    if (res.success) {
+      console.log("Cancelled: ", res.data);
+      navigation.navigate("MaintenanceProcess", {
+        id: evCheck?.appointment?.id,
+        evcheckId: evCheckId,
+        forceStep: 4,
+        evcheckStatus: res.data?.status,
+      });
+    } else {
+      console.log("Failed: ", res.message);
+    }
+  };
 
   const renderDetail = ({ item }: { item: any }) => {
     const part = item?.partItem || item?.replacePart;

@@ -41,7 +41,7 @@ const ServiceScreen = ({ navigation }: any) => {
           onPress={() => navigation.navigate("CreateRepairScreen")}
         />
         <ButtonComponent
-          leftIcon={<FontAwesome6 name="shield-check" size={18} color={appColor.primary} />}
+          leftIcon={<FontAwesome6 name="shield" size={18} color={appColor.primary} />}
           rightIcon={<FontAwesome6 name="chevron-right" size={16} color={appColor.gray2} />}
           text="Bảo hành"
           textStyle={{ fontFamily: fontFamilies.roboto_bold, fontSize: 20 }}

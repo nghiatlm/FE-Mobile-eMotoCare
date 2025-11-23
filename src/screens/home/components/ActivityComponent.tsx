@@ -2,14 +2,11 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import {
-  ButtonComponent,
-  TextComponent
-} from "../../../components";
+import { ButtonComponent, TextComponent } from "../../../components";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { statusActivities, statusColor } from "../../../utils/generateStatus";
-import { generateServiceType } from '../../../utils/generateServiceType';
+import { generateServiceType } from "../../../utils/generateServiceType";
 
 interface Props {
   activities?: any[];
@@ -45,7 +42,7 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
 
   if (loading) {
     return (
-      <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+      <View style={{ paddingVertical: 12, alignItems: "center" }}>
         <ActivityIndicator size="small" color={appColor.primary} />
       </View>
     );
@@ -71,7 +68,10 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
               : activity.time || "");
 
           const statusInfo = statusActivities(activity.status);
-          const statusText = typeof statusInfo === 'string' ? statusInfo : statusInfo?.label ?? JSON.stringify(statusInfo);
+          const statusText =
+            typeof statusInfo === "string"
+              ? statusInfo
+              : statusInfo?.label ?? JSON.stringify(statusInfo);
 
           const statusTextColor = statusColor(activity.status);
 
@@ -89,7 +89,9 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
                 <View style={styles.content}>
                   <TextComponent
                     text={
-                      generateServiceType(activity.type) || activity.type || "Kiểm tra định kỳ"
+                      generateServiceType(activity.type) ||
+                      activity.type ||
+                      "Kiểm tra định kỳ"
                     }
                     size={15}
                     font={fontFamilies.roboto_medium}
@@ -116,7 +118,7 @@ const ActivityComponent = ({ route, activities, loading }: any) => {
                   />
                 </View>
               </View>
-              <View style={{ alignItems: 'center', marginTop: 8 }}>
+              <View style={{ alignItems: "center", marginTop: 8 }}>
                 <ButtonComponent
                   text="Xem chi tiết"
                   type="link"
@@ -157,6 +159,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: appColor.gray,
+    marginVertical: 4,
   },
   cardRow: {
     flexDirection: "row",

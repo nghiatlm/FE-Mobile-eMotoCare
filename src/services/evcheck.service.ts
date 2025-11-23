@@ -20,7 +20,6 @@ export const getEvcheckDetail = async (id: string) => {
   }
 };
 
-
 export const approveEvcheck = async (id: string) => {
   try {
     const res = await evCheckAPI.HandleEVCheck(
@@ -50,3 +49,27 @@ export const approveEvcheck = async (id: string) => {
   }
 };
 
+export const updateEvCheck = async (id: string, data: any) => {
+  try {
+    const res = await evCheckAPI.HandleEVCheck(`evchecks/${id}`, data, "put");
+    if (res.data.success) {
+      return { success: true, data: res.data.data };
+    } else {
+      return {
+        success: false,
+        message: res.data.message || "Hủy thất bại.",
+      };
+    }
+  } catch (error: any) {
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data ||
+      error?.message;
+    console.error("Error:", apiMessage ?? error);
+    return {
+      success: false,
+      message: apiMessage ?? "Reject failed. Please try again.",
+    };
+  }
+};

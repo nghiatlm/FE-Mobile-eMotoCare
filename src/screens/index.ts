@@ -5,6 +5,7 @@ import LoginScreen from "./auth/LoginScreen";
 import OnbroadingScreen from "./auth/OnbroadingScreen";
 import RegisterScreen from "./auth/RegisterScreen";
 import Verification from "./auth/Verification";
+import BatteryCurrent from "./battery/BatteryCurrent";
 import InspectionResult from "./evchecks/InspectionResult";
 import HomeScreen from "./home/HomeScreen";
 import SuccessScreen from "./Maintenances/components/SuccessScreen";
@@ -46,4 +47,5 @@ export {
   ChooseVehicle,
   VehiclesDetailScreen,
   VehicleHistorySreen,
+  BatteryCurrent,
 };

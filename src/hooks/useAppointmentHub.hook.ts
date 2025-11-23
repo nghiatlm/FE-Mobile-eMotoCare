@@ -18,6 +18,9 @@ export default function useAppointmentHub(appointmentId: string) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    let started = false;
+
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(
         `${process.env.EXPO_PUBLIC_SIGNALR_SERVER_URL}/hubs/notifyappointment`,
@@ -30,15 +33,25 @@ export default function useAppointmentHub(appointmentId: string) {
       .withAutomaticReconnect()
       .build();
 
-    connection
-      .start()
-      .then(() => console.log("✅ Connected to appointment hub"))
-      .catch((err) => console.error("❌ Connection error:", err));
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        started = true;
+        console.log("✅ Connected to appointment hub");
+        if (!isMounted) {
+          // component unmounted while starting - stop immediately
+          await connection.stop();
+        }
+      } catch (err) {
+        console.error("❌ Connection error appointment:", err);
+      }
+    };
+
+    startConnection();
 
     connection.on("ReceiveUpdate", (entity: string, data: any) => {
       console.log("📩 ReceiveUpdate:", entity, data);
 
-      // Nếu là dữ liệu của Appointment và ID trùng
       if (entity === "Appointment" && data?.id === appointmentId) {
         fetchAppoinment(appointmentId);
       }
@@ -46,15 +59,29 @@ export default function useAppointmentHub(appointmentId: string) {
 
     connection.on("ReceiveApproved", (entity: string, data: any) => {
       console.log("📩 ReceiveApproved:", entity, data);
-
-      // Nếu là dữ liệu của Appointment và ID trùng
-
       if (entity === "Appointment" && data?.id === appointmentId) {
         fetchAppoinment(appointmentId);
       }
     });
+
+    connection.onreconnecting((err) => {
+      console.info("SignalR reconnecting (appointment):", err);
+    });
+
+    connection.onreconnected(() => {
+      console.info("SignalR reconnected (appointment)");
+    });
+
+    connection.onclose((err) => {
+      console.info("SignalR connection closed (appointment):", err);
+    });
+
     return () => {
-      connection.stop();
+      isMounted = false;
+      if (started) {
+        connection.stop().catch(() => {});
+      }
+      // if not started yet, startConnection will stop after it resolves because of isMounted flag
     };
   }, [appointmentId]);
   return { status, description };

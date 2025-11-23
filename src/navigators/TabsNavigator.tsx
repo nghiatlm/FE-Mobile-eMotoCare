@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import React from "react";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomTabBar from "../components/CustomTabBar";
 import ActivityNavigator from "./ActivityNavigator";
 import HomeNavigator from "./HomeNavigator";
@@ -27,9 +27,7 @@ const TabsNavigator = () => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
           return {
             headerShown: false,
-            tabBarStyle: ["CreateRepairScreen"].includes(
-              routeName
-            )
+            tabBarStyle: ["CreateRepairScreen"].includes(routeName)
               ? { display: "none" }
               : undefined,
           };
@@ -52,6 +50,7 @@ const TabsNavigator = () => {
               "WaitConfirm",
               "InspectionResult",
               "PaymentInvoice",
+              "Vehicles",
             ].includes(routeName)
               ? { display: "none" }
               : undefined,
