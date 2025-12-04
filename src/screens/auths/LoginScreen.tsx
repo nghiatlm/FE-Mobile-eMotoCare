@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Image, Switch } from "react-native";
+import { Alert, Image, Switch } from "react-native";
 import {
   ButtonComponent,
   ContainerComponent,
@@ -13,6 +13,7 @@ import { fontFamilies } from "../../constants/fontFamilies";
 import { appColor } from "../../constants/appColor";
 import { Feather } from "@expo/vector-icons";
 import { Lock } from "iconsax-react-nativejs";
+import { login } from "../../services/auth.service";
 
 const initValue = {
   phone: "",
@@ -21,7 +22,7 @@ const initValue = {
 
 const LoginScreen = ({ navigation }: any) => {
   const [isRemember, setIsRemember] = useState(true);
-  type Errors = { phone?: string; password?: string;};
+  type Errors = { phone?: string; password?: string };
   const [isLoading, setIsLoading] = useState(false);
   const [values, setValues] = useState(initValue);
   const [errors, setErrors] = useState<Errors>({});
@@ -41,14 +42,18 @@ const LoginScreen = ({ navigation }: any) => {
   const handleLogin = async () => {
     setIsLoading(true);
     setErrors({});
-    // const result = await login(values, isRemember);
-    // if (result.success) {
-    //   console.log("Login Success: ", result.data);
-    // } else if (result.errors) {
-    //   setErrors(result.errors);
-    // } else {
-    //   setErrors({ general: result.message });
-    // }
+    console.log("Login values: ", values, isRemember);
+    const res = await login(values, isRemember);
+    if (res.success) {
+      console.log("Login successful:", res.data);
+    } else {
+      console.log("Login failed:", res.message, res.errors);
+      if (res.errors) {
+        setErrors(res.errors as Errors);
+      } else {
+        Alert.alert("Đăng nhập thất bại", res.message || "Vui lòng thử lại.");
+      }
+    }
     setIsLoading(false);
   };
   return (
