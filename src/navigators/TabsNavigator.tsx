@@ -42,15 +42,7 @@ const TabsNavigator = () => {
           return {
             headerShown: false,
             tabBarStyle: [
-              "MaintenanceDetail",
-              "CreateMaintenance",
-              "SuccessScreen",
-              "AppointmentDetail",
-              "MaintenanceProcess",
-              "WaitConfirm",
-              "InspectionResult",
-              "PaymentInvoice",
-              "Vehicles",
+              "Maintenances",
             ].includes(routeName)
               ? { display: "none" }
               : undefined,

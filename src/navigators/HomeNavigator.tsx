@@ -11,6 +11,7 @@ import {
   //   SuccessScreen,
   //   WaitConfirm,
 } from "../screens";
+import MaintenanceNavigator from "./MaintenanceNavigator";
 // import VehicleNavigator from "./VehicleNavigator";
 
 const HomeNavigator = () => {
@@ -18,6 +19,7 @@ const HomeNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
+      <Stack.Screen name="Maintenances" component={MaintenanceNavigator} />
       {/* <Stack.Screen
         name="MaintenanceDetail"
         component={MaintenanceDetailScreen}

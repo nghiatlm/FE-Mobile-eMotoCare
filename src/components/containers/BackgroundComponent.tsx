@@ -123,7 +123,7 @@ const BackgroundComponent = (props: Props) => {
               position: "absolute",
               left: 0,
               right: 0,
-              bottom: 42,
+              bottom: 0,
               height: FOOTER_HEIGHT,
               backgroundColor: appColor.white,
               justifyContent: "center",
