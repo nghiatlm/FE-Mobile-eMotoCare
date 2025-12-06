@@ -1,5 +1,6 @@
 import { Feather, Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect } from "react";
 import {
   Image,
@@ -10,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getCustomerByAccount } from "../../apis/customer.api";
 import {
   ButtonComponent,
@@ -28,12 +29,15 @@ import { globalStyle } from "../../styles/globalStyle";
 import ActivityComponent from "./components/ActivityComponent";
 import RegularMaintenance from "./components/RegularMaintenance";
 
-const HomeScreen = ({ navigation }: any) => {
+const HomeScreen = () => {
+  const navigation = useNavigation<any>();
   const [vehicle, setVehicle] = React.useState<any>(null);
   const [customer, setCustomer] = React.useState<any>(null);
 
   const auth = useSelector(authSelecter);
+  const dispatch = useDispatch();
   const [accountId, setAccountId] = React.useState<string | null>(null);
+
 
   // Watch auth changes and update accountId
   useEffect(() => {
@@ -94,31 +98,38 @@ const HomeScreen = ({ navigation }: any) => {
           }}
         >
           <RowComponent justify="space-between">
-            <TouchableOpacity>
-              <RowComponent>
-                <View
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 100,
-                    backgroundColor: "#DFF7E2",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="person" color={appColor.primary} size={24} />
-                </View>
-                <TextComponent
-                  text={customer?.customerCode || "Khách hàng mới"}
-                  font={fontFamilies.roboto_bold}
-                  color={appColor.text}
-                  size={16}
-                  styles={{
-                    marginLeft: 12,
-                  }}
-                />
-              </RowComponent>
-            </TouchableOpacity>
+            <RowComponent
+              onPress={() => {
+                console.log("Profile button pressed");
+                try {
+                  navigation.navigate("ProfileScreen");
+                } catch (error) {
+                  console.log("Navigation error:", error);
+                }
+              }}
+            >
+              <View
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 100,
+                  backgroundColor: "#DFF7E2",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="person" color={appColor.primary} size={24} />
+              </View>
+              <TextComponent
+                text={customer?.customerCode || "Khách hàng mới"}
+                font={fontFamilies.roboto_bold}
+                color={appColor.text}
+                size={16}
+                styles={{
+                  marginLeft: 12,
+                }}
+              />
+            </RowComponent>
             <TouchableOpacity>
               <View
                 style={{
