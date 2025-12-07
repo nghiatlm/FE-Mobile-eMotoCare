@@ -4,6 +4,7 @@ import {
   //   AppointmentDetailScreen,
   //   CreateMaintenance,
   HomeScreen,
+  ProfileScreen,
   //   InspectionResult,
   //   MaintenanceDetailScreen,
   //   MaintenanceProcess,
@@ -20,6 +21,7 @@ const HomeNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
+      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       <Stack.Screen name="Maintenances" component={MaintenanceNavigator} />
       <Stack.Screen name="Appointments" component={AppointmentNavigator} />
       {/* <Stack.Screen
