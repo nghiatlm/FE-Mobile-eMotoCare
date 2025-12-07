@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getCustomerByAccount } from "../../apis/customer.api";
 import {
   ButtonComponent,
@@ -33,6 +33,7 @@ const HomeScreen = ({ navigation }: any) => {
   const [customer, setCustomer] = React.useState<any>(null);
 
   const auth = useSelector(authSelecter);
+  const dispatch = useDispatch();
   const [accountId, setAccountId] = React.useState<string | null>(null);
 
   // Watch auth changes and update accountId
@@ -216,7 +217,10 @@ const HomeScreen = ({ navigation }: any) => {
                 marginVertical: 8,
               }}
             />
-            <RegularMaintenance navigation={navigation} />
+            <RegularMaintenance
+              navigation={navigation}
+              vehicleId={vehicle?.id}
+            />
           </SectionComponent>
         ) : null}
         <SpaceComponent height={24} />
@@ -323,11 +327,8 @@ const HomeScreen = ({ navigation }: any) => {
               onPress={async () => {
                 // xóa token/auth trên storage
                 await AsyncStorage.removeItem("auth");
-                await AsyncStorage.removeItem("ACCESS_TOKEN");
-                //gọi action remove trong redux
+                await AsyncStorage.removeItem("auth");
                 dispatch(removeAuth({} as any));
-                //tuỳ chọn: chuyển về màn hình login
-                // navigation.replace("LoginScreen");
               }}
             />
           </View>

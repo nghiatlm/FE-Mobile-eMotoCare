@@ -1,4 +1,3 @@
-import { View, Text } from "react-native";
 import React, { useEffect } from "react";
 import {
   BackgroundComponent,
@@ -11,16 +10,73 @@ import {
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
+import { getVehicleStageDetail } from "../../services/vehicleStage.service";
 
 const MaintenanceDetail = ({ route, navigation }: any) => {
   const { id } = route?.params || {};
+  const [vehicleStageDetail, setVehicleStageDetail] = React.useState<any>(null);
   useEffect(() => {
     console.log("MaintenanceDetail id:", id);
+    fetchVehicleStageDetail(id);
   }, [id]);
+
+  const fetchVehicleStageDetail = async (id: string) => {
+    console.log("Fetch vehicle stage detail for id:", id);
+    const res = await getVehicleStageDetail(id);
+    if (res.success) {
+      console.log("Vehicle stage detail fetched:", res.data);
+      setVehicleStageDetail(res.data);
+    } else {
+      console.log("Failed to fetch vehicle stage detail:", res.message);
+    }
+  };
+
+  // Check warranty status based on warranty expiry date
+  const checkWarrantyStatus = (warrantyExpiryDate: string | null) => {
+    if (!warrantyExpiryDate) {
+      return { status: "Không rõ", color: appColor.gray2 };
+    }
+
+    try {
+      const expiryDate = new Date(warrantyExpiryDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate > today) {
+        const daysRemaining = Math.ceil(
+          (expiryDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
+        );
+        return {
+          status: `Còn bảo hành (${daysRemaining} ngày)`,
+          color: appColor.primary,
+        };
+      } else {
+        const daysExpired = Math.floor(
+          (today.getTime() - expiryDate.getTime()) / (24 * 60 * 60 * 1000)
+        );
+        return {
+          status: "Hết bảo hành",
+          color: appColor.danger,
+        };
+      }
+    } catch (error) {
+      console.log("Error checking warranty status:", error);
+      return { status: "Không rõ", color: appColor.gray2 };
+    }
+  };
+
+  const warrantyStatus = checkWarrantyStatus(
+    vehicleStageDetail?.vehicle?.warrantyExpiry || null
+  );
 
   const handleSchedule = () => {
     console.log("Schedule maintenance:", id);
-    // TODO: navigate to scheduling screen or show modal
+
+    navigation.navigate("Appointments", {
+      screen: "CreateAppointment",
+      params: { vehicleStageId: id, type: "MAINTENANCE_TYPE" },
+    });
   };
 
   const footerComponent = (
@@ -63,7 +119,7 @@ const MaintenanceDetail = ({ route, navigation }: any) => {
         ]}
       >
         <TextComponent
-          text="Bảo dưỡng đợt 1"
+          text={vehicleStageDetail?.maintenanceStage?.name || "Không xác định"}
           size={18}
           color={appColor.text}
           font={fontFamilies.roboto_medium}
@@ -77,7 +133,13 @@ const MaintenanceDetail = ({ route, navigation }: any) => {
             font={fontFamilies.roboto_medium}
           />
           <TextComponent
-            text="2500 - 6000 km"
+            text={
+              `${
+                vehicleStageDetail?.maintenanceStage?.mileage +
+                " hoặc " +
+                vehicleStageDetail?.maintenanceStage?.durationMonth
+              }` || "Không xác định"
+            }
             size={18}
             color={appColor.text}
             font={fontFamilies.roboto_regular}
@@ -113,7 +175,7 @@ const MaintenanceDetail = ({ route, navigation }: any) => {
             font={fontFamilies.roboto_regular}
           />
           <TextComponent
-            text="EV200"
+            text={vehicleStageDetail?.vehicle?.modelName || "Không xác định"}
             size={18}
             color={appColor.text}
             font={fontFamilies.roboto_medium}
@@ -128,9 +190,9 @@ const MaintenanceDetail = ({ route, navigation }: any) => {
             font={fontFamilies.roboto_regular}
           />
           <TextComponent
-            text="Còn"
+            text={warrantyStatus.status}
             size={18}
-            color={appColor.text}
+            color={warrantyStatus.color}
             font={fontFamilies.roboto_medium}
           />
         </RowComponent>

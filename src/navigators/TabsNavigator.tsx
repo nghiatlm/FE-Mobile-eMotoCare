@@ -41,9 +41,7 @@ const TabsNavigator = () => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
           return {
             headerShown: false,
-            tabBarStyle: [
-              "Maintenances",
-            ].includes(routeName)
+            tabBarStyle: ["Maintenances", "Appointments"].includes(routeName)
               ? { display: "none" }
               : undefined,
           };

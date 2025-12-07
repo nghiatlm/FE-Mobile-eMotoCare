@@ -5,66 +5,81 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { globalStyle } from "../../../styles/globalStyle";
 import { appColor } from "../../../constants/appColor";
 import { RowComponent, TextComponent } from "../../../components";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { addDays, formatDate, parseDate } from "../../../utils/data.util";
-
-const mockApiData = [
-  { id: 1, startDate: "2023-10-12-", endDate: "2023-10-222", status: "EXPIER" },
-  { id: 2, startDate: "2024-09-12", endDate: "2024-09-22", status: "SUCCESS" },
-  { id: 3, startDate: "2021-01-01", endDate: "2025-01-11", status: "EXPIER" },
-  { id: 4, startDate: "2025-03-15", endDate: "2025-03-25", status: "SUCCESS" },
-  {
-    id: 5,
-    startDate: "2025-12-15",
-    endDate: "2025-12-25",
-    status: "UPCOMMING",
-  },
-  { id: 6, startDate: "15-08-2026", endDate: "25-08-2025", status: "NO_START" },
-];
-
-const rawData = mockApiData;
+import { getVehicleStages } from "../../../services/vehicleStage.service";
 
 interface RegularMaintenanceProps {
   navigation?: any;
+  vehicleId: string;
 }
 
-const RegularMaintenance = ({ navigation }: RegularMaintenanceProps) => {
-  const data = rawData.map((it) => {
+const RegularMaintenance = (props: RegularMaintenanceProps) => {
+  const { navigation, vehicleId } = props;
+  const [vehicleStages, setVehicleStages] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchData();
+  }, [vehicleId]);
+
+  const data = vehicleStages.map((it) => {
     const item = { ...it } as any;
-    if (item.startDate && !item.endDate) {
+    if (item.expectedStartDate && !item.expectedEndDate) {
       try {
-        const sd = parseDate(item.startDate);
+        const sd = parseDate(item.expectedStartDate);
         const ed = addDays(sd, 10);
-        item.endDate = formatDate(ed);
-      } catch (e) {}
+        item.expectedEndDate = formatDate(ed);
+      } catch (e) {
+        console.log("Error parsing date:", e);
+      }
     }
     return item;
   });
 
-  const initialSelected =
-    data.find((item, idx) => {
-      const next = data[idx + 1];
-      const s = (item.status || "").toUpperCase();
-      return (
-        (s === "SUCCESS" || s === "UPCOMMING") &&
-        next &&
-        (next.status || "").toUpperCase() === "NO_START"
-      );
-    }) || data[0];
+  const fetchData = async () => {
+    const params = {
+      page: 1,
+      pageSize: 10,
+      vehicleId: vehicleId,
+    };
+    const res = await getVehicleStages(params);
+    if (res.success) {
+      setVehicleStages(res.data.rowDatas);
+    } else {
+      setVehicleStages([]);
+    }
+  };
 
-  const [selected, setSelected] = useState(initialSelected);
+  const [selected, setSelected] = useState<any>(null);
+
+  // Calculate initial selected item
+  useEffect(() => {
+    if (data.length > 0) {
+      const initialSelected =
+        data.find((item, idx) => {
+          const next = data[idx + 1];
+          const s = (item.status || "").toUpperCase();
+          return (
+            (s === "SUCCESS" || s === "UPCOMING") &&
+            next &&
+            (next.status || "").toUpperCase() === "NO_START"
+          );
+        }) || data[0];
+      setSelected(initialSelected);
+    }
+  }, [vehicleStages]);
 
   const statusToColor = (status: string, bg?: boolean) => {
     switch ((status || "").toUpperCase()) {
       case "NO_START":
         return bg ? appColor.white : appColor.gray;
-      case "UPCOMMING":
+      case "UPCOMING":
         return bg ? appColor.warning2 : appColor.warning;
-      case "EXPIER":
+      case "EXPIRED":
         return bg ? appColor.danger50 : appColor.danger;
       case "SUCCESS":
         return bg ? appColor.success50 : appColor.primary;
@@ -77,7 +92,7 @@ const RegularMaintenance = ({ navigation }: RegularMaintenanceProps) => {
     switch ((status || "").toUpperCase()) {
       case "NO_START":
         return "Chưa bắt đầu";
-      case "UPCOMMING":
+      case "UPCOMING":
         return "Sắp tới";
       case "EXPIER":
         return "Đã quá hạn";
@@ -92,9 +107,9 @@ const RegularMaintenance = ({ navigation }: RegularMaintenanceProps) => {
     if (!item) return null;
     try {
       const now = new Date();
-      if (item.startDate && item.endDate) {
-        const sd = parseDate(item.startDate);
-        const ed = parseDate(item.endDate);
+      if (item.expectedStartDate && item.expectedEndDate) {
+        const sd = parseDate(item.expectedStartDate);
+        const ed = parseDate(item.expectedEndDate);
         if (now < sd) {
           const diff = Math.ceil(
             (sd.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
@@ -112,8 +127,8 @@ const RegularMaintenance = ({ navigation }: RegularMaintenanceProps) => {
         );
         return { type: "overdue", days: diff };
       }
-      if (item.startDate && !item.endDate) {
-        const sd = parseDate(item.startDate);
+      if (item.expectedStartDate && !item.expectedEndDate) {
+        const sd = parseDate(item.expectedStartDate);
         if (now < sd) {
           const diff = Math.ceil(
             (sd.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
@@ -179,7 +194,7 @@ const RegularMaintenance = ({ navigation }: RegularMaintenanceProps) => {
         }}
       >
         <TextComponent
-          text={`Lần ${selected?.id ?? "-"}`}
+          text={selected?.maintenanceStage?.name || "Không xác định"}
           size={16}
           color={appColor.text}
           font={fontFamilies.roboto_medium}
