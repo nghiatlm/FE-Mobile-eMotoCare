@@ -1,7 +1,6 @@
 import { Feather, Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import React, { useEffect } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   Image,
   Platform,
@@ -14,16 +13,16 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getCustomerByAccount } from "../../apis/customer.api";
 import {
-  ButtonComponent,
   RowComponent,
   SectionComponent,
   SpaceComponent,
   TextComponent,
+  ButtonComponent
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { appInfor } from "../../constants/appInfor";
 import { fontFamilies } from "../../constants/fontFamilies";
-import { authSelecter, removeAuth } from "../../redux/reducers/authReducer";
+import { authSelecter } from "../../redux/reducers/authReducer";
 import { getVehicles } from "../../services/vehicle.service";
 import { globalStyle } from "../../styles/globalStyle";
 import ActivityComponent from "./components/ActivityComponent";
@@ -33,16 +32,16 @@ const HomeScreen = () => {
   const navigation = useNavigation<any>();
   const [vehicle, setVehicle] = React.useState<any>(null);
   const [customer, setCustomer] = React.useState<any>(null);
+  const activityRef = useRef<any>(null);
+  const maintenanceRef = useRef<any>(null);
 
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
   const [accountId, setAccountId] = React.useState<string | null>(null);
 
-
   // Watch auth changes and update accountId
   useEffect(() => {
     const id = auth?.accountResponse?.id || auth?.id || null;
-    console.log("Auth updated, accountId:", id);
     setAccountId(id);
   }, [auth]);
 
@@ -53,6 +52,18 @@ const HomeScreen = () => {
     }
   }, [accountId]);
 
+  // Refresh data whenever the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (accountId) {
+        fetchCustomer(accountId);
+      }
+      // Also refetch child components
+      activityRef.current?.refetch?.();
+      maintenanceRef.current?.refetch?.();
+    }, [accountId])
+  );
+
   // Fetch vehicle when customer data is loaded
   useEffect(() => {
     if (customer?.id) {
@@ -61,7 +72,6 @@ const HomeScreen = () => {
   }, [customer]);
 
   const fetchCustomer = async (accountId: string) => {
-    console.log("Fetching customer for accountId:", accountId);
     const res = await getCustomerByAccount(accountId);
     if (res.success) {
       setCustomer(res.data);
@@ -74,7 +84,10 @@ const HomeScreen = () => {
     const res = await getVehicles({ customerId: customer.id });
     if (res.success) {
       if (res.data.rowDatas.length > 0) {
-        setVehicle(res.data.rowDatas[0]);
+        const vehicleData = res.data.rowDatas[0];
+        console.log("Vehicle loaded:", vehicleData);
+        console.log("Vehicle ID:", vehicleData?.id);
+        setVehicle(vehicleData);
       } else {
         setVehicle(null);
       }
@@ -161,18 +174,35 @@ const HomeScreen = () => {
           }}
         >
           {vehicle ? (
-            <Image
-              source={require("../../assets/images/vehicles/image.png")}
-              style={{
-                width: "100%",
-                height: 500,
-                alignSelf: "center",
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: -38,
-              }}
-              resizeMode="contain"
-            />
+            <View style={{ alignItems: "center", width: "100%" }}>
+              <Image
+                source={require("../../assets/images/vehicles/image.png")}
+                style={{
+                  width: "100%",
+                  height: 500,
+                  alignSelf: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: -38,
+                }}
+                resizeMode="contain"
+              />
+              <View style={{ paddingHorizontal: 16, width: "100%", marginTop: -20 }}>
+                <ButtonComponent
+                  text="Xem thêm thông tin xe"
+                  type="primary"
+                  onPress={() => {
+                    console.log("Button pressed, vehicle:", vehicle);
+                    console.log("Vehicle ID to navigate:", vehicle?.id);
+                    navigation.navigate("Vehicles", { 
+                      screen: "VehicleDetail", 
+                      params: { id: vehicle?.id } 
+                    });
+                  }}
+                  icon={<Feather name="info" size={20} color={appColor.white} />}
+                />
+              </View>
+            </View>
           ) : (
             <View style={{ alignItems: "center" }}>
               <Image
@@ -228,6 +258,7 @@ const HomeScreen = () => {
               }}
             />
             <RegularMaintenance
+              ref={maintenanceRef}
               navigation={navigation}
               vehicleId={vehicle?.id}
             />
@@ -242,6 +273,7 @@ const HomeScreen = () => {
                 { backgroundColor: appColor.gray },
               ]}
               activeOpacity={0.8}
+              onPress={() => navigation.navigate("Vehicles", { screen: "VehicleHistory" })}
             >
               <Octicons name="history" size={28} color={appColor.primary} />
               <TextComponent
@@ -259,6 +291,7 @@ const HomeScreen = () => {
                 { backgroundColor: appColor.white },
               ]}
               activeOpacity={0.8}
+              onPress={() => navigation.navigate("BatteryCurrent")}
             >
               <Feather
                 name="battery-charging"
@@ -326,25 +359,10 @@ const HomeScreen = () => {
               marginVertical: 8,
             }}
           />
-          <ActivityComponent />
+          <ActivityComponent ref={activityRef} customerId={customer?.id} />
         </SectionComponent>
 
-        <SectionComponent>
-          <View style={[{ flex: 1 }]}>
-            <ButtonComponent
-              text="logout"
-              type="primary"
-              onPress={async () => {
-                // xóa token/auth trên storage
-                await AsyncStorage.removeItem("auth");
-                await AsyncStorage.removeItem("auth");
-                dispatch(removeAuth({} as any));
-              }}
-            />
-          </View>
-        </SectionComponent>
-
-        <SpaceComponent height={70} />
+        <SpaceComponent height={80} />
       </ScrollView>
     </View>
   );

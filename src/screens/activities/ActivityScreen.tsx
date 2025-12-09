@@ -3,13 +3,13 @@ import { useSelector } from "react-redux";
 import {
   BackgroundComponent,
   SpaceComponent,
-  TextComponent
+  TextComponent,
 } from "../../components";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { authSelecter } from "../../redux/reducers/authReducer";
-// import { getAppointments } from "../../services/appointment.service";
-// import { getCustomerByAccount } from "../../services/customer.service";
-// import ActivityComponent from "../home/components/ActivityComponent";
+import ActivityComponent from "../home/components/ActivityComponent";
+import { getAppointments } from "../../services/appointment.service";
+import { getByAccount } from "../../services/customer.service";
 
 const isCompleted = (s?: string) => {
   const t = String(s || "").toUpperCase();
@@ -50,32 +50,32 @@ const ActivityScreen = () => {
   }, [auth.accountResponse?.id]);
 
   const fetchActivities = async (custIdParam?: string) => {
-    // const custId = custIdParam ?? customerId;
-    // if (!custId) {
-    //   setActivities([]);
-    //   return;
-    // }
-    // const res = await getAppointments({
-    //   customerId: custId,
-    //   page: 1,
-    //   pageSize: 10,
-    // });
-    // if (res?.success) setActivities(res.data?.rowDatas || []);
+    const custId = custIdParam ?? customerId;
+    if (!custId) {
+      setActivities([]);
+      return;
+    }
+    const res = await getAppointments({
+      customerId: custId,
+      page: 1,
+      pageSize: 10,
+    });
+    if (res?.success) setActivities(res.data?.rowDatas || []);
   };
 
   const ongoing = activities.filter((a) => !isCompleted(a.status));
   const completed = activities.filter((a) => isCompleted(a.status));
 
   const fetchCustomerData = async (acctIdParam?: string) => {
-    // const acct = acctIdParam ?? accountId;
-    // if (!acct) return "";
-    // const res = await getCustomerByAccount(String(acct).trim());
-    // if (res && res.data) {
-    //   const cust = res.data;
-    //   setCustomerId(cust.id || "");
-    //   return cust.id || "";
-    // }
-    // return "";
+    const acct = acctIdParam ?? accountId;
+    if (!acct) return "";
+    const res = await getByAccount(String(acct).trim());
+    if (res && res.data) {
+      const cust = res.data;
+      setCustomerId(cust.id || "");
+      return cust.id || "";
+    }
+    return "";
   };
 
   return (
@@ -86,7 +86,7 @@ const ActivityScreen = () => {
         font={fontFamilies.roboto_bold}
       />
       <SpaceComponent height={8} />
-      {/* <ActivityComponent activities={ongoing} loading={loading} /> */}
+      <ActivityComponent />
 
       <SpaceComponent height={16} />
       <TextComponent
@@ -95,7 +95,7 @@ const ActivityScreen = () => {
         font={fontFamilies.roboto_bold}
       />
       <SpaceComponent height={8} />
-      {/* <ActivityComponent activities={completed} loading={loading} /> */}
+      <ActivityComponent />
     </BackgroundComponent>
   );
 };

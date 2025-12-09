@@ -42,7 +42,7 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, []); 
 
   useEffect(() => {
     if (data.length > 0) {
@@ -60,7 +60,7 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
       setSortedData(sorted);
       setClosestCenterId(sorted[0].id);
     }
-  }, [userLocation]);
+  }, [userLocation, data]);
 
   const fetchData = async () => {
     const params = {
@@ -82,6 +82,7 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
           text="Chọn trung tâm bảo dưỡng"
           size={20}
           color={appColor.text}
+
           font={fontFamilies.roboto_medium}
         />
         <SpaceComponent height={8} />
@@ -121,6 +122,7 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
               />
+              
               <SpaceComponent height={6} />
               <RowComponent justify="flex-start">
                 <TextComponent

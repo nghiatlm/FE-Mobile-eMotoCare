@@ -27,7 +27,11 @@ const TabsNavigator = () => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
           return {
             headerShown: false,
-            tabBarStyle: ["CreateRepairScreen"].includes(routeName)
+            tabBarStyle: [
+              "CreateRepairScreen",
+              "AppointmentDetail",
+              "WaitConfirm",
+            ].includes(routeName)
               ? { display: "none" }
               : undefined,
           };
@@ -41,7 +45,14 @@ const TabsNavigator = () => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
           return {
             headerShown: false,
-            tabBarStyle: ["Maintenances", "Appointments"].includes(routeName)
+            tabBarStyle: [
+              "Maintenances",
+              "Appointments",
+              "BatteryCurrent",
+              "BatteryAnalysis",
+              "Vehicles",
+              "InspectionResult",
+            ].includes(routeName)
               ? { display: "none" }
               : undefined,
           };

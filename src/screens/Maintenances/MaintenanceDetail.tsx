@@ -11,6 +11,7 @@ import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
 import { getVehicleStageDetail } from "../../services/vehicleStage.service";
+import { vehicle } from "../../apis/vehicle.api";
 
 const MaintenanceDetail = ({ route, navigation }: any) => {
   const { id } = route?.params || {};
@@ -48,7 +49,7 @@ const MaintenanceDetail = ({ route, navigation }: any) => {
           (expiryDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
         );
         return {
-          status: `Còn bảo hành (${daysRemaining} ngày)`,
+          status: `Còn bảo hành`,
           color: appColor.primary,
         };
       } else {
@@ -75,7 +76,7 @@ const MaintenanceDetail = ({ route, navigation }: any) => {
 
     navigation.navigate("Appointments", {
       screen: "CreateAppointment",
-      params: { vehicleStageId: id, type: "MAINTENANCE_TYPE" },
+      params: { vehicleStageId: id, vehicleId: vehicleStageDetail?.vehicleId, type: "MAINTENANCE_TYPE" },
     });
   };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -15,9 +15,20 @@ import { AntDesign } from "@expo/vector-icons";
 import SelectCenterStep from "./components/SelectCenterStep";
 import { Appointment } from "../../types/appointment.type";
 import SelectTimeSlotStep from "./components/SelectTimeSlotStep";
+import ConfirmStep from "./components/ConfirmStep";
+import { getVehicleById } from "../../services/vehicle.service";
+import { createAppointment } from "../../services/appointment.service";
+import { useSelector } from "react-redux";
+import { authSelecter } from "../../redux/reducers/authReducer";
+import { getByAccount } from "../../services/customer.service";
 
-const CreateAppointment = ({ route }: any) => {
+const CreateAppointment = ({ route, navigation }: any) => {
   const { type, vehicleStageId, vehicleId } = route?.params || {};
+
+  const [vehicle, setVehicle] = useState<any>(null);
+  const auth = useSelector(authSelecter);
+  const [customer, setCustomer] = useState<any>(null);
+  const [accountId, setAccountId] = useState(auth.accountResponse?.id || "");
 
   const [appointmentRequest, setAppointmentRequest] = useState<Appointment>(
     new Appointment()
@@ -25,6 +36,28 @@ const CreateAppointment = ({ route }: any) => {
 
   const [step, setStep] = useState(0);
   const [selectedCenter, setSelectedCenter] = useState<any>(null);
+  const [selectedSlot, setSelectedSlot] = useState<{
+    date: string;
+    time: string;
+  } | null>(null);
+
+  useEffect(() => {
+    fetchVehicle(vehicleId);
+  }, [vehicleId]);
+
+  useEffect(() => {
+    fetchCustomer();
+  }, [accountId]);
+
+  useEffect(() => {
+    setAppointmentRequest((prev) => ({
+      ...prev,
+      type: type || prev.type,
+      vehicleStageId: vehicleStageId || prev.vehicleStageId,
+      vehicleId: vehicleId || prev.vehicleId,
+      customerId: customer?.id || prev.customerId,
+    }));
+  }, [type, vehicleStageId, vehicleId, customer]);
 
   const handleSelectCenter = (center: any) => {
     const updatedRequest = {
@@ -34,7 +67,42 @@ const CreateAppointment = ({ route }: any) => {
     setAppointmentRequest(updatedRequest);
     setSelectedCenter(center);
     setStep(1);
-    console.log("request", updatedRequest); // Log the new value
+    console.log("request", updatedRequest);
+  };
+
+  const fetchCustomer = async () => {
+    if (!accountId) return;
+    const res = await getByAccount(accountId);
+    if (res.success) {
+      console.log("Customer data:", res.data);
+      setCustomer(res.data);
+    } else {
+      console.log("Failed to fetch customer:", res.message);
+    }
+  };
+
+  const handleSelectTimeSlot = (slot: { date: string; time: string }) => {
+    const updatedRequest = {
+      ...appointmentRequest,
+      appointmentDate: slot.date,
+      slotTime: slot.time,
+    };
+
+    setSelectedSlot(slot);
+    setAppointmentRequest(updatedRequest);
+    setStep(2);
+
+    console.log("Thời gian đã chọn:", slot);
+    console.log("Appointment request:", updatedRequest);
+  };
+
+  const fetchVehicle = async (id: string) => {
+    const res = await getVehicleById(id);
+    if (res.success) {
+      setVehicle(res.data);
+    } else {
+      setVehicle(null);
+    }
   };
 
   const handleBack = () => {
@@ -46,6 +114,14 @@ const CreateAppointment = ({ route }: any) => {
       setStep(step + 1);
       return;
     }
+    const res = await createAppointment(appointmentRequest);
+    if (res.success) {
+      console.log("Appointment created successfully:", res);
+      navigation.navigate("WaitConfirm", { id: res.data.id });
+    } else {
+      console.log("Failed to create appointment:", res.message);
+    }
+    console.log("Final appointment request:", appointmentRequest);
   };
 
   const footerComponent = (
@@ -228,7 +304,20 @@ const CreateAppointment = ({ route }: any) => {
         </RowComponent>
 
         {step === 0 && <SelectCenterStep onSelectCenter={handleSelectCenter} />}
-        {step === 1 && <SelectTimeSlotStep />}
+        {step === 1 && (
+          <SelectTimeSlotStep
+            centerId={selectedCenter?.id}
+            onSelectTimeSlot={handleSelectTimeSlot}
+          />
+        )}
+        {step === 2 && (
+          <ConfirmStep
+            center={selectedCenter}
+            vehicle={vehicle}
+            timeSlot={selectedSlot}
+            appointmentRequest={appointmentRequest}
+          />
+        )}
       </View>
     </BackgroundComponent>
   );

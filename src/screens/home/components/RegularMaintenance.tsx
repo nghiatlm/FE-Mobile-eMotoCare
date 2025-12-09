@@ -1,30 +1,54 @@
+import React, { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from "react";
 import {
-  View,
-  Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  View
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { globalStyle } from "../../../styles/globalStyle";
-import { appColor } from "../../../constants/appColor";
+import { useFocusEffect } from "@react-navigation/native";
 import { RowComponent, TextComponent } from "../../../components";
+import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
-import { addDays, formatDate, parseDate } from "../../../utils/data.util";
 import { getVehicleStages } from "../../../services/vehicleStage.service";
+import { globalStyle } from "../../../styles/globalStyle";
+import { addDays, formatDate, parseDate } from "../../../utils/data.util";
 
 interface RegularMaintenanceProps {
   navigation?: any;
   vehicleId: string;
 }
 
-const RegularMaintenance = (props: RegularMaintenanceProps) => {
+const RegularMaintenance = forwardRef((props: RegularMaintenanceProps, ref) => {
   const { navigation, vehicleId } = props;
   const [vehicleStages, setVehicleStages] = useState<any[]>([]);
 
+  const fetchData = useCallback(async () => {
+    const params = {
+      page: 1,
+      pageSize: 10,
+      vehicleId: vehicleId,
+    };
+    const res = await getVehicleStages(params);
+    if (res.success) {
+      setVehicleStages(res.data.rowDatas);
+    } else {
+      setVehicleStages([]);
+    }
+  }, [vehicleId]);
+
   useEffect(() => {
     fetchData();
-  }, [vehicleId]);
+  }, [vehicleId, fetchData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
+  useImperativeHandle(ref, () => ({
+    refetch: fetchData,
+  }));
 
   const data = vehicleStages.map((it) => {
     const item = { ...it } as any;
@@ -39,20 +63,6 @@ const RegularMaintenance = (props: RegularMaintenanceProps) => {
     }
     return item;
   });
-
-  const fetchData = async () => {
-    const params = {
-      page: 1,
-      pageSize: 10,
-      vehicleId: vehicleId,
-    };
-    const res = await getVehicleStages(params);
-    if (res.success) {
-      setVehicleStages(res.data.rowDatas);
-    } else {
-      setVehicleStages([]);
-    }
-  };
 
   const [selected, setSelected] = useState<any>(null);
 
@@ -81,7 +91,7 @@ const RegularMaintenance = (props: RegularMaintenanceProps) => {
         return bg ? appColor.warning2 : appColor.warning;
       case "EXPIRED":
         return bg ? appColor.danger50 : appColor.danger;
-      case "SUCCESS":
+      case "COMPLETED":
         return bg ? appColor.success50 : appColor.primary;
       default:
         return appColor.gray;
@@ -96,7 +106,7 @@ const RegularMaintenance = (props: RegularMaintenanceProps) => {
         return "Sắp tới";
       case "EXPIER":
         return "Đã quá hạn";
-      case "SUCCESS":
+      case "COMPLETED":
         return "Hoàn thành";
       default:
         return "Không xác định";
@@ -201,29 +211,31 @@ const RegularMaintenance = (props: RegularMaintenanceProps) => {
         />
 
         {/* Days remaining / overdue */}
-        <RowComponent justify="flex-start">
-          <TextComponent
-            text="Thời gian: "
-            size={16}
-            color={appColor.text}
-            font={fontFamilies.roboto_medium}
-          />
-          <TextComponent
-            text={
-              daysInfo
-                ? daysInfo.type === "overdue"
-                  ? `Đã quá ${daysInfo.days} ngày`
-                  : `Còn ${daysInfo.days} ngày`
-                : "-"
-            }
-            size={16}
-            color={
-              daysInfo && daysInfo.type === "overdue"
-                ? appColor.danger
-                : appColor.primary
-            }
-          />
-        </RowComponent>
+        {selected?.status?.toUpperCase() !== "COMPLETED" ? (
+          <RowComponent justify="flex-start">
+            <TextComponent
+              text="Thời gian: "
+              size={16}
+              color={appColor.text}
+              font={fontFamilies.roboto_medium}
+            />
+            <TextComponent
+              text={
+                daysInfo
+                  ? daysInfo.type === "overdue"
+                    ? `Đã quá ${daysInfo.days} ngày`
+                    : `Còn ${daysInfo.days} ngày`
+                  : "-"
+              }
+              size={16}
+              color={
+                daysInfo && daysInfo.type === "overdue"
+                  ? appColor.danger
+                  : appColor.primary
+              }
+            />
+          </RowComponent>
+        ) : null}
 
         <RowComponent justify="flex-start">
           <TextComponent
@@ -241,7 +253,7 @@ const RegularMaintenance = (props: RegularMaintenanceProps) => {
       </TouchableOpacity>
     </View>
   );
-};
+});
 
 export default RegularMaintenance;
 
