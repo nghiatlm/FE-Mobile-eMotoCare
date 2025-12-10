@@ -9,6 +9,7 @@ import {
   InspectionResult,
   ProfileScreen,
   RepairProcess,
+  PaymentInfor,
   //   InspectionResult,
   //   MaintenanceDetailScreen,
   //   MaintenanceProcess,
@@ -36,6 +37,7 @@ const HomeNavigator = () => {
       <Stack.Screen name="BatteryAnalysis" component={BatteryAnalysis} />
       <Stack.Screen name="Vehicles" component={VehicleNavigator} />
       <Stack.Screen name="Activities" component={ActivityNavigator} />
+      <Stack.Screen name="PaymentInfor" component={PaymentInfor} />
       {/* <Stack.Screen
         name="MaintenanceDetail"
         component={MaintenanceDetailScreen}

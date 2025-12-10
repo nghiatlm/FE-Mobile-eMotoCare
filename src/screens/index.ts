@@ -22,6 +22,7 @@ import SplashScreen from "./SplashScreen";
 import VehicleHistorySreen from "./vehicles/VehicleHistorySreen";
 import VehiclesDetailScreen from "./vehicles/VehiclesDetailScreen";
 import AddVehicle from "./vehicles/AddVehicle";
+import PaymentInfor from "./payments/PaymentInfor";
 
 export {
   LoginScreen,
@@ -48,4 +49,5 @@ export {
   VehiclesDetailScreen,
   VehicleHistorySreen,
   AddVehicle,
+  PaymentInfor,
 };

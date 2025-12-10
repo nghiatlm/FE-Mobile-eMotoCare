@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "664435098645",
+    "project_id": "emotocare-d41b2",
+    "storage_bucket": "emotocare-d41b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:664435098645:android:f6d430d7728fd738227a1c",
+        "android_client_info": {
+          "package_name": "com.project.emotocare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPXweLhC0zcsGZ8OV6PGTmpArxkk04KEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,6 +2,7 @@
   "expo": {
     "name": "eMotoCare",
     "slug": "eMotoCare",
+    "scheme": "emotocare",
     "version": "1.0.0",
     "orientation": "portrait",
     "plugins": [

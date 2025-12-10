@@ -383,6 +383,14 @@ const HomeScreen = () => {
           </SectionComponent>
         )}
 
+        <ButtonComponent
+          text="Thanh toán"
+          type="primary"
+          onPress={() => {
+            navigation.navigate("PaymentInfor");
+          }}
+        />
+
         <SpaceComponent height={80} />
       </ScrollView>
     </View>
