@@ -1,20 +1,19 @@
 import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { Lock, Sms } from "iconsax-react-nativejs";
 import React, { useState } from "react";
-import { Alert, Image } from "react-native";
+import { Image } from "react-native";
 import {
-    ButtonComponent,
-    ContainerComponent,
-    InputComponent,
-    RowComponent,
-    SectionComponent,
-    SpaceComponent,
-    TextComponent,
+  ButtonComponent,
+  ContainerComponent,
+  InputComponent,
+  RowComponent,
+  SectionComponent,
+  SpaceComponent,
+  TextComponent,
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { register } from "../../services/auth.service";
-import { setConfirmation as storeSetConfirmation } from "../../utils/phoneAuthStore";
 
 const initValue = {
   phone: "",
@@ -26,8 +25,23 @@ const RegisterScreen = ({ navigation }: any) => {
   const [isLoading, setIsLoading] = useState(false);
   const [confirm, setConfirm] = useState<any>(null);
 
-  // No auth-state subscription here: registration flow will explicitly
-  // send OTP after successful registration.
+  const handleSignInWithPhoneNumber = async (phone: string) => {
+    try {
+      let formattedPhone = phone;
+      if (!formattedPhone.startsWith("+")) {
+        formattedPhone = "+84" + formattedPhone.replace(/^0/, "");
+      }
+      const confirmatiom = await signInWithPhoneNumber(
+        getAuth(),
+        formattedPhone
+      );
+      setConfirm(confirmatiom);
+      return confirmatiom;
+    } catch (err: any) {
+      console.log("OTP Error:", err);
+      return null;
+    }
+  };
 
   const hanldeChange = (key: string, value: string) => {
     const data: any = { ...values };
@@ -39,18 +53,13 @@ const RegisterScreen = ({ navigation }: any) => {
     setIsLoading(true);
     try {
       const res = await register(values);
-      if (res.data.success) {
-        // send OTP via Firebase and navigate to Verification screen
-        const confirmationResult = await sentOpt(values.phone);
-        if (confirmationResult) {
-          // store confirmation for Verification screen (avoid passing big object through navigation)
-          storeSetConfirmation(confirmationResult);
-          navigation.navigate("Verification", {
-            phone: values.phone,
-          });
-        } else {
-          Alert.alert("Không thể gửi OTP", "Vui lòng thử lại sau.");
-        }
+      console.log("Register response tsx: ", res);
+      if (res.success) {
+        const confirmation = await handleSignInWithPhoneNumber(values.phone);
+        navigation.navigate("Verification", {
+          phone: values.phone,
+          confirmation: confirmation,
+        });
       }
       setIsLoading(false);
     } catch (error) {
@@ -59,33 +68,8 @@ const RegisterScreen = ({ navigation }: any) => {
     }
   };
 
-  const sentOpt = async (phone: string) => {
-    try {
-      let formattedPhone = phone;
-      if (!formattedPhone.startsWith("+")) {
-        formattedPhone = "+84" + formattedPhone.replace(/^0/, "");
-      }
-      const confirmationResult = await signInWithPhoneNumber(
-        getAuth(),
-        formattedPhone
-      );
-      setConfirm(confirmationResult);
-      return confirmationResult;
-    } catch (error) {
-      console.log("Send OTP error: ", error);
-      return null;
-    }
-  };
-
   return (
     <ContainerComponent isImageBackground isScroll back>
-      {/* <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={app.options}
-        // prefer visible reCAPTCHA when Enterprise isn't initialized
-        attemptInvisibleVerification={false}
-        androidLayerType="software"
-      /> */}
       <SectionComponent
         styles={{
           justifyContent: "center",

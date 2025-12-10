@@ -1,5 +1,5 @@
 import { Feather, Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
   Image,
@@ -13,11 +13,11 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getCustomerByAccount } from "../../apis/customer.api";
 import {
+  ButtonComponent,
   RowComponent,
   SectionComponent,
   SpaceComponent,
   TextComponent,
-  ButtonComponent
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { appInfor } from "../../constants/appInfor";
@@ -187,19 +187,23 @@ const HomeScreen = () => {
                 }}
                 resizeMode="contain"
               />
-              <View style={{ paddingHorizontal: 16, width: "100%", marginTop: -20 }}>
+              <View
+                style={{ paddingHorizontal: 16, width: "100%", marginTop: -20 }}
+              >
                 <ButtonComponent
                   text="Xem thêm thông tin xe"
                   type="primary"
                   onPress={() => {
                     console.log("Button pressed, vehicle:", vehicle);
                     console.log("Vehicle ID to navigate:", vehicle?.id);
-                    navigation.navigate("Vehicles", { 
-                      screen: "VehicleDetail", 
-                      params: { id: vehicle?.id } 
+                    navigation.navigate("Vehicles", {
+                      screen: "VehicleDetail",
+                      params: { id: vehicle?.id },
                     });
                   }}
-                  icon={<Feather name="info" size={20} color={appColor.white} />}
+                  icon={
+                    <Feather name="info" size={20} color={appColor.white} />
+                  }
                 />
               </View>
             </View>
@@ -223,6 +227,19 @@ const HomeScreen = () => {
                 color={appColor.text}
                 font={fontFamilies.roboto_regular}
                 styles={{ textAlign: "center", marginTop: 8 }}
+              />
+              <ButtonComponent
+                text="Liên kết xe của bạn"
+                type="primary"
+                onPress={() => {
+                  navigation.navigate("Vehicles", {
+                    screen: "AddVehicle",
+                    params: { accountId: accountId },
+                  });
+                }}
+                iconFlex="right"
+                icon={<Feather name="plus" size={20} color={appColor.white} />}
+                styles={{ marginTop: 20, width: "70%" }}
               />
             </View>
           )}
@@ -273,7 +290,9 @@ const HomeScreen = () => {
                 { backgroundColor: appColor.gray },
               ]}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate("Vehicles", { screen: "VehicleHistory" })}
+              onPress={() =>
+                navigation.navigate("Vehicles", { screen: "VehicleHistory" })
+              }
             >
               <Octicons name="history" size={28} color={appColor.primary} />
               <TextComponent
@@ -332,35 +351,37 @@ const HomeScreen = () => {
 
         <SpaceComponent height={40} />
 
-        <SectionComponent
-          styles={[
-            globalStyle.shadow,
-            {
-              marginTop: -24,
-              backgroundColor: appColor.white,
-              borderWidth: 0.5,
-              borderColor: appColor.gray,
-              padding: 16,
-              borderRadius: 12,
-              marginHorizontal: 8,
-            },
-          ]}
-        >
-          <TextComponent
-            text="Hoạt động gần đây"
-            size={20}
-            color={appColor.primary}
-            font={fontFamilies.roboto_medium}
-          />
-          <View
-            style={{
-              height: 1.2,
-              backgroundColor: appColor.gray,
-              marginVertical: 8,
-            }}
-          />
-          <ActivityComponent ref={activityRef} customerId={customer?.id} />
-        </SectionComponent>
+        {vehicle && (
+          <SectionComponent
+            styles={[
+              globalStyle.shadow,
+              {
+                marginTop: -24,
+                backgroundColor: appColor.white,
+                borderWidth: 0.5,
+                borderColor: appColor.gray,
+                padding: 16,
+                borderRadius: 12,
+                marginHorizontal: 8,
+              },
+            ]}
+          >
+            <TextComponent
+              text="Hoạt động gần đây"
+              size={20}
+              color={appColor.primary}
+              font={fontFamilies.roboto_medium}
+            />
+            <View
+              style={{
+                height: 1.2,
+                backgroundColor: appColor.gray,
+                marginVertical: 8,
+              }}
+            />
+            <ActivityComponent ref={activityRef} customerId={customer?.id} />
+          </SectionComponent>
+        )}
 
         <SpaceComponent height={80} />
       </ScrollView>

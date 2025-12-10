@@ -21,6 +21,7 @@ import SettingScreen from "./setting/SettingScreen";
 import SplashScreen from "./SplashScreen";
 import VehicleHistorySreen from "./vehicles/VehicleHistorySreen";
 import VehiclesDetailScreen from "./vehicles/VehiclesDetailScreen";
+import AddVehicle from "./vehicles/AddVehicle";
 
 export {
   LoginScreen,
@@ -45,5 +46,6 @@ export {
   BatteryCurrent,
   BatteryAnalysis,
   VehiclesDetailScreen,
-  VehicleHistorySreen
+  VehicleHistorySreen,
+  AddVehicle,
 };

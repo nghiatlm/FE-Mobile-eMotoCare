@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loginApi, registerApi } from "../apis/auth.api";
+import { loginApi, registerApi, verify } from "../apis/auth.api";
 import { addAuth } from "../redux/reducers/authReducer";
 import store from "../redux/store";
 import { Validate } from "../utils/validate";
@@ -22,14 +22,12 @@ export const register = async (model: any) => {
   }
   try {
     const res = await registerApi(model);
-    console.log("Register service response:", res);
     if (res.success) {
       console.log("Register successful:", res.data);
       return { success: true, data: res.data };
     }
     return { success: false, message: res.message || "Đăng ký thất bại" };
   } catch (error: any) {
-    console.log("Register error:", error);
     return { success: false, message: error.message || "Đăng ký thất bại" };
   }
 };
@@ -80,5 +78,17 @@ export const login = async (model: any, isRemember: boolean) => {
   } catch (error: any) {
     console.log("Login error:", error);
     return { success: false, message: error.message || "Đăng nhập thất bại" };
+  }
+};
+
+export const verifycation = async (model: any) => {
+  try {
+    const res = await verify(model);
+    if (res.success) {
+      return { success: true, data: res.data };
+    }
+    return { success: false, message: res.message || "Xác thực thất bại" };
+  } catch (error: any) {
+    return { success: false, message: error.message || "Xác thực thất bại" };
   }
 };

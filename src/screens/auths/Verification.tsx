@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import { View, Text, StyleSheet, TextInput, Alert } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
@@ -12,6 +12,7 @@ import {
 } from "../../components";
 import { globalStyle } from "../../styles/globalStyle";
 import { ArrowRight } from "iconsax-react-nativejs";
+import { verifycation } from "../../services/auth.service";
 
 const Verification = ({ navigation, route }: any) => {
   const { phone } = route.params;
@@ -88,31 +89,36 @@ const Verification = ({ navigation, route }: any) => {
   };
 
   const handleConfirm = async () => {
-    // if (newCode.length !== 6) return;
-    // if (!confirmation) {
-    //   Alert.alert("Lỗi", "Không có phiên xác thực. Vui lòng gửi lại mã OTP.");
-    //   return;
-    // }
-    // try {
-    //   setIsLoading(true);
-    //   const userCredential: any = await confirmation.confirm(newCode);
-    //   // get idToken from firebase user
-    //   const idToken = await userCredential.user.getIdToken();
-    //   console.log("token: ", idToken);
-    //   // send idToken to backend for verification / account creation
-    //   await authenticationAPI.HandleAuthentication(
-    //     "/verify-sms-otp",
-    //     { idToken },
-    //     "post"
-    //   );
-    //   setIsLoading(false);
-    //   Alert.alert("Thành công", "Xác thực hoàn tất.");
-    //   navigation.navigate("LoginScreen");
-    // } catch (err: any) {
-    //   console.warn("Confirm error", err);
-    //   setIsLoading(false);
-    //   Alert.alert("Lỗi xác thực", err?.message || "Mã không đúng hoặc đã hết hạn");
-    // }
+    if (newCode.length !== 6) return;
+    if (!confirmation) {
+      Alert.alert("Lỗi", "Không có phiên xác thực. Vui lòng gửi lại mã OTP.");
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const userCredential: any = await confirmation.confirm(newCode);
+      //   // get idToken from firebase user
+      const idToken = await userCredential.user.getIdToken();
+      console.log("token: ", idToken);
+      //   // send idToken to backend for verification / account creation
+      const res = await verifycation({ idToken });
+      if (res.success) {
+        setIsLoading(false);
+
+        //   Alert.alert("Thành công", "Xác thực hoàn tất.");
+        navigation.navigate("LoginScreen");
+      } else {
+        setIsLoading(false);
+        Alert.alert("Lỗi xác thực", res.message || "Xác thực thất bại.");
+      }
+    } catch (err: any) {
+      console.warn("Confirm error", err);
+      setIsLoading(false);
+      Alert.alert(
+        "Lỗi xác thực",
+        err?.message || "Mã không đúng hoặc đã hết hạn"
+      );
+    }
   };
 
   const handleResendVerification = async () => {
@@ -147,6 +153,7 @@ const Verification = ({ navigation, route }: any) => {
           <TextInput
             keyboardType="number-pad"
             ref={ref1}
+            value={codeValues[0]}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {
@@ -158,6 +165,7 @@ const Verification = ({ navigation, route }: any) => {
           <TextInput
             keyboardType="number-pad"
             ref={ref2}
+            value={codeValues[1]}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {
@@ -169,6 +177,7 @@ const Verification = ({ navigation, route }: any) => {
           <TextInput
             keyboardType="number-pad"
             ref={ref3}
+            value={codeValues[2]}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {
@@ -180,6 +189,7 @@ const Verification = ({ navigation, route }: any) => {
           <TextInput
             keyboardType="number-pad"
             ref={ref4}
+            value={codeValues[3]}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {
@@ -191,6 +201,7 @@ const Verification = ({ navigation, route }: any) => {
           <TextInput
             keyboardType="number-pad"
             ref={ref5}
+            value={codeValues[4]}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {
@@ -201,6 +212,7 @@ const Verification = ({ navigation, route }: any) => {
           />
           <TextInput
             ref={ref6}
+            value={codeValues[5]}
             style={[styles.input]}
             maxLength={1}
             onChangeText={(val) => {

@@ -9,3 +9,8 @@ export const getCustomerById = async (customerId: string) => {
   const res = await apiClient.get(`/customers/${customerId}`);
   return res.data;
 };
+
+export const newVehicle = async (model: any) => {
+  const res = await apiClient.post(`/customers/sync-data`, model);
+  return res.data;
+};

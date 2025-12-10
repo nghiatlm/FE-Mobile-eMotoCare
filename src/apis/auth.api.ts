@@ -9,3 +9,8 @@ export const loginApi = async (model: any) => {
   const res = await apiClient.post("/auths/login", model);
   return res.data;
 };
+
+export const verify = async (model: any) => {
+  const res = await apiClient.post("/auths/verify-sms-otp", model);
+  return res.data;
+};

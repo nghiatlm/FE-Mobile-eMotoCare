@@ -81,7 +81,7 @@ const ButtonComponent = (props: Props) => {
             {
               marginLeft: left ? 12 : 0,
               fontSize: 16,
-              textAlign: "left",
+              textAlign: "center",
             },
           ]}
           flex={0}
