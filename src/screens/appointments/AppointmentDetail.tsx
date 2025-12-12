@@ -103,7 +103,12 @@ const AppointmentDetail = ({ navigation, route }: any) => {
       <ButtonComponent
         text="Xem quá trình bảo dưỡng"
         type="primary"
-        onPress={() => navigation.navigate("RepairProcess", { id })}
+        onPress={() =>
+          navigation.navigate("RepairProcess", {
+            id: id,
+            type: "MAINTENANCE_TYPE",
+          })
+        }
       />
     </View>
   );

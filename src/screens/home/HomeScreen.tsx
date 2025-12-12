@@ -310,7 +310,12 @@ const HomeScreen = () => {
                 { backgroundColor: appColor.white },
               ]}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate("BatteryCurrent")}
+              onPress={() =>
+                navigation.navigate("Batteries", {
+                  screen: "BatteryScreen",
+                  params: { id: vehicle?.id },
+                })
+              }
             >
               <Feather
                 name="battery-charging"

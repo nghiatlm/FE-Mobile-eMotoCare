@@ -1,5 +1,6 @@
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
-import React, { useState, useEffect } from "react";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -8,9 +9,9 @@ import {
   SpaceComponent,
   TextComponent,
 } from "../../components";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
+import { getBatteryDetail } from "../../services/battery.service";
 import { globalStyle } from "../../styles/globalStyle";
 import CircleComponent from "./components/CircleComponent";
 
@@ -23,44 +24,55 @@ interface BatteryData {
   range: number;
 }
 
-const BatteryCurrent = ({ navigation }: any) => {
+const BatteryCurrent = ({ navigation, route }: any) => {
+  const id = route?.params?.id;
   const [batteryData, setBatteryData] = useState<BatteryData>({
-    soc: 78,
-    soh: 85,
-    temperature: 42,
-    capacity: 85.5,
-    power: 45.2,
-    range: 180,
+    soc: 0,
+    soh: 0,
+    temperature: 0,
+    capacity: 0,
+    power: 0,
+    range: 0,
   });
+
+  const getAverage = (arr: any[]) => {
+    if (!Array.isArray(arr) || arr.length === 0) return 0;
+    const sum = arr.reduce((total, val) => total + Number(val || 0), 0);
+    return Number((sum / arr.length).toFixed(2));
+  };
+
+  const normalize = (val: any) => {
+    if (Array.isArray(val)) return getAverage(val);
+    const num = Number(val);
+    return Number.isFinite(num) ? num : 0;
+  };
 
   const [loading, setLoading] = useState(false);
 
   // Fetch battery data
   useEffect(() => {
-    fetchBatteryData();
-  }, []);
+    if (id) fetchBatteryData();
+  }, [id]);
 
   const fetchBatteryData = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const res = await getBatteryData(vehicleId);
-      // if (res.success) {
-      //   setBatteryData(res.data);
-      // }
-
-      // Mock data for now
-      setTimeout(() => {
+      if (!id) return;
+      const res = await getBatteryDetail(id);
+      console.log("Battery detail response:", res);
+      if (res.success) {
+        const data = res.data;
         setBatteryData({
-          soc: 78,
-          soh: 85,
-          temperature: 42,
-          capacity: 85.5,
-          power: 45.2,
-          range: 180,
+          soc: normalize(data?.soc),
+          soh: normalize(data?.soh),
+          temperature: normalize(data?.temperature),
+          capacity: normalize(data?.capacity),
+          power: normalize(data?.power),
+          range: normalize(data?.range),
         });
-        setLoading(false);
-      }, 500);
+      }
+      console.log("Battery data fetched:", res.data);
+      setLoading(false);
     } catch (error) {
       console.log("Error fetching battery data:", error);
       setLoading(false);

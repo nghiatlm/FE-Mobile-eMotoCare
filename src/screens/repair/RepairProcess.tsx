@@ -36,6 +36,7 @@ const mapStatusToStep = (status?: string) => {
 
 const RepairProcess = ({ navigation, route }: any) => {
   const id = route?.params?.id;
+  const type = route?.params?.type;
   // optional params passed when navigating back from InspectionResult
   const initialEvcheckParam =
     route?.params?.evcheck || route?.params?.evcheckId;
@@ -179,7 +180,16 @@ const RepairProcess = ({ navigation, route }: any) => {
   }, [steps, effectiveApptStatus]);
 
   return (
-    <BackgroundComponent back title="Quá trình bảo dưỡng">
+    <BackgroundComponent
+      back
+      title={
+        type === "MAINTENANCE_TYPE"
+          ? "Quá trình bảo dưỡng"
+          : type === "CHECKUP"
+          ? "Quán trình kiểm tra kiểm tra"
+          : "Quán trình sửa chữa"
+      }
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
         <SpaceComponent height={10} />
 
@@ -375,8 +385,31 @@ const RepairProcess = ({ navigation, route }: any) => {
                             }}
                             onPress={() => {
                               console.log("navigate to payment invoice:", id);
-                              navigation.navigate("PaymentInvoice", {
+                              navigation.navigate("PaymentInfor", {
                                 appointmentId: id,
+                              });
+                            }}
+                            styles={{
+                              paddingVertical: 4,
+                              paddingHorizontal: 0,
+                              backgroundColor: "transparent",
+                            }}
+                            textColor={appColor.primary}
+                          />
+                        </View>
+                      )}
+
+                    {step.id === 5 &&
+                      effectiveEvcheckStatus.includes("REPAIR_COMPLETED") && (
+                        <View style={{ marginTop: 8, alignSelf: "flex-start" }}>
+                          <ButtonComponent
+                            text="Xem phiếu sửa chữa"
+                            type="text"
+                            textStyle={{ color: appColor.primary }}
+                            onPress={() => {
+                              navigation.navigate("RevisedMinutes", {
+                                appointmentId: id,
+                                evcheckId: evcheckIdState,
                               });
                             }}
                             styles={{

@@ -23,42 +23,44 @@ import {
   formatMileage,
 } from "../../utils/maintenanceFormat.util";
 
-const vehicle = {
-  chassisNumber: "CKG397999",
-  color: "Green",
-  createdAt: "2025-12-09T16:59:36.6358",
-  customerId: "837d02f1-f0b6-4986-a908-bbf3b7b4e552",
-  engineNumber: "ENG315541",
-  id: "a16e337d-bdcc-4d79-b5a4-c2ca6ed394d2",
-  image:
-    "https://shop.vinfastauto.com/on/demandware.static/-/Sites-app_vinfast_vn-Library/default/dwb9888ace/images/PDP-XMD/feliz/2025/img-top-feliz-green.webp",
-  manufactureDate: "2025-12-09T09:59:32.07603",
-  modelId: "8f99c73f-f02e-4fa9-b4c9-ee1897ba0e41",
-  modelName: "Vento Neo",
-  purchaseDate: "2025-12-09T09:59:32.076082",
-  status: "ACTIVE",
-  updatedAt: "2025-12-09T16:59:36.6358",
-  warrantyExpiry: "2025-12-09T09:59:32.076126",
-};
+// const vehicle = {
+//   chassisNumber: "CKG397999",
+//   color: "Green",
+//   createdAt: "2025-12-09T16:59:36.6358",
+//   customerId: "837d02f1-f0b6-4986-a908-bbf3b7b4e552",
+//   engineNumber: "ENG315541",
+//   id: "a16e337d-bdcc-4d79-b5a4-c2ca6ed394d2",
+//   image:
+//     "https://shop.vinfastauto.com/on/demandware.static/-/Sites-app_vinfast_vn-Library/default/dwb9888ace/images/PDP-XMD/feliz/2025/img-top-feliz-green.webp",
+//   manufactureDate: "2025-12-09T09:59:32.07603",
+//   modelId: "8f99c73f-f02e-4fa9-b4c9-ee1897ba0e41",
+//   modelName: "Vento Neo",
+//   purchaseDate: "2025-12-09T09:59:32.076082",
+//   status: "ACTIVE",
+//   updatedAt: "2025-12-09T16:59:36.6358",
+//   warrantyExpiry: "2025-12-09T09:59:32.076126",
+// };
 
-const customer = {
-  id: "ca6081f8-5c17-43b8-ab0b-ac17febf0385",
-  accountId: "08de1789-f2f5-4d5f-8733-9b3e68b69b4b",
-  account: null,
-  firstName: "Thinh",
-  lastName: "Nguyen",
-  customerCode: "CUS-001",
-  address: "HCM",
-  citizenId: "002388241923",
-  dateOfBirth: "2020-01-01T00:00:00",
-  gender: "MALE",
-  avatarUrl: "string",
-  createdAt: "2025-10-30T14:57:18.773928",
-  updatedAt: "2025-12-09T13:40:12.223561",
-};
+// const customer = {
+//   id: "ca6081f8-5c17-43b8-ab0b-ac17febf0385",
+//   accountId: "08de1789-f2f5-4d5f-8733-9b3e68b69b4b",
+//   account: null,
+//   firstName: "Thinh",
+//   lastName: "Nguyen",
+//   customerCode: "CUS-001",
+//   address: "HCM",
+//   citizenId: "002388241923",
+//   dateOfBirth: "2020-01-01T00:00:00",
+//   gender: "MALE",
+//   avatarUrl: "string",
+//   createdAt: "2025-10-30T14:57:18.773928",
+//   updatedAt: "2025-12-09T13:40:12.223561",
+// };
 
 const AddVehicle = ({ route, navigation }: any) => {
   const { accountId } = route.params;
+  const [vehicle, setVehicle] = useState<any>(null);
+  const [customer, setCustomer] = useState<any>(null);
   const [citizenIdentification, setCitizenIdentification] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 

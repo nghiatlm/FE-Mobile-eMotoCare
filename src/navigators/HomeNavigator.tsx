@@ -10,6 +10,7 @@ import {
   ProfileScreen,
   RepairProcess,
   PaymentInfor,
+  RevisedMinutes,
   //   InspectionResult,
   //   MaintenanceDetailScreen,
   //   MaintenanceProcess,
@@ -21,6 +22,7 @@ import MaintenanceNavigator from "./MaintenanceNavigator";
 import AppointmentNavigator from "./AppointmentNavigator";
 import VehicleNavigator from "./VehicleNavigator";
 import ActivityNavigator from "./ActivityNavigator";
+import BatteryNavigator from "./BatteryNavigator";
 // import VehicleNavigator from "./VehicleNavigator";
 
 const HomeNavigator = () => {
@@ -38,6 +40,8 @@ const HomeNavigator = () => {
       <Stack.Screen name="Vehicles" component={VehicleNavigator} />
       <Stack.Screen name="Activities" component={ActivityNavigator} />
       <Stack.Screen name="PaymentInfor" component={PaymentInfor} />
+      <Stack.Screen name="Batteries" component={BatteryNavigator} />
+      <Stack.Screen name="RevisedMinutes" component={RevisedMinutes} />
       {/* <Stack.Screen
         name="MaintenanceDetail"
         component={MaintenanceDetailScreen}

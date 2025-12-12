@@ -53,6 +53,8 @@ const TabsNavigator = () => {
               "Vehicles",
               "InspectionResult",
               "PaymentInfor",
+              "Batteries",
+              "RevisedMinutes"
             ].includes(routeName)
               ? { display: "none" }
               : undefined,

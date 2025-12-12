@@ -1,7 +1,7 @@
 import apiClient from "../apis/custom.api";
 
-export const vechicleStages = async (model: any) => {
-  const res = await apiClient.get("/vehicle-stages", model);
+export const vechicleStages = async (params: any) => {
+  const res = await apiClient.get("/vehicle-stages", {params});
   return res.data;
 };
 

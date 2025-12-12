@@ -23,6 +23,8 @@ import VehicleHistorySreen from "./vehicles/VehicleHistorySreen";
 import VehiclesDetailScreen from "./vehicles/VehiclesDetailScreen";
 import AddVehicle from "./vehicles/AddVehicle";
 import PaymentInfor from "./payments/PaymentInfor";
+import BatteryScreen from "./battery/BatteryScreen";
+import RevisedMinutes from "./repair/RevisedMinutes";
 
 export {
   LoginScreen,
@@ -50,4 +52,6 @@ export {
   VehicleHistorySreen,
   AddVehicle,
   PaymentInfor,
+  BatteryScreen,
+  RevisedMinutes,
 };

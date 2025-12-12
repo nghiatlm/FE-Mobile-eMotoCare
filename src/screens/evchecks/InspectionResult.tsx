@@ -51,7 +51,7 @@ const InspectionResult = ({ navigation, route }: any) => {
     console.log("Approve result:", result.message);
     if (result.success) {
       console.log("Success: ", result.data);
-      navigation.navigate("MaintenanceProcess", {
+      navigation.navigate("RepairProcess", {
         id: evCheck?.appointment?.id,
         evcheckId: evCheckId,
         forceStep: 4,
