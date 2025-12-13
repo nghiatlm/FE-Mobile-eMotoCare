@@ -5,7 +5,13 @@ import { TextComponent } from "../../../components";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 
-const CircleComponent = ({ percent }: any) => {
+interface CircleProps {
+  percent: number;
+  color?: string;
+  label?: string;
+}
+
+const CircleComponent = ({ percent, color = appColor.warning, label }: CircleProps) => {
   const size = 180;
   const strokeWidth = 16;
   const radius = (size - strokeWidth) / 2;
@@ -35,7 +41,7 @@ const CircleComponent = ({ percent }: any) => {
           cx={cx}
           cy={cy}
           r={radius}
-          stroke={appColor.warning}
+          stroke={color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
@@ -50,7 +56,7 @@ const CircleComponent = ({ percent }: any) => {
           text={`${percent}%`}
           size={28}
           font={fontFamilies.roboto_bold}
-          color={appColor.warning}
+          color={color}
         />
         <TextComponent
           text="SOC"
@@ -61,14 +67,14 @@ const CircleComponent = ({ percent }: any) => {
         <View style={{ marginTop: 10 }}>
           <View
             style={{
-              backgroundColor: appColor.warning,
+              backgroundColor: color,
               paddingHorizontal: 12,
               paddingVertical: 6,
               borderRadius: 999,
             }}
           >
             <TextComponent
-              text="Pin trung bình"
+              text={label || ""}
               size={12}
               color="#000"
               font={fontFamilies.roboto_medium}

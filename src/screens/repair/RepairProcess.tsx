@@ -26,7 +26,11 @@ const mapStatusToStep = (status?: string) => {
   if (s.includes("APPROVED") || s.includes("CONFIRMED")) return 2;
   if (s.includes("CHECKED_IN") || s.includes("VEHICLE_INSPECTION")) return 3;
   if (s.includes("INSPECTION_COMPLETED") || s.includes("QUOTE_APPROVED"))
+
+
+
     return 4;
+  if (s.includes("CANCEL")) return 5;
   if (s.includes("REPAIR_IN_PROGRESS")) return 5;
   if (s.includes("REPAIR_COMPLETED")) return 6;
   if (s.includes("COMPLETE") || s.includes("COMPLETED") || s.includes("DONE"))
@@ -125,6 +129,8 @@ const RepairProcess = ({ navigation, route }: any) => {
     ""
   ).toUpperCase();
 
+  const isCancelled = effectiveEvcheckStatus.includes("CANCEL");
+
   // set currentStep based on evcheck status if present, otherwise appointment status
   useEffect(() => {
     const sourceStatus =
@@ -159,7 +165,9 @@ const RepairProcess = ({ navigation, route }: any) => {
     {
       id: 5,
       title: "Sửa chữa",
-      desc: "Xe của bạn đang được bảo dưỡng và sửa chữa theo yêu cầu.",
+      desc: isCancelled
+        ? "Khách hàng đã hủy sửa chữa sau khi xem kết quả."
+        : "Xe của bạn đang được bảo dưỡng và sửa chữa theo yêu cầu.",
     },
     {
       id: 6,
@@ -309,35 +317,52 @@ const RepairProcess = ({ navigation, route }: any) => {
           />
           {filteredSteps.map((step) => (
             <View key={step.id} style={styles.stepContainer}>
-              <View style={styles.timelineColumn}>
-                <View
-                  style={[
-                    styles.circle,
-                    step.id <= currentStep ? styles.circleActive : null,
-                  ]}
-                />
-              </View>
+              {(() => {
+                const isCancelledStep = isCancelled && step.id === 5;
+                return (
+                  <View style={styles.timelineColumn}>
+                    <View
+                      style={[
+                        styles.circle,
+                        step.id <= currentStep ? styles.circleActive : null,
+                        isCancelledStep
+                          ? { backgroundColor: appColor.danger }
+                          : null,
+                      ]}
+                    />
+                  </View>
+                );
+              })()}
 
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <TextComponent
-                    text={step.title}
-                    color={
-                      step.id === currentStep ? appColor.primary : appColor.text
-                    }
-                    font={
-                      step.id === currentStep
-                        ? fontFamilies.roboto_bold
-                        : fontFamilies.roboto_medium
-                    }
-                    size={16}
-                  />
+                  {(() => {
+                    const isCancelledStep = isCancelled && step.id === 5;
+                    const titleColor = isCancelledStep
+                      ? appColor.danger
+                      : step.id === currentStep
+                      ? appColor.primary
+                      : appColor.text;
+
+                    return (
+                      <TextComponent
+                        text={step.title}
+                        color={titleColor}
+                        font={
+                          step.id === currentStep
+                            ? fontFamilies.roboto_bold
+                            : fontFamilies.roboto_medium
+                        }
+                        size={16}
+                      />
+                    );
+                  })()}
                   {step.id === currentStep && (
                     <View style={{ marginLeft: 8 }}>
                       <TextComponent
                         text="Hiện tại"
                         size={12}
-                        color={appColor.primary}
+                        color={isCancelled ? appColor.danger : appColor.primary}
                       />
                     </View>
                   )}
@@ -346,7 +371,11 @@ const RepairProcess = ({ navigation, route }: any) => {
                   <View>
                     <TextComponent
                       text={step.desc}
-                      color={appColor.gray2}
+                      color={
+                        isCancelled && step.id === 5
+                          ? appColor.danger
+                          : appColor.gray2
+                      }
                       size={14}
                       styles={{ marginTop: 4 }}
                     />

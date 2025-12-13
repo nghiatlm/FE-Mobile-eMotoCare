@@ -35,16 +35,31 @@ const BatteryCurrent = ({ navigation, route }: any) => {
     range: 0,
   });
 
+  const toNumber = (val: any) => {
+    if (typeof val === "string") {
+      const cleaned = val.replace(/,/g, ".").replace(/[^0-9.+-]/g, "");
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : 0;
+    }
+    const num = Number(val);
+    return Number.isFinite(num) ? num : 0;
+  };
+
   const getAverage = (arr: any[]) => {
     if (!Array.isArray(arr) || arr.length === 0) return 0;
-    const sum = arr.reduce((total, val) => total + Number(val || 0), 0);
+    const sum = arr.reduce((total, val) => total + toNumber(val || 0), 0);
     return Number((sum / arr.length).toFixed(2));
   };
 
   const normalize = (val: any) => {
     if (Array.isArray(val)) return getAverage(val);
-    const num = Number(val);
-    return Number.isFinite(num) ? num : 0;
+    return toNumber(val);
+  };
+
+  const resolveTemperature = (payload: any) => {
+    const candidate =
+      payload?.temperature ?? payload?.temp ?? payload?.battery?.temperature;
+    return normalize(candidate);
   };
 
   const [loading, setLoading] = useState(false);
@@ -65,7 +80,7 @@ const BatteryCurrent = ({ navigation, route }: any) => {
         setBatteryData({
           soc: normalize(data?.soc),
           soh: normalize(data?.soh),
-          temperature: normalize(data?.temperature),
+          temperature: resolveTemperature(data),
           capacity: normalize(data?.capacity),
           power: normalize(data?.power),
           range: normalize(data?.range),
@@ -80,9 +95,8 @@ const BatteryCurrent = ({ navigation, route }: any) => {
   };
 
   const getSocStatus = (value: number) => {
-    if (value >= 80)
-      return { label: "Pin trung bình", color: appColor.warning };
-    if (value >= 50)
+    if (value >= 80) return { label: "Pin tốt", color: appColor.primary };
+    if (value >= 70)
       return { label: "Pin trung bình", color: appColor.warning };
     return { label: "Pin yếu", color: appColor.danger };
   };
@@ -90,7 +104,7 @@ const BatteryCurrent = ({ navigation, route }: any) => {
   const getSohStatus = (value: number) => {
     if (value >= 80)
       return { label: "Pin tốt, còn sử dụng được", color: appColor.primary };
-    if (value >= 60)
+    if (value >= 70)
       return { label: "Pin trung bình", color: appColor.warning };
     return { label: "Pin đang không ổn định", color: appColor.danger };
   };
@@ -98,6 +112,7 @@ const BatteryCurrent = ({ navigation, route }: any) => {
   const getTempStatus = (value: number) => {
     if (value >= 50) return { label: "Nhiệt độ cao", color: appColor.danger };
     if (value >= 40) return { label: "Nhiệt độ cao", color: appColor.warning };
+    if (value === 0) return { label: "Chưa có dữ liệu", color: appColor.gray };
     return { label: "Nhiệt độ bình thường", color: appColor.primary };
   };
 
@@ -138,7 +153,11 @@ const BatteryCurrent = ({ navigation, route }: any) => {
         </RowComponent>
         <SpaceComponent height={16} />
         <View style={{ alignItems: "center" }}>
-          <CircleComponent percent={batteryData.soc} />
+          <CircleComponent
+            percent={batteryData.soc}
+            color={socStatus.color}
+            label={socStatus.label}
+          />
         </View>
         <SpaceComponent height={12} />
         <View style={{ alignItems: "center" }}>
@@ -421,16 +440,16 @@ const BatteryCurrent = ({ navigation, route }: any) => {
 
       {/* Action Button */}
       <SectionComponent styles={{ marginTop: 20, marginBottom: 20 }}>
-        <ButtonComponent
+        {/* <ButtonComponent
           text="Chi tiết phân tích PIN"
           type="primary"
           onPress={() => navigation.navigate("BatteryAnalysis")}
         />
-        <SpaceComponent height={12} />
+        <SpaceComponent height={12} /> */}
         <ButtonComponent
-          text="Làm mới dữ liệu"
+          text="Về trang chủ"
           type="secondary"
-          onPress={fetchBatteryData}
+          onPress={() => navigation.navigate("HomeScreen")}
         />
       </SectionComponent>
     </BackgroundComponent>

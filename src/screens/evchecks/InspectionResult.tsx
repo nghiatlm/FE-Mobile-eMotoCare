@@ -70,10 +70,10 @@ const InspectionResult = ({ navigation, route }: any) => {
     console.log("Cancel result:", res);
     if (res.success) {
       console.log("Cancelled: ", res.data);
-      navigation.navigate("MaintenanceProcess", {
+      navigation.navigate("RepairProcess", {
         id: evCheck?.appointment?.id,
         evcheckId: evCheckId,
-        forceStep: 4,
+        forceStep: 5,
         evcheckStatus: res.data?.status,
       });
     } else {

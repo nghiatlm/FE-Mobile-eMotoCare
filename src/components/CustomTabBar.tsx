@@ -7,6 +7,7 @@ import {
   Text,
 } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -20,6 +21,14 @@ const labels: Record<string, string> = {
   Service: "Dịch vụ",
   Setting: "Cài đặt",
   Home: "",
+};
+
+const tabRoots: Record<string, { screen: string }> = {
+  Service: { screen: "ServiceScreen" },
+  Home: { screen: "HomeScreen" },
+  Activity: { screen: "ActivityScreen" },
+  Notification: { screen: "NotificationScreen" },
+  Setting: { screen: "SettingScreen" },
 };
 
 export default function CustomTabBar({
@@ -46,7 +55,17 @@ export default function CustomTabBar({
       target: state.routes[index].key,
       canPreventDefault: true,
     });
-    if (!event.defaultPrevented) {
+    if (event.defaultPrevented) return;
+
+    const root = tabRoots[routeName];
+    if (root) {
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: routeName,
+          params: { screen: root.screen },
+        })
+      );
+    } else {
       navigation.navigate(routeName as never);
     }
   };
