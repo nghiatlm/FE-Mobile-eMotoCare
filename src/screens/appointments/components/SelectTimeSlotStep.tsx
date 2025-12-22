@@ -30,11 +30,28 @@ interface Props {
 
 const SelectTimeSlotStep = (props: Props) => {
   const { centerId, onSelectTimeSlot, validationError } = props;
+  
+  const getTodayLocal = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  
+  const parseYMDToLocalDate = (ymd: string) => {
+    const [y, m, d] = ymd.split("-").map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1);
+  };
+
+  const addMonths = (date: Date, delta: number) =>
+    new Date(date.getFullYear(), date.getMonth() + delta, 1);
+
   const [slotTimes, setSlotTimes] = useState<TimeSlot[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(getTodayLocal());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(() => parseYMDToLocalDate(getTodayLocal()));
 
   useEffect(() => {
     if (centerId) fetchSlotTimes();
@@ -47,11 +64,6 @@ const SelectTimeSlotStep = (props: Props) => {
       if (res.success) {
         const slots = res.data?.servicecenter?.serviceCente?.slot || [];
         setSlotTimes(slots);
-
-        if (slots.length > 0) {
-          const today = new Date().toISOString().split("T")[0];
-          setSelectedDate(today);
-        }
       } else {
         setSlotTimes([]);
       }
@@ -74,20 +86,22 @@ const SelectTimeSlotStep = (props: Props) => {
     const prevLast = new Date(year, month, 0).getDate();
     const prev = [];
     for (let i = start - 1; i >= 0; i--) {
+      const d = new Date(year, month - 1, prevLast - i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       prev.push({
         day: prevLast - i,
-        date: new Date(year, month - 1, prevLast - i)
-          .toISOString()
-          .split("T")[0],
+        date: dateStr,
         isCurrentMonth: false,
       });
     }
 
     const curr = [];
     for (let i = 1; i <= lastDay.getDate(); i++) {
+      const d = new Date(year, month, i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       curr.push({
         day: i,
-        date: new Date(year, month, i).toISOString().split("T")[0],
+        date: dateStr,
         isCurrentMonth: true,
       });
     }
@@ -96,9 +110,11 @@ const SelectTimeSlotStep = (props: Props) => {
     const remain = 42 - total;
     const next = [];
     for (let i = 1; i <= remain; i++) {
+      const d = new Date(year, month + 1, i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       next.push({
         day: i,
-        date: new Date(year, month + 1, i).toISOString().split("T")[0],
+        date: dateStr,
         isCurrentMonth: false,
       });
     }
@@ -107,10 +123,13 @@ const SelectTimeSlotStep = (props: Props) => {
   };
 
   const isPast = (dateString: string) => {
-    const d = new Date(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return d < today;
+    const [y, m, d] = dateString.split("-").map(Number);
+    const target = Date.UTC(y, (m ?? 1) - 1, d ?? 1);
+
+    const [ty, tm, td] = getTodayLocal().split("-").map(Number);
+    const todayUtc = Date.UTC(ty, (tm ?? 1) - 1, td ?? 1);
+
+    return target < todayUtc;
   };
 
   const timeSlotsForSelectedDate = selectedDate
@@ -139,7 +158,6 @@ const SelectTimeSlotStep = (props: Props) => {
 
       <SpaceComponent height={12} />
 
-      {/* Calendar Section */}
       <SectionComponent styles={{ paddingHorizontal: 12 }}>
         <RowComponent justify="space-between">
           <RowComponent>
@@ -154,13 +172,7 @@ const SelectTimeSlotStep = (props: Props) => {
           <RowComponent>
             <TouchableOpacity
               onPress={() =>
-                setCurrentMonth(
-                  new Date(
-                    currentMonth.getFullYear(),
-                    currentMonth.getMonth() - 1,
-                    1
-                  )
-                )
+                setCurrentMonth(addMonths(currentMonth, -1))
               }
               style={{ padding: 4, borderRadius: 6 }}
             >
@@ -181,13 +193,7 @@ const SelectTimeSlotStep = (props: Props) => {
             />
             <TouchableOpacity
               onPress={() =>
-                setCurrentMonth(
-                  new Date(
-                    currentMonth.getFullYear(),
-                    currentMonth.getMonth() + 1,
-                    1
-                  )
-                )
+                setCurrentMonth(addMonths(currentMonth, 1))
               }
               style={{ padding: 4, borderRadius: 6 }}
             >
@@ -197,8 +203,6 @@ const SelectTimeSlotStep = (props: Props) => {
         </RowComponent>
 
         <SpaceComponent height={12} />
-
-        {/* Day Headers */}
         <View
           style={{
             flexDirection: "row",
@@ -271,7 +275,6 @@ const SelectTimeSlotStep = (props: Props) => {
         <SpaceComponent height={16} />
       </SectionComponent>
 
-      {/* Time Slots */}
       {selectedDate && !isPast(selectedDate) && (
         <SectionComponent styles={{ paddingHorizontal: 12 }}>
           <RowComponent justify="flex-start">
@@ -301,14 +304,14 @@ const SelectTimeSlotStep = (props: Props) => {
             ) : (
               timeSlotsForSelectedDate.map((x) => {
                 const selected = x.slotTime === selectedTime;
-                const disabled = x.isActive === false || (x.capacity ?? 0) <= 0;
+                const disabled = !x.isActive;
 
                 return (
                   <TouchableOpacity
                     key={x.id}
                     disabled={disabled}
                     onPress={() => {
-                      if (x.isActive) {
+                      if (!disabled) {
                         setSelectedTime(x.slotTime);
                         onSelectTimeSlot?.({ date: selectedDate!, time: x.slotTime });
                       }
@@ -341,6 +344,14 @@ const SelectTimeSlotStep = (props: Props) => {
                           : appColor.text
                       }
                     />
+                    {!disabled && x.capacity !== undefined && (
+                      <TextComponent
+                        text={`Còn ${x.capacity} chỗ`}
+                        size={12}
+                        color={selected ? "#FFF" : appColor.gray2}
+                        styles={{ marginTop: 4 }}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
               })

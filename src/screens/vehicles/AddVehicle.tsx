@@ -1,6 +1,6 @@
 import { ArrowRight } from "iconsax-react-nativejs";
 import React, { useState } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { newVehicle } from "../../apis/customer.api";
 import {
   BackgroundComponent,
@@ -13,58 +13,24 @@ import {
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
-import vehicleStageData from "../../services/contants/vehicleStage.json";
 import { globalStyle } from "../../styles/globalStyle";
 import { formatDate } from "../../utils/data.util";
 import { checkWarranty } from "../../utils/formatDate";
 import { sex } from "../../utils/generatesex.util";
+import { getVehicleStages } from "../../services/vehicleStage.service";
 import {
   formatDurationMonth,
   formatMileage,
 } from "../../utils/maintenanceFormat.util";
 
-// const vehicle = {
-//   chassisNumber: "CKG397999",
-//   color: "Green",
-//   createdAt: "2025-12-09T16:59:36.6358",
-//   customerId: "837d02f1-f0b6-4986-a908-bbf3b7b4e552",
-//   engineNumber: "ENG315541",
-//   id: "a16e337d-bdcc-4d79-b5a4-c2ca6ed394d2",
-//   image:
-//     "https://shop.vinfastauto.com/on/demandware.static/-/Sites-app_vinfast_vn-Library/default/dwb9888ace/images/PDP-XMD/feliz/2025/img-top-feliz-green.webp",
-//   manufactureDate: "2025-12-09T09:59:32.07603",
-//   modelId: "8f99c73f-f02e-4fa9-b4c9-ee1897ba0e41",
-//   modelName: "Vento Neo",
-//   purchaseDate: "2025-12-09T09:59:32.076082",
-//   status: "ACTIVE",
-//   updatedAt: "2025-12-09T16:59:36.6358",
-//   warrantyExpiry: "2025-12-09T09:59:32.076126",
-// };
-
-// const customer = {
-//   id: "ca6081f8-5c17-43b8-ab0b-ac17febf0385",
-//   accountId: "08de1789-f2f5-4d5f-8733-9b3e68b69b4b",
-//   account: null,
-//   firstName: "Thinh",
-//   lastName: "Nguyen",
-//   customerCode: "CUS-001",
-//   address: "HCM",
-//   citizenId: "002388241923",
-//   dateOfBirth: "2020-01-01T00:00:00",
-//   gender: "MALE",
-//   avatarUrl: "string",
-//   createdAt: "2025-10-30T14:57:18.773928",
-//   updatedAt: "2025-12-09T13:40:12.223561",
-// };
-
 const AddVehicle = ({ route, navigation }: any) => {
   const { accountId } = route.params;
-  const [vehicle, setVehicle] = useState<any>(null);
-  const [customer, setCustomer] = useState<any>(null);
   const [citizenIdentification, setCitizenIdentification] = useState("");
   const [chassisNumber, setChassisNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const [data, setData] = useState<any>(null);
+  const [vehicle, setVehicle] = useState<any>(null);
+  const [vehicleStageData, setVehicleStageData] = useState<any>(null);
   const handleCitizenChange = (val: string) => {
     setCitizenIdentification(val);
   };
@@ -79,6 +45,7 @@ const AddVehicle = ({ route, navigation }: any) => {
   };
 
   const handelInformationSubmit = async () => {
+    setIsLoading(true);
     const model = {
       accountId: accountId,
       citizenId: citizenIdentification,
@@ -88,9 +55,23 @@ const AddVehicle = ({ route, navigation }: any) => {
     const res = await newVehicle(model);
     if (res.success) {
       console.log("Vehicle added successfully:", res.data);
+      setData(res.data);
+      setVehicle(res.data.vehicleResponse);
+      fetchVehicleStageData(res.data.vehicleResponse.id);
+      setIsLoading(false);
       resetData();
     } else {
       console.log("Failed to add vehicle:", res.message);
+    }
+  };
+
+  const fetchVehicleStageData = async (vehicleId: number) => {
+    const res = await getVehicleStages(vehicleId);
+    console.log("Vehicle stage data fetched:", res);
+    if (res.success) {
+      setVehicleStageData(res.data);
+    } else {
+      console.log("Failed to fetch vehicle stage data:", res.message);
     }
   };
 
@@ -128,7 +109,7 @@ const AddVehicle = ({ route, navigation }: any) => {
     navigation.navigate("HomeScreen");
   };
 
-  const warrantyInfo = checkWarranty(vehicle?.warrantyExpiry);
+  const warrantyInfo = checkWarranty(data?.vehicleResponse?.warrantyExpiry);
   return (
     <BackgroundComponent isScroll back title="Thêm xe mới">
       <SectionComponent styles={{ marginTop: 20, alignItems: "center" }}>
@@ -148,7 +129,7 @@ const AddVehicle = ({ route, navigation }: any) => {
       </SectionComponent>
 
       <SpaceComponent height={24} />
-      {!vehicle ? (
+      {!data?.vehicleResponse ? (
         <SectionComponent
           styles={[
             globalStyle.shadow,
@@ -159,9 +140,30 @@ const AddVehicle = ({ route, navigation }: any) => {
               borderWidth: 0.5,
               borderColor: appColor.gray,
               paddingBottom: -12,
+              position: "relative",
             },
           ]}
         >
+          {isLoading && (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: 8,
+                zIndex: 999,
+              }}
+            >
+              <ActivityIndicator size="large" color={appColor.primary} />
+              <SpaceComponent height={8} />
+              <TextComponent text="Đang tải..." />
+            </View>
+          )}
           <TextComponent
             text="Nhập số CCCD chủ xe:"
             size={16}
@@ -244,7 +246,7 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={vehicle.modelName}
+                text={vehicle?.modelName || "Không có dữ liệu"}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -259,7 +261,7 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={vehicle.chassisNumber}
+                text={vehicle?.chassisNumber || "Không có dữ liệu"}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -274,7 +276,11 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={formatDate(vehicle.purchaseDate)}
+                text={
+                  vehicle?.purchaseDate
+                    ? formatDate(vehicle.purchaseDate)
+                    : "Không có dữ liệu"
+                }
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -283,7 +289,7 @@ const AddVehicle = ({ route, navigation }: any) => {
             <SpaceComponent height={8} />
             <RowComponent justify="space-between">
               <TextComponent
-                text="Tình trạng bảo hành: "
+                text="Bảo hành: "
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -297,7 +303,6 @@ const AddVehicle = ({ route, navigation }: any) => {
                   backgroundColor: warrantyInfo.expired
                     ? appColor.danger
                     : "transparent",
-                  paddingHorizontal: 6,
                   paddingVertical: 2,
                   borderRadius: 4,
                 }}
@@ -339,7 +344,7 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={customer.firstName + " " + customer.lastName}
+                text={data?.firstName + " " + data?.lastName}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -354,7 +359,11 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={formatDate(customer.dateOfBirth)}
+                text={
+                  data?.dateOfBirth
+                    ? formatDate(data.dateOfBirth)
+                    : "Không có dữ liệu"
+                }
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -369,7 +378,7 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={sex(customer.gender)}
+                text={sex(data?.gender)}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -384,7 +393,7 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={customer.citizenId}
+                text={data?.citizenId}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -399,7 +408,7 @@ const AddVehicle = ({ route, navigation }: any) => {
                 size={14}
               />
               <TextComponent
-                text={customer.address}
+                text={data?.address}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
                 size={14}
@@ -433,70 +442,91 @@ const AddVehicle = ({ route, navigation }: any) => {
                 marginVertical: 12,
               }}
             />
-            {vehicleStageData.VechicleStages.map((stage, index) => (
-              <View key={stage.id}>
-                <RowComponent
-                  justify="space-between"
-                  styles={{ alignItems: "center" }}
-                >
-                  <View style={{ flex: 1 }}>
-                    <TextComponent
-                      text={stage.maintenanceStage.name}
-                      color={appColor.text}
-                      font={fontFamilies.roboto_medium}
-                      size={14}
-                    />
-                    <TextComponent
-                      text={`${formatMileage(
-                        stage.maintenanceStage.mileage
-                      )} - ${formatDurationMonth(
-                        stage.maintenanceStage.durationMonth
-                      )}`}
-                      color={appColor.gray2}
-                      font={fontFamilies.roboto_regular}
-                      size={12}
-                      styles={{ marginTop: 4 }}
-                    />
-                    <TextComponent
-                      text={`Dự kiến: ${formatDate(
-                        stage.expectedImplementationDate
-                      )}`}
-                      color={appColor.gray2}
-                      font={fontFamilies.roboto_regular}
-                      size={12}
-                      styles={{ marginTop: 2 }}
-                    />
-                  </View>
-                  <View
-                    style={{
-                      backgroundColor: getStatusColor(stage.status),
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 16,
-                      minWidth: 90,
-                      alignItems: "center",
-                    }}
+            {vehicleStageData?.VechicleStages?.length ? (
+              vehicleStageData.VechicleStages.map((stage, index) => (
+                <View key={stage.id ?? index}>
+                  <RowComponent
+                    justify="space-between"
+                    styles={{ alignItems: "center" }}
                   >
-                    <TextComponent
-                      text={getStatusLabel(stage.status)}
-                      color={appColor.white}
-                      font={fontFamilies.roboto_medium}
-                      size={12}
+                    <View style={{ flex: 1 }}>
+                      <TextComponent
+                        text={
+                          stage?.maintenanceStage?.name || "Không có dữ liệu"
+                        }
+                        color={appColor.text}
+                        font={fontFamilies.roboto_medium}
+                        size={14}
+                      />
+                      <TextComponent
+                        text={`${formatMileage(
+                          stage?.maintenanceStage?.mileage ?? 0
+                        )} - ${formatDurationMonth(
+                          stage?.maintenanceStage?.durationMonth ?? 0
+                        )}`}
+                        color={appColor.gray2}
+                        font={fontFamilies.roboto_regular}
+                        size={12}
+                        styles={{ marginTop: 4 }}
+                      />
+                      {stage?.expectedImplementationDate ? (
+                        <TextComponent
+                          text={`Dự kiến: ${formatDate(
+                            stage.expectedImplementationDate
+                          )}`}
+                          color={appColor.gray2}
+                          font={fontFamilies.roboto_regular}
+                          size={12}
+                          styles={{ marginTop: 2 }}
+                        />
+                      ) : (
+                        <TextComponent
+                          text="Dự kiến: Không có dữ liệu"
+                          color={appColor.gray2}
+                          font={fontFamilies.roboto_regular}
+                          size={12}
+                          styles={{ marginTop: 2 }}
+                        />
+                      )}
+                    </View>
+                    <View
+                      style={{
+                        backgroundColor: getStatusColor(stage?.status),
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 16,
+                        minWidth: 90,
+                        alignItems: "center",
+                      }}
+                    >
+                      <TextComponent
+                        text={getStatusLabel(stage?.status || "")}
+                        color={appColor.white}
+                        font={fontFamilies.roboto_medium}
+                        size={12}
+                      />
+                    </View>
+                  </RowComponent>
+                  {index < vehicleStageData.VechicleStages.length - 1 && (
+                    <View
+                      style={{
+                        height: 0.5,
+                        borderWidth: 0.5,
+                        borderColor: appColor.gray,
+                        marginVertical: 12,
+                      }}
                     />
-                  </View>
-                </RowComponent>
-                {index < vehicleStageData.VechicleStages.length - 1 && (
-                  <View
-                    style={{
-                      height: 0.5,
-                      borderWidth: 0.5,
-                      borderColor: appColor.gray,
-                      marginVertical: 12,
-                    }}
-                  />
-                )}
-              </View>
-            ))}
+                  )}
+                </View>
+              ))
+            ) : (
+              <TextComponent
+                text="Chưa có dữ liệu lịch bảo dưỡng"
+                color={appColor.gray2}
+                font={fontFamilies.roboto_regular}
+                size={14}
+              />
+            )}
           </SectionComponent>
           <SpaceComponent height={16} />
           <ButtonComponent text="Trang chủ" type="secondary" onPress={goHome} />

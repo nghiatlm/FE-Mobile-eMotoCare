@@ -11,6 +11,7 @@ import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
 import { getServiceCenter } from "../../../services/serviceCenter.service";
+import { formatPhoneDisplay } from "../../../utils/phone.util";
 
 type Props = {
   onSelectCenter: (center: any) => void;
@@ -158,10 +159,9 @@ const SelectCenterStep = ({
                 borderColor: appColor.gray,
                 borderRadius: 8,
                 marginTop: 16,
-                padding: 12,
                 paddingBottom: 12,
-                marginHorizontal: -8,
-                marginVertical: 12,
+                marginHorizontal: 8,
+                paddingTop: 16,
               },
             ]}
           >
@@ -204,7 +204,9 @@ const SelectCenterStep = ({
                   font={fontFamilies.roboto_regular}
                 />
                 <TextComponent
-                  text={center.phone || "Không xác nhận được"}
+                  text={
+                    formatPhoneDisplay(center.phone) || "Không xác nhận được"
+                  }
                   size={16}
                   color={appColor.gray2}
                   font={fontFamilies.roboto_regular}

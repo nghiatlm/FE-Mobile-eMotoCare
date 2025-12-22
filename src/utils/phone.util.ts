@@ -34,3 +34,9 @@ export const formatPhoneNumber = (phone?: string | number): string => {
 
   return digits;
 };
+
+// Format a phone number for UI display with spacing; returns empty string when missing
+export const formatPhoneDisplay = (phone?: string | number): string => {
+  const formatted = formatPhoneNumber(phone);
+  return formatted.trim();
+};

@@ -127,7 +127,6 @@ const CreateAppointment = ({ route, navigation }: any) => {
     }
     const res = await getByAccount(accountId);
     if (res.success) {
-      console.log("Customer data:", res.data);
       setCustomer(res.data);
     } else {
       console.log("Failed to fetch customer:", res.message);
@@ -166,9 +165,7 @@ const CreateAppointment = ({ route, navigation }: any) => {
       const res = await getVehicles({ customerId: customer.id });
       if (res.success) {
         const vehicleList = res.data?.rowDatas || [];
-        console.log("Vehicles fetched:", vehicleList);
         setVehicles(vehicleList);
-        // Set default to first vehicle
         if (vehicleList.length > 0) {
           setSelectedVehicle(vehicleList[0]);
           setVehicle(vehicleList[0]);

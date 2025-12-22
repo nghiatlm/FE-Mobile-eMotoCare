@@ -18,6 +18,7 @@ import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
 import { Vehicle } from "../../../types/vehicle.type";
 import { getWarrantyRemaining } from "../../../utils/formatDate";
+import { Fontisto } from "@expo/vector-icons";
 
 interface Props {
   vehicles: Vehicle[];
@@ -82,58 +83,60 @@ const ChooseVehicle = (props: Props) => {
           >
             {vehicles.map((v) => {
               const selected = isSelected === v.id;
+              const warranty = getWarrantyRemaining(v.warrantyExpiry);
               return (
                 <TouchableOpacity
                   key={String(v.id)}
                   onPress={() => handleSelect(v)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                 >
                   <RowComponent
                     justify="flex-start"
                     styles={[
-                      globalStyle.shadow,
                       {
                         alignItems: "flex-start",
                         backgroundColor: selected
                           ? appColor.primary
                           : appColor.white,
-                        padding: 12,
-                        borderRadius: 8,
+                        padding: 14,
+                        borderRadius: 12,
                         marginTop: 12,
                         borderWidth: 1,
-                        borderColor: selected ? appColor.primary : "#EEE",
+                        borderColor: selected ? appColor.primary : "#E5E5E5",
+                        shadowColor: "rgba(0,0,0,0.12)",
+                        shadowOpacity: 0.25,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowRadius: 8,
+                        elevation: selected ? 6 : 2,
                       },
                     ]}
                   >
-                    <Motorbike width={52} height={56} />
+                    <Fontisto
+                      name="motorcycle"
+                      size={30}
+                      color={selected ? appColor.white : appColor.primary}
+                      style={{ marginTop: 2 }}
+                    />
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <TextComponent
                         text={v.modelName ?? "Không rõ"}
-                        size={14}
+                        size={15}
                         color={selected ? appColor.white : appColor.text}
                         font={fontFamilies.roboto_medium}
                       />
-                      <SpaceComponent height={4} />
-                      <RowComponent justify="flex-start">
+                      <SpaceComponent height={6} />
+                      <RowComponent justify="flex-start" styles={{ gap: 6 }}>
                         <TextComponent
                           text="Bảo hành:"
-                          size={14}
+                          size={13}
                           color={selected ? appColor.white : appColor.gray2}
                           font={fontFamilies.roboto_regular}
                         />
                         <TextComponent
-                          text={
-                            getWarrantyRemaining(v.warrantyExpiry).expired
-                              ? "Hết hạn"
-                              : `Còn ${
-                                  getWarrantyRemaining(v.warrantyExpiry)
-                                    .formatted
-                                }`
-                          }
-                          size={14}
+                          text={warranty.expired ? "Hết" : "Còn"}
+                          size={13}
                           color={selected ? appColor.white : appColor.gray2}
                           font={fontFamilies.roboto_regular}
-                          styles={{ marginLeft: 6 }}
                         />
                       </RowComponent>
                     </View>

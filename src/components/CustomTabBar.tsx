@@ -1,18 +1,13 @@
 import React from "react";
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Text,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet, Text, Dimensions } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { CommonActions } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { Motorbike } from "../assets/svg";
+import Fontisto from "react-native-vector-icons/Fontisto";
+import Svg, { Path } from "react-native-svg";
 import { appColor } from "../constants/appColor";
 
 const labels: Record<string, string> = {
@@ -37,9 +32,14 @@ export default function CustomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const bottom = (insets?.bottom ?? 0) + 6;
-
-  // If the focused screen requests the tab bar hidden via tabBarStyle.display = 'none', don't render
+  const extraBottom = insets?.bottom ?? 0;
+  const screenWidth = Dimensions.get("window").width;
+  const barHeight = 70;
+  const notchRadius = 26;
+  const notchWidth = notchRadius * 2;
+  const left = (screenWidth - notchWidth) / 2;
+  const notchDepth = 18;
+  const pathD = `M0 0 H${left} C${left + notchRadius * 0.35} 0 ${left + notchRadius * 0.65} ${notchDepth} ${left + notchRadius} ${notchDepth} C${left + notchRadius * 1.35} ${notchDepth} ${left + notchRadius * 1.65} 0 ${left + notchWidth} 0 H${screenWidth} V${barHeight + extraBottom} H0 Z`;
   const focusedRoute = state.routes[state.index];
   const focusedOptions = descriptors[focusedRoute.key]?.options || {};
   if (
@@ -76,13 +76,12 @@ export default function CustomTabBar({
     switch (name) {
       case "Home":
         return (
-          <View
-            style={[
-              styles.homeBubble,
-              focused ? styles.homeBubbleActive : null,
-            ]}
-          >
-            <Motorbike width={34} height={36} />
+          <View style={[styles.homeBubble, focused && styles.homeBubbleActive]}>
+            <Fontisto
+              name="motorcycle"
+              size={20}
+              color={focused ? appColor.white : "#000000"}
+            />
           </View>
         );
       case "Notification":
@@ -117,9 +116,19 @@ export default function CustomTabBar({
   };
 
   return (
-    <View style={[styles.container, { bottom }]} pointerEvents="box-none">
-      <View style={styles.back} />
-      <View style={[styles.row]}>
+    <View
+      style={[styles.container, { paddingBottom: extraBottom, height: barHeight + extraBottom }]}
+      pointerEvents="box-none"
+    >
+      <Svg
+        width={screenWidth}
+        height={barHeight + extraBottom}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      >
+        <Path d={pathD} fill={appColor.white} />
+      </Svg>
+      <View style={styles.row}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeLabel = labels[route.name] ?? route.name;
@@ -135,19 +144,14 @@ export default function CustomTabBar({
               <View style={styles.iconWrap}>
                 {renderIcon(route.name, focused)}
               </View>
-              {route.name !== "Home" ? (
-                <Text
-                  style={[
-                    styles.label,
-                    { color: focused ? appColor.primary : appColor.gray2 },
-                  ]}
-                >
-                  {routeLabel}
-                </Text>
-              ) : (
-                // reserve label space to keep alignment
-                <View style={{ height: Platform.OS === "ios" ? 20 : 18 }} />
-              )}
+              <Text
+                style={[
+                  styles.label,
+                  { color: focused ? appColor.primary : appColor.gray2 },
+                ]}
+              >
+                {routeLabel}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -158,36 +162,18 @@ export default function CustomTabBar({
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    // bottom is set dynamically
     alignItems: "center",
-    zIndex: 20,
-  },
-  back: {
-    position: "absolute",
-    left: 12,
-    right: 12,
-    height: 68,
-    borderRadius: 16,
     backgroundColor: appColor.white,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-      },
-      android: { elevation: 6 },
-    }),
+    borderTopWidth: 0,
   },
   row: {
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    height: 68,
+    paddingHorizontal: 0,
+    paddingBottom: 8,
+    height: 70,
+    width: "100%",
   },
   tabItem: {
     flex: 1,
@@ -199,29 +185,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  label: {
-    fontSize: 12,
-    marginTop: 2,
-  },
   homeBubble: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 100,
     backgroundColor: appColor.white,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: Platform.OS === "ios" ? -18 : -20,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-      },
-      android: { elevation: 6 },
-    }),
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    marginBottom: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 10,
   },
   homeBubbleActive: {
     backgroundColor: appColor.primary,
+    borderColor: appColor.primary,
+  },
+  label: {
+    fontSize: 12,
+    marginTop: 2,
   },
 });

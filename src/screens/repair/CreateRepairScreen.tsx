@@ -87,7 +87,6 @@ const CreateRepairScreen = ({ navigation }: any) => {
     if (!accountId) return;
     const res = await getCustomerByAccount(accountId);
     if (res.success) {
-      console.log("Customer data:", res.data);
       setCustomer(res.data);
       dispatch({ type: "SET", payload: { customerId: res.data?.id || "" } });
     } else {
