@@ -2,6 +2,7 @@ import { Feather, Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -34,67 +35,92 @@ const HomeScreen = () => {
   const [customer, setCustomer] = React.useState<any>(null);
   const activityRef = useRef<any>(null);
   const maintenanceRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
   const [accountId, setAccountId] = React.useState<string | null>(null);
 
-  // Watch auth changes and update accountId
   useEffect(() => {
     const id = auth?.accountResponse?.id || auth?.id || null;
     setAccountId(id);
   }, [auth]);
 
-  // Fetch customer when accountId is available
   useEffect(() => {
     if (accountId) {
       fetchCustomer(accountId);
     }
   }, [accountId]);
 
-  // Refresh data whenever the screen is focused
   useFocusEffect(
     useCallback(() => {
       if (accountId) {
         fetchCustomer(accountId);
       }
-      // Also refetch child components
       activityRef.current?.refetch?.();
       maintenanceRef.current?.refetch?.();
     }, [accountId])
   );
 
-  // Fetch vehicle when customer data is loaded
   useEffect(() => {
     if (customer?.id) {
       fetchVehicle();
+    } else {
+      setIsLoading(false);
     }
   }, [customer]);
 
   const fetchCustomer = async (accountId: string) => {
-    const res = await getCustomerByAccount(accountId);
-    if (res.success) {
-      setCustomer(res.data);
-    } else {
-      console.log("Fetch customer failed:", res.message);
+    setIsLoading(true);
+    try {
+      const res = await getCustomerByAccount(accountId);
+      if (res.success) {
+        setCustomer(res.data);
+      } else {
+        console.log("Fetch customer failed:", res.message);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.log("Fetch customer error:", error);
+      setIsLoading(false);
     }
   };
 
   const fetchVehicle = async () => {
-    const res = await getVehicles({ customerId: customer.id });
-    if (res.success) {
-      if (res.data.rowDatas.length > 0) {
-        const vehicleData = res.data.rowDatas[0];
-        console.log("Vehicle loaded:", vehicleData);
-        console.log("Vehicle ID:", vehicleData?.id);
-        setVehicle(vehicleData);
+    try {
+      const res = await getVehicles({ customerId: customer.id });
+      if (res.success) {
+        if (res.data.rowDatas.length > 0) {
+          const vehicleData = res.data.rowDatas[0];
+          setVehicle(vehicleData);
+        } else {
+          setVehicle(null);
+        }
       } else {
-        setVehicle(null);
+        console.log("Fetch vehicles failed:", res.message);
       }
-    } else {
-      console.log("Fetch vehicles failed:", res.message);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: appColor.white,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <StatusBar barStyle={"dark-content"} />
+        <ActivityIndicator size="large" color={appColor.primary} />
+        <SpaceComponent height={12} />
+        <TextComponent text="Đang tải dữ liệu..." size={16} />
+      </View>
+    );
+  }
 
   return (
     <View style={[globalStyle.container]}>
@@ -103,7 +129,6 @@ const HomeScreen = () => {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Customer infomations */}
         <SectionComponent
           styles={{
             padding: Platform.OS == "android" ? StatusBar.currentHeight : 44,
@@ -195,7 +220,6 @@ const HomeScreen = () => {
                   type="primary"
                   onPress={() => {
                     console.log("Button pressed, vehicle:", vehicle);
-                    console.log("Vehicle ID to navigate:", vehicle?.id);
                     navigation.navigate("Vehicles", {
                       screen: "VehicleDetail",
                       params: { id: vehicle?.id },
@@ -344,7 +368,7 @@ const HomeScreen = () => {
                 color={appColor.primary}
               />
               <TextComponent
-                text="Trung tâm dich vụ"
+                text="Trung tâm"
                 size={14}
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}

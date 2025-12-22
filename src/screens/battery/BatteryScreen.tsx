@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
 import {
   BackgroundComponent,
   RowComponent,
@@ -9,11 +9,10 @@ import {
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
+import { getBatteries } from "../../services/battery.service";
+import { getDetail } from "../../services/evcheckDetai.service";
 import { globalStyle } from "../../styles/globalStyle";
 import { formatDate } from "../../utils/data.util";
-import { getEvcheckDetail } from "../../services/evcheck.service";
-import { getDetail } from "../../services/evcheckDetai.service";
-import { getBatteries } from "../../services/battery.service";
 
 const des =
   "Theo dõi các lần kiểm tra pin gần đây để nắm bắt tình trạng hoạt động.";
@@ -22,7 +21,6 @@ const sampleSohValues = [
   98, 98, 97, 97, 96, 96, 95, 95, 94, 94, 93, 93, 92, 92, 91, 91, 90, 90, 89,
   89,
 ];
-
 
 const getSohColor = (value: number) => {
   if (value >= 80) return appColor.primary;
@@ -45,24 +43,8 @@ const normalizeNumber = (val: any) => {
   return Number.isFinite(num) ? num : 0;
 };
 
-// const data = [
-//   {
-//     id: "1",
-//     evCheckDetailId: "714e860e-217b-4064-9128-6cee57882229",
-//     conclusion: {
-//       solution: "Bảo hành hoặc thay thế",
-//     },
-//   },
-//   {
-//     id: "2",
-//     evCheckDetailId: "814e860e-217b-4064-9128-6cee57882230",
-//     conclusion: {
-//       solution: "Bình thường",
-//     },
-//   },
-// ];
-
-const BatteryScreen = ({ navigation }: any) => {
+const BatteryScreen = ({ navigation, route }: any) => {
+  const vehicleId = route.params?.id || "";
   const [isLoading, setIsLoading] = useState(false);
   const [details, setDetails] = useState<Record<string, any>>({});
   const [data, setData] = useState<any[]>([]);
@@ -97,7 +79,7 @@ const BatteryScreen = ({ navigation }: any) => {
     const res = await getBatteries({
       page: 1,
       pageSize: 10,
-      vehicleId: "709a7d8b-9505-4e3c-bdda-3c9651704bbe",
+      vehicleId: vehicleId,
       sortDesc: true,
     });
     console.log("res", res);
@@ -194,7 +176,8 @@ const BatteryScreen = ({ navigation }: any) => {
                       (() => {
                         const raw =
                           details[item.evCheckDetailId]?.evCheck?.checkDate;
-                        if (!raw || typeof raw !== "string") return "--/--/----";
+                        if (!raw || typeof raw !== "string")
+                          return "--/--/----";
                         try {
                           return formatDate(raw);
                         } catch {

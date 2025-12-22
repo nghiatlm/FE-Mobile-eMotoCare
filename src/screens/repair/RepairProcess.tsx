@@ -19,6 +19,9 @@ import {
 import { fontFamilies } from "../../constants/fontFamilies";
 import { appColor } from "../../constants/appColor";
 import { getEvcheckDetail } from "../../services/evcheck.service";
+import { statusActivities } from "../../utils/generateStatus";
+import { AntDesign } from "@expo/vector-icons";
+import { Location } from "iconsax-react-nativejs";
 
 const mapStatusToStep = (status?: string) => {
   const s = (status || "").toUpperCase();
@@ -26,9 +29,6 @@ const mapStatusToStep = (status?: string) => {
   if (s.includes("APPROVED") || s.includes("CONFIRMED")) return 2;
   if (s.includes("CHECKED_IN") || s.includes("VEHICLE_INSPECTION")) return 3;
   if (s.includes("INSPECTION_COMPLETED") || s.includes("QUOTE_APPROVED"))
-
-
-
     return 4;
   if (s.includes("CANCEL")) return 5;
   if (s.includes("REPAIR_IN_PROGRESS")) return 5;
@@ -75,6 +75,7 @@ const RepairProcess = ({ navigation, route }: any) => {
         setData(res.data);
         // if appointment contains evCheck id, keep it for evcheck hook
         const foundEvcheckId = res.data?.evCheckId;
+        console.log('✅ Fetched appointment, evCheckId:', foundEvcheckId);
         if (foundEvcheckId) setEvcheckIdState(String(foundEvcheckId));
       } else {
         addRtLog("fetchAppointmentError", res.message);
@@ -129,6 +130,15 @@ const RepairProcess = ({ navigation, route }: any) => {
     ""
   ).toUpperCase();
 
+  console.log('🔍 RepairProcess Debug:', {
+    evcheckIdState,
+    evcheckStatus,
+    dataEvCheckStatus: data?.evCheck?.status,
+    effectiveEvcheckStatus,
+    effectiveApptStatus,
+    currentStep
+  });
+
   const isCancelled = effectiveEvcheckStatus.includes("CANCEL");
 
   // set currentStep based on evcheck status if present, otherwise appointment status
@@ -138,7 +148,9 @@ const RepairProcess = ({ navigation, route }: any) => {
         ? effectiveEvcheckStatus
         : effectiveApptStatus;
     if (sourceStatus) {
-      setCurrentStep(mapStatusToStep(sourceStatus));
+      const newStep = mapStatusToStep(sourceStatus);
+      console.log('📍 Setting step:', { sourceStatus, currentStep, newStep });
+      setCurrentStep(newStep);
     }
   }, [effectiveApptStatus, effectiveEvcheckStatus]);
 
@@ -186,6 +198,29 @@ const RepairProcess = ({ navigation, route }: any) => {
       return true;
     });
   }, [steps, effectiveApptStatus]);
+
+  const getStepIconName = (
+    id: number
+  ): React.ComponentProps<typeof AntDesign>["name"] => {
+    switch (id) {
+      case 1:
+        return "clock-circle"; 
+      case 2:
+        return "check-circle"; 
+      case 3:
+        return "profile"; 
+      case 4:
+        return "file-text";
+      case 5:
+        return "tool"; 
+      case 6:
+        return "credit-card"; 
+      case 7:
+        return "check-circle"; 
+      default:
+        return "question-circle";
+    }
+  };
 
   return (
     <BackgroundComponent
@@ -255,9 +290,18 @@ const RepairProcess = ({ navigation, route }: any) => {
                   alignItems: "center",
                 }}
               >
-                <View style={styles.statusChip}>
+                <View
+                  style={[
+                    {
+                      backgroundColor: statusActivities(data?.status).color,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 12,
+                    },
+                  ]}
+                >
                   <TextComponent
-                    text={String(data?.status || "").replace(/_/g, " ")}
+                    text={statusActivities(data?.status).label}
                     size={12}
                     color={appColor.white}
                   />
@@ -283,19 +327,27 @@ const RepairProcess = ({ navigation, route }: any) => {
 
           <SpaceComponent height={10} />
           <View>
-            <TextComponent text="Thời gian" size={14} color={appColor.gray2} />
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <AntDesign name="calendar" size={16} color={appColor.gray2} style={{ marginRight: 6 }} />
+              <TextComponent text="Thời gian" size={14} color={appColor.gray2} />
+            </View>
             <TextComponent
               text={`${formatDateDDMMYYYY(
                 data?.appointmentDate
               )} ${slotCodeToTimeLabel(data?.slotTime)}`}
               color={appColor.text}
               size={16}
+              styles={{ marginTop: 4 }}
             />
-            <TextComponent text="Địa chỉ" size={14} color={appColor.gray2} />
+            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
+              <Location size={16} color={appColor.gray2} style={{ marginRight: 6 }} />
+              <TextComponent text="Địa chỉ" size={14} color={appColor.gray2} />
+            </View>
             <TextComponent
               text={data?.serviceCenter?.address || ""}
               color={appColor.gray2}
               size={13}
+              styles={{ marginTop: 4 }}
             />
           </View>
           <View>
@@ -345,16 +397,24 @@ const RepairProcess = ({ navigation, route }: any) => {
                       : appColor.text;
 
                     return (
-                      <TextComponent
-                        text={step.title}
-                        color={titleColor}
-                        font={
-                          step.id === currentStep
-                            ? fontFamilies.roboto_bold
-                            : fontFamilies.roboto_medium
-                        }
-                        size={16}
-                      />
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <AntDesign
+                          name={getStepIconName(step.id)}
+                          size={18}
+                          color={titleColor}
+                          style={{ marginRight: 8 }}
+                        />
+                        <TextComponent
+                          text={step.title}
+                          color={titleColor}
+                          font={
+                            step.id === currentStep
+                              ? fontFamilies.roboto_bold
+                              : fontFamilies.roboto_medium
+                          }
+                          size={16}
+                        />
+                      </View>
                     );
                   })()}
                   {step.id === currentStep && (
@@ -530,12 +590,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 2,
   },
-  statusChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: appColor.primary,
-  },
+  statusChip: {},
 });
 
 const parseISOToDate = (iso?: string): Date | null => {

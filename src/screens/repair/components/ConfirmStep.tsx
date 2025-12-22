@@ -173,7 +173,7 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
               styles={{ marginRight: 12 }}
             />
             <TextComponent
-              text={vehicle?.modelName || "Thằng Thịnh làm sai"}
+              text={vehicle?.modelName || "null"}
               size={Platform.OS === "android" ? 16 : 18}
               styles={{ marginRight: 12 }}
             />
@@ -188,7 +188,7 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
               styles={{ marginRight: 12 }}
             />
             <TextComponent
-              text={vehicle?.modelName || "Thằng Thịnh làm sai"}
+              text={vehicle?.modelName || "null"}
               size={Platform.OS === "android" ? 16 : 18}
               styles={{ marginRight: 12 }}
             />
@@ -202,7 +202,7 @@ const ConfirmStep = ({ state, center, vehicle }: any) => {
               styles={{ marginRight: 12 }}
             />
             <TextComponent
-              text={isWarranty ? "Còn bảo hành" : "Thằng Thịnh làm sai"}
+              text={isWarranty ? "Còn bảo hành" : "null"}
               size={Platform.OS === "android" ? 16 : 18}
               styles={{ marginRight: 12 }}
               color={isWarranty ? appColor.primary : appColor.danger}

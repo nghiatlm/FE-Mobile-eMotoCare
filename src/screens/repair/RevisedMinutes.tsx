@@ -1,5 +1,6 @@
+import { AntDesign } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { Image, View } from "react-native";
+import { ActivityIndicator, Image, View } from "react-native";
 import {
   BackgroundComponent,
   ButtonComponent,
@@ -10,17 +11,38 @@ import {
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
-import { globalStyle } from "../../styles/globalStyle";
 import { getEvcheckDetail } from "../../services/evcheck.service";
-import { formatPhoneNumber } from "../../utils/phone.util";
-import { formatDate, formatSlotRange } from "../../utils/data.util";
 import { createPayment } from "../../services/payment.service";
+import { globalStyle } from "../../styles/globalStyle";
+import { formatDate, formatSlotRange } from "../../utils/data.util";
+import { formatPhoneNumber } from "../../utils/phone.util";
 
 const RevisedMinutes = ({ navigation, route }: any) => {
   const {appointmentId, evcheckId} = route.params;
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+
+  const formatVND = (n: number | undefined | null) => {
+    const v = Number(n || 0);
+    return `${v.toLocaleString?.("vi-VN") ?? v} ₫`;
+  };
+
+  const totals = React.useMemo(() => {
+    const items = data?.evCheckDetails ?? [];
+    const sumParts = items.reduce(
+      (acc: number, it: any) => acc + Number(it?.pricePart || 0),
+      0
+    );
+    const sumService = items.reduce(
+      (acc: number, it: any) => acc + Number(it?.priceService || 0),
+      0
+    );
+    const subtotal = sumParts + sumService;
+    const vat = subtotal * 0.08;
+    const grandTotal = subtotal + vat;
+    return { sumParts, sumService, subtotal, vat, grandTotal };
+  }, [data]);
 
   useEffect(() => {
     fetchData();
@@ -54,7 +76,7 @@ const RevisedMinutes = ({ navigation, route }: any) => {
     setIsLoading(true);
 
     const model = {
-      amount: 2000,
+      amount: Math.round(totals.grandTotal || 0),
       paymentMethod: "PAY_OS_APP",
       currency: "VND",
       appointmentId: data?.appointment?.id,
@@ -72,6 +94,13 @@ const RevisedMinutes = ({ navigation, route }: any) => {
 
   return (
     <BackgroundComponent back title="Biên bản sửa chữa" isScroll>
+      {isLoading && (
+        <SectionComponent styles={{ alignItems: "center", paddingVertical: 12 }}>
+          <ActivityIndicator size="small" color={appColor.primary} />
+          <SpaceComponent height={8} />
+          <TextComponent text="Đang tải dữ liệu..." color={appColor.gray2} size={12} />
+        </SectionComponent>
+      )}
       <SpaceComponent height={12} />
       <SectionComponent
         styles={[
@@ -85,13 +114,11 @@ const RevisedMinutes = ({ navigation, route }: any) => {
           },
         ]}
       >
-        <RowComponent justify="space-between">
-          <TextComponent
-            text="Khách hàng: "
-            size={15}
-            color={appColor.text}
-            font={fontFamilies.roboto_medium}
-          />
+        <RowComponent justify="space-between" styles={{ alignItems: "center" }}>
+          <RowComponent styles={{ gap: 8, alignItems: "center" }}>
+            <AntDesign name="user" size={16} color={appColor.gray2} />
+            <TextComponent text="Khách hàng" size={14} color={appColor.gray2} />
+          </RowComponent>
           <TextComponent
             text={`${data?.appointment?.customer?.firstName} ${data?.appointment?.customer?.lastName}`}
             size={15}
@@ -100,13 +127,11 @@ const RevisedMinutes = ({ navigation, route }: any) => {
           />
         </RowComponent>
         <SpaceComponent height={4} />
-        <RowComponent justify="space-between">
-          <TextComponent
-            text="Số điện thoại: "
-            size={15}
-            color={appColor.text}
-            font={fontFamilies.roboto_medium}
-          />
+        <RowComponent justify="space-between" styles={{ alignItems: "center" }}>
+          <RowComponent styles={{ gap: 8, alignItems: "center" }}>
+            <AntDesign name="phone" size={16} color={appColor.gray2} />
+            <TextComponent text="Số điện thoại" size={14} color={appColor.gray2} />
+          </RowComponent>
           <TextComponent
             text={formatPhoneNumber(
               data?.appointment?.customer?.account?.phone
@@ -117,28 +142,24 @@ const RevisedMinutes = ({ navigation, route }: any) => {
           />
         </RowComponent>
         <SpaceComponent height={4} />
-        <RowComponent justify="space-between">
+        <RowComponent justify="space-between" styles={{ alignItems: "center" }}>
+          <RowComponent styles={{ gap: 8, alignItems: "center" }}>
+            <AntDesign name="car" size={16} color={appColor.gray2} />
+            <TextComponent text="Kiểu xe" size={14} color={appColor.gray2} />
+          </RowComponent>
           <TextComponent
-            text="Kiểu xe: "
-            size={15}
-            color={appColor.text}
-            font={fontFamilies.roboto_medium}
-          />
-          <TextComponent
-            text="Evo 200Lite"
+            text={(data?.appointment?.vehicle?.vehicleModel?.name as string) || "Evo 200Lite"}
             size={15}
             color={appColor.text}
             font={fontFamilies.roboto_medium}
           />
         </RowComponent>
         <SpaceComponent height={4} />
-        <RowComponent justify="space-between">
-          <TextComponent
-            text="Thời gian: "
-            size={15}
-            color={appColor.text}
-            font={fontFamilies.roboto_medium}
-          />
+        <RowComponent justify="space-between" styles={{ alignItems: "center" }}>
+          <RowComponent styles={{ gap: 8, alignItems: "center" }}>
+            <AntDesign name="calendar" size={16} color={appColor.gray2} />
+            <TextComponent text="Thời gian" size={14} color={appColor.gray2} />
+          </RowComponent>
           <TextComponent
             text={`${
               data?.appointment?.appointmentDate
@@ -166,7 +187,7 @@ const RevisedMinutes = ({ navigation, route }: any) => {
       <SpaceComponent height={8} />
       {data?.evCheckDetails &&
         data?.evCheckDetails.map((item, index) => (
-          <>
+          <View key={index}>
             <SectionComponent
               styles={[
                 globalStyle.shadow,
@@ -178,7 +199,6 @@ const RevisedMinutes = ({ navigation, route }: any) => {
                   borderColor: appColor.gray,
                 },
               ]}
-              key={index}
             >
               <RowComponent styles={{ gap: 12, alignItems: "flex-start" }}>
                 <Image
@@ -230,7 +250,7 @@ const RevisedMinutes = ({ navigation, route }: any) => {
                 </View>
               </RowComponent>
               <TextComponent
-                text="Giái pháp: "
+                text="Giải pháp: "
                 size={14}
                 font={fontFamilies.roboto_medium}
                 color={appColor.text}
@@ -281,7 +301,7 @@ const RevisedMinutes = ({ navigation, route }: any) => {
                   color={appColor.primary}
                   font={fontFamilies.roboto_medium}
                 />
-                <TextComponent text={item?.pricePart + item?.priceService} />
+                <TextComponent text={formatVND((item?.pricePart || 0) + (item?.priceService || 0))} />
               </RowComponent>
               <SpaceComponent height={8} />
               <RowComponent justify="space-between">
@@ -292,10 +312,7 @@ const RevisedMinutes = ({ navigation, route }: any) => {
                   font={fontFamilies.roboto_medium}
                 />
                 <TextComponent
-                  text={(
-                    (item?.pricePart + item?.priceService) *
-                    0.08
-                  ).toString()}
+                  text={formatVND(((item?.pricePart || 0) + (item?.priceService || 0)) * 0.08)}
                 />
               </RowComponent>
               <View
@@ -312,16 +329,64 @@ const RevisedMinutes = ({ navigation, route }: any) => {
                   color={appColor.primary}
                   font={fontFamilies.roboto_medium}
                 />
-                <TextComponent text={item.totalAmount} />
+                <TextComponent text={formatVND(item?.totalAmount ?? ((item?.pricePart || 0) + (item?.priceService || 0)) * 1.08)} />
               </RowComponent>
             </SectionComponent>
-          </>
+          </View>
         ))}
+      {data?.evCheckDetails?.length ? (
+        <SectionComponent
+          styles={[
+            globalStyle.shadow,
+            {
+              padding: 16,
+              borderRadius: 8,
+              backgroundColor: appColor.white,
+              borderWidth: 0.5,
+              borderColor: appColor.gray,
+            },
+          ]}
+        >
+          <TextComponent
+            text="Tổng hợp hóa đơn"
+            size={16}
+            color={appColor.primary}
+            font={fontFamilies.roboto_medium}
+          />
+          <SpaceComponent height={8} />
+          <RowComponent justify="space-between">
+            <TextComponent text="Tổng phụ tùng" size={14} font={fontFamilies.roboto_regular} />
+            <TextComponent text={formatVND(totals.sumParts)} />
+          </RowComponent>
+          <SpaceComponent height={6} />
+          <RowComponent justify="space-between">
+            <TextComponent text="Tổng dịch vụ" size={14} font={fontFamilies.roboto_regular} />
+            <TextComponent text={formatVND(totals.sumService)} />
+          </RowComponent>
+          <SpaceComponent height={6} />
+          <RowComponent justify="space-between">
+            <TextComponent text="Tạm tính" size={14} font={fontFamilies.roboto_regular} />
+            <TextComponent text={formatVND(totals.subtotal)} />
+          </RowComponent>
+          <SpaceComponent height={6} />
+          <RowComponent justify="space-between">
+            <TextComponent text="VAT (8%)" size={14} font={fontFamilies.roboto_regular} />
+            <TextComponent text={formatVND(totals.vat)} />
+          </RowComponent>
+          <View style={{ height: 1.5, backgroundColor: appColor.gray, marginVertical: 8 }} />
+          <RowComponent justify="space-between">
+            <TextComponent text="Tổng thanh toán" size={15} color={appColor.primary} font={fontFamilies.roboto_medium} />
+            <TextComponent text={formatVND(totals.grandTotal)} />
+          </RowComponent>
+        </SectionComponent>
+      ) : null}
       <SpaceComponent height={24} />
       <ButtonComponent
         text="Thanh toán"
         type="primary"
         onPress={handelPayment}
+        disabled={isLoading || !totals.grandTotal}
+        icon={isLoading ? <ActivityIndicator size="small" color={appColor.white} /> : undefined}
       />
     </BackgroundComponent>
   );

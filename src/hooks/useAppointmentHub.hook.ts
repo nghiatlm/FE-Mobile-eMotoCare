@@ -43,7 +43,7 @@ export default function useAppointmentHub(appointmentId: string) {
           await connection.stop();
         }
       } catch (err) {
-        console.error("❌ Connection error appointment:", err);
+        console.log("❌ Connection error appointment:", err);
       }
     };
 

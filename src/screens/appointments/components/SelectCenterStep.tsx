@@ -12,6 +12,14 @@ import { fontFamilies } from "../../../constants/fontFamilies";
 import { globalStyle } from "../../../styles/globalStyle";
 import { getServiceCenter } from "../../../services/serviceCenter.service";
 
+type Props = {
+  onSelectCenter: (center: any) => void;
+  userLocation?: { latitude: number; longitude: number } | null;
+  locationLoading?: boolean;
+  locationError?: string | null;
+  onRetryLocation?: () => void;
+};
+
 const calculateDistance = (
   lat1: number,
   lon1: number,
@@ -31,41 +39,59 @@ const calculateDistance = (
   return R * c;
 };
 
-const SelectCenterStep = ({ onSelectCenter }: any) => {
-  const [userLocation, setUserLocation] = useState({
-    latitude: 10.77253,
-    longitude: 106.690981,
-  });
+const SelectCenterStep = ({
+  onSelectCenter,
+  userLocation,
+  locationLoading,
+  locationError,
+  onRetryLocation,
+}: Props) => {
   const [data, setData] = useState<any[]>([]);
   const [closestCenterId, setClosestCenterId] = useState<number | null>(null);
   const [sortedData, setSortedData] = useState<any[]>([]);
 
   useEffect(() => {
     fetchData();
-  }, []); 
+  }, []);
 
   useEffect(() => {
-    if (data.length > 0) {
-      const dataWithDistance = data.map((center) => ({
-        ...center,
-        distance: calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          center.latitude,
-          center.longitude
-        ),
-      }));
+    if (data.length === 0) {
+      setSortedData([]);
+      setClosestCenterId(null);
+      return;
+    }
+
+    if (userLocation) {
+      const dataWithDistance = data.map((center) => {
+        const hasCoords =
+          typeof center.latitude === "number" &&
+          typeof center.longitude === "number";
+        return {
+          ...center,
+          distance: hasCoords
+            ? calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                center.latitude,
+                center.longitude
+              )
+            : Number.POSITIVE_INFINITY,
+        };
+      });
 
       const sorted = dataWithDistance.sort((a, b) => a.distance - b.distance);
       setSortedData(sorted);
-      setClosestCenterId(sorted[0].id);
+      setClosestCenterId(sorted[0]?.id ?? null);
+    } else {
+      setSortedData(data);
+      setClosestCenterId(null);
     }
   }, [userLocation, data]);
 
   const fetchData = async () => {
     const params = {
       page: 1,
-      pageSize: 10,
+      pageSize: 50,
     };
     const res = await getServiceCenter(params);
     if (res.success) {
@@ -82,7 +108,6 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
           text="Chọn trung tâm bảo dưỡng"
           size={20}
           color={appColor.text}
-
           font={fontFamilies.roboto_medium}
         />
         <SpaceComponent height={8} />
@@ -92,6 +117,33 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
           color={appColor.gray2}
           font={fontFamilies.roboto_light}
         />
+        {locationLoading && (
+          <TextComponent
+            text="Đang lấy vị trí hiện tại..."
+            size={14}
+            color={appColor.gray2}
+            font={fontFamilies.roboto_regular}
+            styles={{ marginTop: 8 }}
+          />
+        )}
+        {locationError && (
+          <View style={{ marginTop: 8, alignItems: "center" }}>
+            <TextComponent
+              text={locationError}
+              size={14}
+              color={appColor.danger}
+              font={fontFamilies.roboto_regular}
+            />
+            {onRetryLocation && (
+              <ButtonComponent
+                text="Thử lại lấy vị trí"
+                type="link"
+                styles={{ marginTop: 4, paddingHorizontal: 0 }}
+                onPress={onRetryLocation}
+              />
+            )}
+          </View>
+        )}
       </SectionComponent>
 
       {sortedData.length > 0 &&
@@ -122,9 +174,12 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
                 color={appColor.text}
                 font={fontFamilies.roboto_medium}
               />
-              
+
               <SpaceComponent height={6} />
-              <RowComponent justify="flex-start">
+              <RowComponent
+                justify="flex-start"
+                styles={{ alignItems: "flex-start" }}
+              >
                 <TextComponent
                   text="Địa chỉ: "
                   size={16}
@@ -136,6 +191,7 @@ const SelectCenterStep = ({ onSelectCenter }: any) => {
                   size={16}
                   color={appColor.gray2}
                   font={fontFamilies.roboto_regular}
+                  styles={{ width: "80%" }}
                 />
               </RowComponent>
 

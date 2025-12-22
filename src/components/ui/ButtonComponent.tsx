@@ -4,7 +4,7 @@ import {
   TextStyle,
   TouchableOpacity,
   View,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
@@ -52,7 +52,7 @@ const ButtonComponent = (props: Props) => {
   ) : null;
 
   return type === "primary" ? (
-    <View style={{ alignItems: "center" }}>
+    <View style={{ alignItems: "stretch" }}>
       <TouchableOpacity
         disabled={disabled}
         onPress={onPress}
@@ -90,7 +90,9 @@ const ButtonComponent = (props: Props) => {
       </TouchableOpacity>
     </View>
   ) : type === "text" || type == "link" ? (
-    <TouchableOpacity onPress={onPress} style={[{ flexDirection: 'row', alignItems: 'center' }, styles]}
+    <TouchableOpacity
+      onPress={onPress}
+      style={[{ flexDirection: "row", alignItems: "center" }, styles]}
       activeOpacity={0.7}
     >
       {left}
@@ -98,13 +100,15 @@ const ButtonComponent = (props: Props) => {
         flex={0}
         text={text}
         size={12}
-        color={textColor ?? (type === "link" ? appColor.primary : appColor.text)}
+        color={
+          textColor ?? (type === "link" ? appColor.primary : appColor.text)
+        }
         styles={[{ marginLeft: left ? 8 : 0 }, textStyle]}
       />
       {rightContainer ?? right}
     </TouchableOpacity>
   ) : (
-    <View style={{ alignItems: "center" }}>
+    <View style={{ alignItems: "stretch" }}>
       <TouchableOpacity
         disabled={disabled}
         onPress={onPress}
@@ -126,12 +130,12 @@ const ButtonComponent = (props: Props) => {
           color={textColor ?? appColor.text}
           font={textFont ?? fontFamilies.roboto_medium}
           styles={[
-            textStyle,
             {
               marginLeft: left ? 12 : 0,
               fontSize: 16,
               textAlign: "left",
             },
+            textStyle,
           ]}
         />
         {rightContainer}

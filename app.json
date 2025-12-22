@@ -7,7 +7,8 @@
     "orientation": "portrait",
     "plugins": [
       "@react-native-firebase/app",
-      "@react-native-firebase/auth"
+      "@react-native-firebase/auth",
+      "expo-notifications"
     ],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,9 +33,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "owner": "nghiaminh",
     "extra": {
       "eas": {
-        "projectId": "05aecca0-d7f7-485b-a500-8130d353c3b3"
+        "projectId": "9cfab96d-93f4-4e57-84af-83231f35c85e"
       }
     }
   }

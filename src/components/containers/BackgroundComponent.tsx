@@ -29,7 +29,7 @@ const BackgroundComponent = (props: Props) => {
     Platform.OS === "android" ? StatusBar.currentHeight || 24 : 54;
 
   const insets = useSafeAreaInsets();
-  const FOOTER_HEIGHT = 72;
+  const FOOTER_HEIGHT = 100;
 
   return (
     <View
@@ -127,7 +127,7 @@ const BackgroundComponent = (props: Props) => {
               height: FOOTER_HEIGHT,
               backgroundColor: appColor.white,
               justifyContent: "center",
-              alignItems: "center",
+              paddingBottom: 25,
               elevation: 12,
               shadowColor: "#000",
               shadowOffset: { width: 0, height: -2 },
@@ -135,7 +135,12 @@ const BackgroundComponent = (props: Props) => {
               shadowRadius: 6,
             }}
           >
-            <View style={{ width: "100%", paddingHorizontal: 12 }}>
+            <View
+              style={{
+                marginHorizontal: 12,
+                alignItems: "center",
+              }}
+            >
               {footer}
             </View>
           </View>

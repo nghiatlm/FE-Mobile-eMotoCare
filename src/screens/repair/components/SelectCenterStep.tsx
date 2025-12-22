@@ -78,7 +78,7 @@ const SelectCenterStep = ({ state, onSelectCenter }: any) => {
       setLoading(true);
       const params = {
         page: 1,
-        pageSize: 10,
+        pageSize: 50,
       };
 
       const result = await getServiceCenter(params);

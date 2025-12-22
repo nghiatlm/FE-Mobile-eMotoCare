@@ -15,6 +15,7 @@ import { fontFamilies } from "../../constants/fontFamilies";
 import { globalStyle } from "../../styles/globalStyle";
 import { AntDesign, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Image } from "react-native";
+import { statusActivities } from "../../utils/generateStatus";
 
 const formatDate = (iso?: string) => {
   if (!iso) return "";
@@ -101,12 +102,12 @@ const AppointmentDetail = ({ navigation, route }: any) => {
   const footer = (
     <View style={styles.footer}>
       <ButtonComponent
-        text="Xem quá trình bảo dưỡng"
+        text="Xem quá trình thực hiện"
         type="primary"
         onPress={() =>
           navigation.navigate("RepairProcess", {
             id: id,
-            type: "MAINTENANCE_TYPE",
+            type: data.type,
           })
         }
       />
@@ -141,7 +142,7 @@ const AppointmentDetail = ({ navigation, route }: any) => {
     >
       <SpaceComponent height={12} />
       <TextComponent
-        text="Thông tin lịch bảo dưỡng của bạn"
+        text="Thông tin lịch hẹn của bạn"
         size={20}
         font={fontFamilies.roboto_bold}
         color={appColor.text}
@@ -173,7 +174,7 @@ const AppointmentDetail = ({ navigation, route }: any) => {
         {/* status badge */}
         {data?.status
           ? (() => {
-              const info = statusInfo(data.status);
+              const info = statusActivities(data.status);
               return (
                 <View style={{ position: "absolute", top: -14, right: 12 }}>
                   <View

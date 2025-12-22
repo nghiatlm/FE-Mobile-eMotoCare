@@ -62,20 +62,27 @@ const AddVehicle = ({ route, navigation }: any) => {
   const [vehicle, setVehicle] = useState<any>(null);
   const [customer, setCustomer] = useState<any>(null);
   const [citizenIdentification, setCitizenIdentification] = useState("");
+  const [chassisNumber, setChassisNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCitizenChange = (val: string) => {
     setCitizenIdentification(val);
   };
 
+  const handleChassisNumberChange = (val: string) => {
+    setChassisNumber(val);
+  };
+
   const resetData = () => {
     setCitizenIdentification("");
+    setChassisNumber("");
   };
 
   const handelInformationSubmit = async () => {
     const model = {
       accountId: accountId,
       citizenId: citizenIdentification,
+      chassisNumber: chassisNumber,
     };
     console.log("AddVehicle model:", model);
     const res = await newVehicle(model);
@@ -168,6 +175,19 @@ const AddVehicle = ({ route, navigation }: any) => {
             placeholder="Nhập căn cước công dân"
             allowClear
             type="number-pad"
+          />
+          <TextComponent
+            text="Nhập số khung:"
+            size={16}
+            color={appColor.text}
+            font={fontFamilies.roboto_regular}
+          />
+          <SpaceComponent height={8} />
+          <InputComponent
+            value={chassisNumber}
+            onChange={handleChassisNumberChange}
+            placeholder="Nhập số khùng"
+            allowClear
           />
           <ButtonComponent
             text="Tiếp theo"

@@ -5,11 +5,13 @@ import {
   SectionComponent,
   TextComponent,
   SpaceComponent,
+  ButtonComponent,
 } from "../../../components";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { appColor } from "../../../constants/appColor";
 import { AntDesign, Fontisto } from "@expo/vector-icons";
 import { getSlotTime } from "../../../services/serviceCenter.service";
+import { formatSlotTime } from "../../../utils/formatSlotTime";
 
 interface TimeSlot {
   id: string;
@@ -23,10 +25,11 @@ interface TimeSlot {
 interface Props {
   centerId: string;
   onSelectTimeSlot?: (data: { date: string; time: string }) => void;
+  validationError?: string | null;
 }
 
 const SelectTimeSlotStep = (props: Props) => {
-  const { centerId, onSelectTimeSlot } = props;
+  const { centerId, onSelectTimeSlot, validationError } = props;
   const [slotTimes, setSlotTimes] = useState<TimeSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -37,13 +40,6 @@ const SelectTimeSlotStep = (props: Props) => {
     if (centerId) fetchSlotTimes();
   }, [centerId]);
 
-  useEffect(() => {
-    if (selectedDate && selectedTime) {
-      console.log("Đã chọn lịch:", { date: selectedDate, time: selectedTime });
-      onSelectTimeSlot?.({ date: selectedDate, time: selectedTime });
-    }
-  }, [selectedDate, selectedTime]);
-
   const fetchSlotTimes = async () => {
     setLoading(true);
     try {
@@ -53,7 +49,8 @@ const SelectTimeSlotStep = (props: Props) => {
         setSlotTimes(slots);
 
         if (slots.length > 0) {
-          setSelectedDate(slots[0].date);
+          const today = new Date().toISOString().split("T")[0];
+          setSelectedDate(today);
         }
       } else {
         setSlotTimes([]);
@@ -120,215 +117,250 @@ const SelectTimeSlotStep = (props: Props) => {
     ? slotTimes.filter((x) => x.date === selectedDate)
     : [];
 
-  const formatTime = (slot: string) => {
-    const m = slot.match(/H(\d+)_/);
-    return m ? `${m[1]}:00` : slot;
-  };
-
-  // ————————————————————————————————————————————————————————————
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-      {/* 🔹 Calendar Section */}
-      <SectionComponent styles={{ marginTop: 10, marginHorizontal: 10 }}>
-        <RowComponent styles={{ marginBottom: 12 }}>
-          <Fontisto name="calendar" size={16} color={appColor.primary} />
-          <TextComponent
-            text="Chọn ngày"
-            size={15}
-            font={fontFamilies.roboto_medium}
-            styles={{ marginLeft: 6 }}
-          />
-        </RowComponent>
-
-        <View
-          style={{
-            backgroundColor: appColor.white,
-            borderRadius: 14,
-            padding: 16,
-            borderWidth: 1,
-            borderColor: "#EDEDED",
-          }}
-        >
-          {/* 🔸 Month Header */}
-          <RowComponent justify="space-between">
-            <TouchableOpacity
-              onPress={() =>
-                setCurrentMonth(
-                  new Date(
-                    currentMonth.getFullYear(),
-                    currentMonth.getMonth() - 1
-                  )
-                )
-              }
-            >
-              <AntDesign name="left" size={18} color={appColor.primary} />
-            </TouchableOpacity>
-
-            <View style={{ alignItems: "center" }}>
-              <TextComponent
-                text={currentMonth.toLocaleString("vi-VN", { month: "long" })}
-                size={15}
-                font={fontFamilies.roboto_medium}
-              />
-              <TextComponent
-                text={String(currentMonth.getFullYear())}
-                size={12}
-                color={appColor.gray2}
-              />
-            </View>
-
-            <TouchableOpacity
-              onPress={() =>
-                setCurrentMonth(
-                  new Date(
-                    currentMonth.getFullYear(),
-                    currentMonth.getMonth() + 1
-                  )
-                )
-              }
-            >
-              <AntDesign name="right" size={18} color={appColor.primary} />
-            </TouchableOpacity>
-          </RowComponent>
-
-          {/* 🔸 Day Headers */}
-          <RowComponent
-            justify="space-between"
-            styles={{ marginVertical: 10, paddingHorizontal: 4 }}
-          >
-            {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((d) => (
-              <TextComponent
-                key={d}
-                text={d}
-                size={11}
-                color={appColor.gray2}
-                font={fontFamilies.roboto_regular}
-              />
-            ))}
-          </RowComponent>
-
-          {/* 🔸 Calendar Grid */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-            {getCalendarDays().map((d, idx) => {
-              const disabled = !d.isCurrentMonth || isPast(d.date);
-              const active = d.date === selectedDate;
-
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => {
-                    if (!disabled) {
-                      setSelectedDate(d.date);
-                      setSelectedTime(null);
-                    }
-                  }}
-                  disabled={disabled}
-                  style={{
-                    width: "14.28%",
-                    aspectRatio: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 10,
-                      backgroundColor: active
-                        ? appColor.primary
-                        : "transparent",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <TextComponent
-                      text={String(d.day)}
-                      size={13}
-                      color={
-                        active
-                          ? appColor.white
-                          : disabled
-                          ? appColor.gray3
-                          : appColor.text
-                      }
-                    />
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+      <SectionComponent
+        styles={{ alignItems: "center", marginTop: 8, paddingHorizontal: 12 }}
+      >
+        <TextComponent
+          text="Chọn thời gian"
+          size={20}
+          font={fontFamilies.roboto_medium}
+          color={appColor.text}
+        />
+        <TextComponent
+          text="Chọn ngày và khung giờ phù hợp"
+          color={appColor.gray2}
+          font={fontFamilies.roboto_regular}
+          size={14}
+          styles={{ marginTop: 6 }}
+        />
       </SectionComponent>
 
-      {/* 🔹 Time Slots */}
-      {selectedDate && !isPast(selectedDate) && (
-        <SectionComponent styles={{ marginTop: 12, marginHorizontal: 10 }}>
-          <RowComponent styles={{ marginBottom: 12 }}>
-            <Fontisto name="clock" size={16} color={appColor.primary} />
+      <SpaceComponent height={12} />
+
+      {/* Calendar Section */}
+      <SectionComponent styles={{ paddingHorizontal: 12 }}>
+        <RowComponent justify="space-between">
+          <RowComponent>
+            <Fontisto name="date" size={20} color={appColor.primary} />
             <TextComponent
-              text="Chọn giờ"
-              size={15}
-              font={fontFamilies.roboto_medium}
-              styles={{ marginLeft: 6 }}
+              text="Chọn ngày"
+              size={18}
+              color={appColor.text}
+              styles={{ marginLeft: 8 }}
             />
           </RowComponent>
+          <RowComponent>
+            <TouchableOpacity
+              onPress={() =>
+                setCurrentMonth(
+                  new Date(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() - 1,
+                    1
+                  )
+                )
+              }
+              style={{ padding: 4, borderRadius: 6 }}
+            >
+              <TextComponent text="‹" size={20} color={appColor.text} />
+            </TouchableOpacity>
+            <TextComponent
+              text={currentMonth.toLocaleString("vi-VN", {
+                month: "long",
+                year: "numeric",
+              })}
+              size={14}
+              font={fontFamilies.roboto_medium}
+              styles={{
+                marginHorizontal: 6,
+                maxWidth: 140,
+                textAlign: "center",
+              }}
+            />
+            <TouchableOpacity
+              onPress={() =>
+                setCurrentMonth(
+                  new Date(
+                    currentMonth.getFullYear(),
+                    currentMonth.getMonth() + 1,
+                    1
+                  )
+                )
+              }
+              style={{ padding: 4, borderRadius: 6 }}
+            >
+              <TextComponent text="›" size={20} color={appColor.text} />
+            </TouchableOpacity>
+          </RowComponent>
+        </RowComponent>
 
+        <SpaceComponent height={12} />
+
+        {/* Day Headers */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((d) => (
+            <View key={d} style={{ width: "14.28%", alignItems: "center" }}>
+              <TextComponent text={d} size={12} color={appColor.gray2} />
+            </View>
+          ))}
+        </View>
+
+        {/* Calendar Grid */}
+        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+          {getCalendarDays().map((d, idx) => {
+            const disabled = !d.isCurrentMonth || isPast(d.date);
+            const active = d.date === selectedDate;
+
+            return (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => {
+                  if (!disabled) {
+                    setSelectedDate(d.date);
+                    setSelectedTime(null);
+                  }
+                }}
+                disabled={disabled}
+                style={{
+                  width: "14.28%",
+                  alignItems: "center",
+                  paddingVertical: 6,
+                }}
+                activeOpacity={disabled ? 1 : 0.7}
+              >
+                <View
+                  style={[
+                    {
+                      width: 34,
+                      height: 34,
+                      borderRadius: 17,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    },
+                    active && {
+                      backgroundColor: appColor.primary,
+                      borderRadius: 8,
+                    },
+                    !d.isCurrentMonth && { opacity: 0.35 },
+                  ]}
+                >
+                  <TextComponent
+                    text={String(d.day)}
+                    size={14}
+                    color={
+                      active
+                        ? appColor.white
+                        : isPast(d.date)
+                        ? appColor.gray2
+                        : appColor.text
+                    }
+                  />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <SpaceComponent height={16} />
+      </SectionComponent>
+
+      {/* Time Slots */}
+      {selectedDate && !isPast(selectedDate) && (
+        <SectionComponent styles={{ paddingHorizontal: 12 }}>
+          <RowComponent justify="flex-start">
+            <AntDesign name="clock-circle" size={24} color={appColor.primary} />
+            <TextComponent
+              text="Chọn giờ"
+              size={19}
+              color={appColor.text}
+              font={fontFamilies.roboto_medium}
+              styles={{ marginLeft: 8 }}
+            />
+          </RowComponent>
+          <SpaceComponent height={16} />
           <View
             style={{
-              backgroundColor: appColor.white,
-              borderRadius: 14,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: "#EDEDED",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
             }}
           >
             {timeSlotsForSelectedDate.length === 0 ? (
               <TextComponent
-                text="Không có lịch khả dụng"
+                text="Không có khung giờ cho ngày này."
+                size={14}
                 color={appColor.gray2}
-                size={13}
-                styles={{ textAlign: "center" }}
               />
             ) : (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                {timeSlotsForSelectedDate.map((x) => {
-                  const selected = x.slotTime === selectedTime;
+              timeSlotsForSelectedDate.map((x) => {
+                const selected = x.slotTime === selectedTime;
+                const disabled = x.isActive === false || (x.capacity ?? 0) <= 0;
 
-                  return (
-                    <TouchableOpacity
-                      key={x.id}
-                      onPress={() => x.isActive && setSelectedTime(x.slotTime)}
-                      style={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 10,
-                        borderRadius: 10,
-                        minWidth: "28%",
+                return (
+                  <TouchableOpacity
+                    key={x.id}
+                    disabled={disabled}
+                    onPress={() => {
+                      if (x.isActive) {
+                        setSelectedTime(x.slotTime);
+                        onSelectTimeSlot?.({ date: selectedDate!, time: x.slotTime });
+                      }
+                    }}
+                    style={[
+                      {
+                        width: "48%",
+                        paddingVertical: 14,
+                        borderRadius: 8,
                         borderWidth: 1,
-                        borderColor: selected ? appColor.primary : "#E5E5E5",
-                        backgroundColor: selected
-                          ? appColor.primary
-                          : appColor.white,
-                        opacity: x.isActive ? 1 : 0.4,
+                        marginBottom: 10,
                         alignItems: "center",
-                      }}
-                    >
-                      <TextComponent
-                        text={formatTime(x.slotTime)}
-                        size={12}
-                        font={fontFamilies.roboto_medium}
-                        color={selected ? appColor.white : appColor.text}
-                      />
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                        backgroundColor: selected ? appColor.primary : "#FFF",
+                        borderColor: selected ? appColor.primary : "#EEE",
+                      },
+                      disabled && {
+                        backgroundColor: "#F5F5F5",
+                        opacity: 0.5,
+                      },
+                    ]}
+                  >
+                    <TextComponent
+                      text={formatSlotTime(x.slotTime)}
+                      size={16}
+                      color={
+                        disabled
+                          ? appColor.gray2
+                          : selected
+                          ? "#FFF"
+                          : appColor.text
+                      }
+                    />
+                  </TouchableOpacity>
+                );
+              })
             )}
           </View>
         </SectionComponent>
       )}
 
       <SpaceComponent height={20} />
+
+      {validationError && (
+        <SectionComponent styles={{ paddingHorizontal: 12 }}>
+          <TextComponent
+            text={validationError}
+            size={14}
+            color={appColor.danger}
+            styles={{ textAlign: "center" }}
+          />
+        </SectionComponent>
+      )}
     </ScrollView>
   );
 };

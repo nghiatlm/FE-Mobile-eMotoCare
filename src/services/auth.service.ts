@@ -76,8 +76,24 @@ export const login = async (model: any, isRemember: boolean) => {
     }
     return { success: false, message: res.message || "Đăng nhập thất bại" };
   } catch (error: any) {
+    // Ưu tiên lấy message từ response để tránh hiển thị mã lỗi mặc định
     console.log("Login error:", error);
-    return { success: false, message: error.message || "Đăng nhập thất bại" };
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message;
+    const apiErrors = error?.response?.data?.errors;
+    if (apiErrors) {
+      return {
+        success: false,
+        errors: apiErrors,
+        message: apiMessage || "Đăng nhập thất bại. Vui lòng thử lại.",
+      };
+    }
+    return {
+      success: false,
+      message: apiMessage || "Đăng nhập thất bại. Vui lòng thử lại.",
+    };
   }
 };
 

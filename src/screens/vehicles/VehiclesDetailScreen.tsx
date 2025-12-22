@@ -9,6 +9,7 @@ import {
   TextComponent,
 } from "../../components";
 import StepProgress from "../../components/StepProgress";
+import RegularMaintenance from "../home/components/RegularMaintenance";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
 import { getVehicleById } from "../../services/vehicle.service";
@@ -165,129 +166,13 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
         ]}
       >
         <TextComponent
-          text="Thông tin kiểm tra định kỳ "
+          text="Bảo dưỡng định kỳ"
           size={18}
           font={fontFamilies.roboto_medium}
           color={appColor.text}
         />
-        <SpaceComponent height={8} />
-
-        <RowComponent>
-          <StepProgress
-            steps={["Lần 1", "Lần 2", "Lần 3", "Lần 4", "Lần 5", "Lần 6"]}
-            current={vehicle?.currentCheckStep ?? 1}
-          />
-        </RowComponent>
         <SpaceComponent height={12} />
-        <RowComponent justify="space-around">
-          <RowComponent>
-            <View
-              style={{
-                height: 10,
-                width: 10,
-                backgroundColor: appColor.primary,
-                borderRadius: 100,
-              }}
-            />
-            <TextComponent
-              text="Đúng hẹn"
-              size={14}
-              color={appColor.text}
-              font={fontFamilies.roboto_light}
-              styles={{ marginLeft: 8 }}
-            />
-          </RowComponent>
-
-          <RowComponent>
-            <View
-              style={{
-                height: 10,
-                width: 10,
-                backgroundColor: appColor.danger,
-                borderRadius: 100,
-              }}
-            />
-            <TextComponent
-              text="Quá hạn"
-              size={14}
-              color={appColor.text}
-              font={fontFamilies.roboto_light}
-              styles={{ marginLeft: 8 }}
-            />
-          </RowComponent>
-
-          <RowComponent>
-            <View
-              style={{
-                height: 10,
-                width: 10,
-                backgroundColor: appColor.warning,
-                borderRadius: 100,
-              }}
-            />
-            <TextComponent
-              text="Lần kế tiếp"
-              size={14}
-              color={appColor.text}
-              font={fontFamilies.roboto_light}
-              styles={{ marginLeft: 8 }}
-            />
-          </RowComponent>
-        </RowComponent>
-
-        <View
-          style={{
-            height: 2,
-            width: "100%",
-            backgroundColor: appColor.gray,
-            marginTop: 20,
-          }}
-        />
-        <SpaceComponent height={12} />
-        <RowComponent justify="space-between">
-          <TextComponent
-            text="Ngày KTĐK gần nhất (Lần 2): "
-            size={14}
-            font={fontFamilies.roboto_regular}
-            color={appColor.text}
-          />
-          <TextComponent
-            text="24/10/2025"
-            size={14}
-            font={fontFamilies.roboto_regular}
-            color={appColor.text}
-          />
-        </RowComponent>
-
-        <View
-          style={{
-            height: 2,
-            width: "100%",
-            backgroundColor: appColor.gray,
-            marginTop: 20,
-          }}
-        />
-        <SpaceComponent height={12} />
-        <RowComponent
-          justify="space-between"
-          styles={{ alignItems: "flex-start" }}
-        >
-          <TextComponent
-            text="Ngày hết hạn KTĐK tiếp theo (lần 5): "
-            size={14}
-            font={fontFamilies.roboto_regular}
-            color={appColor.text}
-            styles={{ maxWidth: "70%" }}
-          />
-          <TextComponent
-            text="16/08/2025"
-            size={14}
-            font={fontFamilies.roboto_regular}
-            color={appColor.text}
-          />
-        </RowComponent>
-        <SpaceComponent height={16} />
-        <ButtonComponent text="Đặt dịch vụ" type="primary" />
+        <RegularMaintenance vehicleId={vehicleId} navigation={navigation} />
       </SectionComponent>
 
       <SpaceComponent height={16} />
@@ -520,7 +405,10 @@ const VehiclesDetailScreen = ({ navigation, route }: any) => {
             />
           </View>
         }
-        onPress={() => navigation.navigate("BatteryCurrent")}
+        onPress={() => navigation.navigate("Batteries", { 
+          screen: "BatteryScreen",
+          params: { vehicleId: vehicleId }
+        })}
         styles={[globalStyle.shadow]}
       />
     </BackgroundComponent>

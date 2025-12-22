@@ -30,7 +30,7 @@ type RepairFormState = {
   appointmentDate?: string;
   slotTime?: string;
   type?: string;
-  description?: string;
+  note?: string;
 };
 
 const initState: RepairFormState = {
@@ -40,7 +40,7 @@ const initState: RepairFormState = {
   appointmentDate: "",
   slotTime: "",
   type: "REPAIR_TYPE",
-  description: "",
+  note: "",
 };
 
 /* --- reducer --- */
@@ -403,9 +403,9 @@ const CreateRepairScreen = ({ navigation }: any) => {
             <SpaceComponent height={12} />
             <TextInput
               style={styles.textArea}
-              value={state.description ?? ""}
+              value={state.note ?? ""}
               onChangeText={(text) =>
-                dispatch({ type: "SET", payload: { description: text } })
+                dispatch({ type: "SET", payload: { note: text } })
               }
               placeholder="Nhập trình trạng xe"
               placeholderTextColor={appColor.gray}

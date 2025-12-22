@@ -18,6 +18,11 @@ import {
   updateEvCheck,
 } from "../../services/evcheck.service";
 import { globalStyle } from "../../styles/globalStyle";
+import {
+  formatRemedies,
+  formatServiceType,
+  formatStaffRole,
+} from "../../utils/generateStatus";
 
 const InspectionResult = ({ navigation, route }: any) => {
   const evCheckId = route?.params?.evcheck || route?.params?.evCheckId;
@@ -90,111 +95,115 @@ const InspectionResult = ({ navigation, route }: any) => {
 
     return (
       <View style={styles.itemCard}>
-        <View style={styles.itemLeft}>
-          <Image
-            source={
-              item?.partItem?.part?.image
-                ? { uri: item.partItem.part.image }
-                : require("../../assets/images/parts/dong-ho.png")
-            }
-            style={styles.partImage}
-          />
-        </View>
+        <View style={styles.itemTop}>
+          <View style={styles.itemLeft}>
+            <Image
+              source={
+                item?.partItem?.part?.image
+                  ? { uri: item.partItem.part.image }
+                  : require("../../assets/images/parts/dong-ho.png")
+              }
+              style={styles.partImage}
+            />
+          </View>
 
-        <View style={styles.itemRight}>
-          <TextComponent
-            text={partName}
-            size={16}
-            font={fontFamilies.roboto_bold}
-            color={appColor.text}
-          />
-          <SpaceComponent height={8} />
+          <View style={styles.itemRight}>
+            <TextComponent
+              text={partName}
+              size={14}
+              font={fontFamilies.roboto_bold}
+              color={appColor.text}
+            />
+            <SpaceComponent height={8} />
 
-          <RowComponent justify="flex-start" styles={{ alignItems: "center" }}>
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor:
-                    item?.result === "OK"
-                      ? appColor.primary + "20"
-                      : appColor.warning + "20",
-                },
-              ]}
+            <RowComponent
+              justify="flex-start"
+              styles={{ alignItems: "center" }}
             >
-              <TextComponent
-                text={item?.result ?? "Chưa có"}
-                size={12}
-                font={fontFamilies.roboto_medium}
-                color={
-                  item?.result === "OK" ? appColor.primary : appColor.warning
-                }
-              />
-            </View>
-          </RowComponent>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor:
+                      item?.result === "OK"
+                        ? appColor.primary + "20"
+                        : appColor.warning + "20",
+                  },
+                ]}
+              >
+                <TextComponent
+                  text={item?.result ?? "Chưa có"}
+                  size={12}
+                  font={fontFamilies.roboto_medium}
+                  color={
+                    item?.result === "OK" ? appColor.primary : appColor.warning
+                  }
+                />
+              </View>
+            </RowComponent>
 
-          <SpaceComponent height={8} />
+            <SpaceComponent height={8} />
 
-          <TextComponent
-            text={`Giải pháp: ${item?.remedies ?? "Không cần"}`}
-            size={13}
-            color={appColor.gray2}
-          />
-
-          <SpaceComponent height={12} />
-
-          <View
-            style={{
-              height: 1,
-              backgroundColor: appColor.gray,
-              marginVertical: 8,
-            }}
-          />
-
-          <RowComponent justify="space-between" styles={{ marginTop: 8 }}>
-            <View>
-              <TextComponent text="Số lượng" size={12} color={appColor.gray2} />
-              <TextComponent
-                text={`${qty} ${item?.unit ?? "cái"}`}
-                size={15}
-                font={fontFamilies.roboto_medium}
-                color={appColor.text}
-                styles={{ marginTop: 4 }}
-              />
-            </View>
-
-            <View style={{ alignItems: "flex-end" }}>
-              <TextComponent text="Đơn giá" size={12} color={appColor.gray2} />
-              <TextComponent
-                text={`${(pricePart || 0).toLocaleString?.()} ₫`}
-                size={15}
-                font={fontFamilies.roboto_medium}
-                color={appColor.text}
-                styles={{ marginTop: 4 }}
-              />
-            </View>
-
-            <View style={{ alignItems: "flex-end" }}>
-              <TextComponent text="Tổng tiền" size={12} color={appColor.gray2} />
-              <TextComponent
-                text={`${(total || 0).toLocaleString?.()} ₫`}
-                size={16}
-                font={fontFamilies.roboto_bold}
-                color={appColor.primary}
-                styles={{ marginTop: 4 }}
-              />
-            </View>
-          </RowComponent>
+            <TextComponent
+              text={`Giải pháp: ${
+                formatRemedies(item?.remedies) ?? "Không cần"
+              }`}
+              size={13}
+              color={appColor.gray2}
+            />
+          </View>
         </View>
+
+        <View
+          style={{
+            height: 1,
+            backgroundColor: appColor.gray,
+            marginVertical: 12,
+          }}
+        />
+
+        <RowComponent justify="space-between" styles={{ paddingHorizontal: 4 }}>
+          <View>
+            <TextComponent text="Số lượng" size={12} color={appColor.gray2} />
+            <TextComponent
+              text={`${qty} ${item?.unit ?? "cái"}`}
+              size={15}
+              font={fontFamilies.roboto_medium}
+              color={appColor.text}
+              styles={{ marginTop: 4 }}
+            />
+          </View>
+
+          <View style={{ alignItems: "center" }}>
+            <TextComponent text="Đơn giá" size={12} color={appColor.gray2} />
+            <TextComponent
+              text={`${(pricePart || 0).toLocaleString?.()} ₫`}
+              size={15}
+              font={fontFamilies.roboto_medium}
+              color={appColor.text}
+              styles={{ marginTop: 4 }}
+            />
+          </View>
+
+          <View style={{ alignItems: "flex-end" }}>
+            <TextComponent text="Tổng tiền" size={12} color={appColor.gray2} />
+            <TextComponent
+              text={`${(total || 0).toLocaleString?.()} ₫`}
+              size={16}
+              font={fontFamilies.roboto_bold}
+              color={appColor.primary}
+              styles={{ marginTop: 4 }}
+            />
+          </View>
+        </RowComponent>
       </View>
     );
   };
 
   const totalAmount = evCheck?.evCheckDetails
-    ? evCheck.evCheckDetails.reduce(
-        (s: number, d: any) => s + (d?.totalAmount ?? 0),
-        0
-      )
+    ? evCheck.evCheckDetails
+        .filter((d: any) => d?.remedies !== "NONE")
+        .reduce((s: number, d: any) => s + (d?.totalAmount ?? 0), 0)
     : 0;
 
   const footer = (
@@ -257,20 +266,21 @@ const InspectionResult = ({ navigation, route }: any) => {
             <View style={{ flex: 1 }}>
               <TextComponent
                 text="Thông tin chung"
-                size={18}
+                size={16}
                 font={fontFamilies.roboto_medium}
               />
               <SpaceComponent height={10} />
               <TextComponent
                 text={`Kiểu xe: ${
-                  evCheck?.appointment?.vehicle?.model ?? "VINFAST KLARA"
+                  evCheck?.appointment?.vehicle?.modelName ?? "VINFAST KLARA"
                 }`}
                 size={14}
                 styles={{ marginTop: 2 }}
               />
               <TextComponent
                 text={`Nội dung: ${
-                  evCheck?.appointment?.type ?? "Bảo dưỡng định kỳ"
+                  formatServiceType(evCheck?.appointment?.type) ??
+                  "Bảo dưỡng định kỳ"
                 }`}
                 size={14}
                 styles={{ marginTop: 4 }}
@@ -290,7 +300,7 @@ const InspectionResult = ({ navigation, route }: any) => {
             <View style={{ flex: 1 }}>
               <TextComponent
                 text="Nhân viên thực hiện"
-                size={18}
+                size={16}
                 font={fontFamilies.roboto_medium}
               />
               <SpaceComponent height={8} />
@@ -302,7 +312,7 @@ const InspectionResult = ({ navigation, route }: any) => {
                 styles={{ marginTop: 2 }}
               />
               <TextComponent
-                text={evCheck?.taskExecutor?.position ?? ""}
+                text={formatStaffRole(evCheck?.taskExecutor?.position) ?? ""}
                 size={14}
                 styles={{ marginTop: 4 }}
               />
@@ -313,13 +323,13 @@ const InspectionResult = ({ navigation, route }: any) => {
         <SpaceComponent height={16} />
 
         <SectionComponent
-          styles={{ paddingHorizontal: 12, paddingVertical: 12 }}
+          styles={{ paddingHorizontal: 12, paddingVertical: 12, marginHorizontal: -10 }}
         >
           <RowComponent justify="flex-start">
-            <Octicons name="checklist" size={22} color={appColor.primary} />
+            <Octicons name="checklist" size={18} color={appColor.primary} />
             <TextComponent
               text="Kết quả kiểm tra"
-              title
+              size={18}
               color={appColor.primary}
               font={fontFamilies.roboto_medium}
               styles={{ marginLeft: 8 }}
@@ -330,7 +340,9 @@ const InspectionResult = ({ navigation, route }: any) => {
 
           {evCheck?.evCheckDetails && evCheck.evCheckDetails.length > 0 ? (
             <FlatList
-              data={evCheck.evCheckDetails}
+              data={evCheck.evCheckDetails.filter(
+                (item: any) => item?.remedies !== "NONE"
+              )}
               renderItem={renderDetail}
               keyExtractor={(i) =>
                 i.id ?? i.partItem?.id ?? Math.random().toString()
@@ -391,20 +403,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 6,
     elevation: 2,
-    marginHorizontal: 8,
   },
   itemCard: {
-    flexDirection: "row",
+    flexDirection: "column",
     backgroundColor: appColor.white,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: appColor.gray,
     padding: 14,
-    alignItems: "flex-start",
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
+  },
+  itemTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   itemLeft: {
     width: 90,

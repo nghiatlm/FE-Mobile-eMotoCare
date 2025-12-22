@@ -10,7 +10,7 @@ const ServiceNavigator = () => {
       <Stack.Screen name="ServiceScreen" component={ServiceScreen} />
       <Stack.Screen name="CreateRepairScreen" component={CreateRepairScreen} />
       <Stack.Screen name="WaitConfirm" component={WaitConfirm} />
-      <Stack.Screen name="AppointmentDetail" component={AppointmentDetail} />
+      <Stack.Screen name="Appointments" component={AppointmentNavigator} />
     </Stack.Navigator>
   );
 };

@@ -4,6 +4,8 @@ import { SectionComponent, SpaceComponent, TextComponent } from "../../../compon
 import ConfirmCard from "../../../components/ConfirmCard";
 import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
+import { formatSlotTime } from "../../../utils/formatSlotTime";
+import { formatDateDDMMYYYY } from "../../../utils/formatDate";
 
 interface Props {
   center?: any;
@@ -26,7 +28,7 @@ const ConfirmStep = (props: Props) => {
 
   return (
     <View style={{ gap: 14 }}>
-      <SectionComponent styles={{ marginTop: 20, alignItems: "center" }}>
+      <SectionComponent styles={{ marginTop: 20, alignItems: "center", paddingHorizontal: 12 }}>
         <TextComponent
           text="Xác nhận thông tin đặt lịch"
           size={20}
@@ -36,24 +38,27 @@ const ConfirmStep = (props: Props) => {
         <SpaceComponent height={6} />
         <TextComponent
           text="Vui lòng kiểm tra thông tin trước khi xác nhận"
-          size={15}
+          size={14}
           color={appColor.gray2}
-          font={fontFamilies.roboto_light}
+          font={fontFamilies.roboto_regular}
+          styles={{ textAlign: "center" }}
         />
       </SectionComponent>
+
+      <SpaceComponent height={8} />
 
       <ConfirmCard
         icon="map-marker"
         title="Trung tâm bảo dưỡng"
-        line1={center?.name || "Trung tâm A"}
-        line2={`Địa chỉ: ${center?.address || "123 Đường ABC, Quận 1, TP.HCM"}`}
+        line1={center?.name || "Chưa chọn trung tâm"}
+        line2={center?.address ? `Địa chỉ: ${center.address}` : ""}
       />
 
       <ConfirmCard
         icon="motorcycle"
         title="Thông tin xe"
-        line1={vehicle?.licensePlate || "51A-123.45"}
-        line2={`Loại xe: ${vehicle?.modelName || "Xe máy ABC"}`}
+        line1={vehicle?.licensePlate || "Chưa có biển số"}
+        line2={vehicle?.modelName ? `Loại xe: ${vehicle.modelName}` : ""}
       />
 
       <ConfirmCard
@@ -61,10 +66,17 @@ const ConfirmStep = (props: Props) => {
         title="Thời gian đặt lịch"
         line1={
           timeSlot
-            ? `${timeSlot.date} • ${timeSlot.time}`
-            : "2024-07-01 • 10:00 AM"
+            ? `Ngày: ${formatDateDDMMYYYY(timeSlot.date)}`
+            : "Chưa chọn thời gian"
+        }
+        line2={
+          timeSlot?.time
+            ? `Khung giờ: ${formatSlotTime(timeSlot.time)}`
+            : ""
         }
       />
+      
+      <SpaceComponent height={12} />
     </View>
   );
 };

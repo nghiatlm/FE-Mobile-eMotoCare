@@ -32,7 +32,6 @@ const RegularMaintenance = forwardRef((props: RegularMaintenanceProps, ref) => {
     const res = await getVehicleStages(params);
     if (res.success) {
       setVehicleStages(res.data.rowDatas);
-      console.log("Vehicle stages fetched:", res.data.rowDatas);
     } else {
       setVehicleStages([]);
     }

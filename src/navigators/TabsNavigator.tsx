@@ -29,7 +29,7 @@ const TabsNavigator = () => {
             headerShown: false,
             tabBarStyle: [
               "CreateRepairScreen",
-              "AppointmentDetail",
+              "Appointments",
               "WaitConfirm",
             ].includes(routeName)
               ? { display: "none" }
@@ -54,7 +54,8 @@ const TabsNavigator = () => {
               "InspectionResult",
               "PaymentInfor",
               "Batteries",
-              "RevisedMinutes"
+              "RevisedMinutes",
+              "RepairProcess"
             ].includes(routeName)
               ? { display: "none" }
               : undefined,

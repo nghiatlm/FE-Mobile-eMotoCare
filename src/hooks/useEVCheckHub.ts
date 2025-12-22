@@ -42,7 +42,7 @@ export default function useEvcheckHub(evcheckId: string) {
           await connection.stop();
         }
       } catch (err) {
-        console.error("❌ Connection error Evcheck:", err);
+        console.log("❌ Connection error Evcheck:", err);
       }
     };
 

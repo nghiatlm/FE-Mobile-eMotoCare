@@ -1,5 +1,7 @@
+import { Feather } from "@expo/vector-icons";
+import { Lock } from "iconsax-react-nativejs";
 import React, { useEffect, useState } from "react";
-import { Alert, Image, Switch } from "react-native";
+import { ActivityIndicator, Image, Modal, Switch, View } from "react-native";
 import {
   ButtonComponent,
   ContainerComponent,
@@ -9,10 +11,8 @@ import {
   SpaceComponent,
   TextComponent,
 } from "../../components";
-import { fontFamilies } from "../../constants/fontFamilies";
 import { appColor } from "../../constants/appColor";
-import { Feather } from "@expo/vector-icons";
-import { Lock } from "iconsax-react-nativejs";
+import { fontFamilies } from "../../constants/fontFamilies";
 import { login } from "../../services/auth.service";
 
 const initValue = {
@@ -26,10 +26,12 @@ const LoginScreen = ({ navigation }: any) => {
   const [isLoading, setIsLoading] = useState(false);
   const [values, setValues] = useState(initValue);
   const [errors, setErrors] = useState<Errors>({});
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (values.phone || values.password) {
       setErrors({});
+      setErrorMessage("");
     }
   }, [values.phone, values.password]);
 
@@ -42,8 +44,10 @@ const LoginScreen = ({ navigation }: any) => {
   const handleLogin = async () => {
     setIsLoading(true);
     setErrors({});
+    setErrorMessage("");
     console.log("Login values: ", values, isRemember);
     const res = await login(values, isRemember);
+    setIsLoading(false);
     if (res.success) {
       console.log("Login successful:", res.data);
     } else {
@@ -51,10 +55,9 @@ const LoginScreen = ({ navigation }: any) => {
       if (res.errors) {
         setErrors(res.errors as Errors);
       } else {
-        Alert.alert("Đăng nhập thất bại", res.message || "Vui lòng thử lại.");
+        setErrorMessage(res.message || "Đăng nhập thất bại. Vui lòng thử lại.");
       }
     }
-    setIsLoading(false);
   };
   return (
     <ContainerComponent isImageBackground isScroll>
@@ -101,6 +104,27 @@ const LoginScreen = ({ navigation }: any) => {
         />
       </SectionComponent>
 
+      {errorMessage ? (
+        <SectionComponent>
+          <View
+            style={{
+              backgroundColor: appColor.danger50,
+              padding: 12,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: appColor.danger,
+            }}
+          >
+            <TextComponent
+              text={errorMessage}
+              color={appColor.danger}
+              size={14}
+              font={fontFamilies.roboto_medium}
+            />
+          </View>
+        </SectionComponent>
+      ) : null}
+
       <RowComponent justify="space-between">
         <RowComponent onPress={() => setIsRemember(!isRemember)}>
           <Switch
@@ -136,6 +160,38 @@ const LoginScreen = ({ navigation }: any) => {
           />
         </RowComponent>
       </SectionComponent>
+
+      <Modal
+        visible={isLoading}
+        transparent
+        animationType="fade"
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: appColor.white,
+              padding: 24,
+              borderRadius: 12,
+              alignItems: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color={appColor.primary} />
+            <SpaceComponent height={12} />
+            <TextComponent
+              text="Đang đăng nhập..."
+              color={appColor.text}
+              size={16}
+            />
+          </View>
+        </View>
+      </Modal>
     </ContainerComponent>
   );
 };

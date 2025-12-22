@@ -143,7 +143,7 @@ const ChooseVehicle = (props: Props) => {
             })}
           </ScrollView>
         </View>
-        {errorMessage && (
+        {/* {errorMessage && (
           <>
             <SpaceComponent height={4} />
             <TextComponent
@@ -153,7 +153,7 @@ const ChooseVehicle = (props: Props) => {
               font={fontFamilies.roboto_regular}
             />
           </>
-        )}
+        )} */}
       </SectionComponent>
     </View>
   );

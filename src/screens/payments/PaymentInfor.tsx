@@ -18,13 +18,14 @@ const PaymentInfor = ({ route, navigation }: any) => {
   useEffect(() => {
     const sub = Linking.addEventListener("url", (event) => {
       const url = event.url;
+      console.log("Deep link URL received:", url);
 
       if (url.includes("success")) {
+        console.log("Payment success detected");
         setStatus("success");
-        setPaymentUrl(null); 
-      }
-
-      if (url.includes("cancel")) {
+        setPaymentUrl(null);
+      } else if (url.includes("cancel")) {
+        console.log("Payment cancel detected");
         setStatus("cancel");
         setPaymentUrl(null);
       }
@@ -33,13 +34,28 @@ const PaymentInfor = ({ route, navigation }: any) => {
     return () => sub.remove();
   }, []);
 
+  const handleNavigationStateChange = (navState: any) => {
+    const url = navState.url;
+    console.log("WebView navigating to:", url);
+
+    if (url.includes("success")) {
+      console.log("Payment success from WebView");
+      setStatus("success");
+      setPaymentUrl(null);
+    } else if (url.includes("cancel")) {
+      console.log("Payment cancel from WebView");
+      setStatus("cancel");
+      setPaymentUrl(null);
+    }
+  };
+
   const handleRetry = () => {
     setStatus("idle");
     setPaymentUrl(route.params?.paymentUrl || null);
   };
 
   const handleBackHome = () => {
-    navigation.navigate("Home");
+    navigation.navigate("HomeScreen");
   };
 
   const renderResult = () => {
@@ -79,13 +95,29 @@ const PaymentInfor = ({ route, navigation }: any) => {
 
         {isSuccess ? (
           <View style={{ width: "100%", gap: 12 }}>
-            <ButtonComponent text="Về trang chủ" type="primary" onPress={handleBackHome} />
-            <ButtonComponent text="Xem chi tiết" type="secondary" onPress={() => navigation.goBack()} />
+            <ButtonComponent
+              text="Về trang chủ"
+              type="primary"
+              onPress={handleBackHome}
+            />
+            <ButtonComponent
+              text="Xem chi tiết"
+              type="secondary"
+              onPress={() => navigation.goBack()}
+            />
           </View>
         ) : (
           <View style={{ width: "100%", gap: 12 }}>
-            <ButtonComponent text="Thử lại" type="primary" onPress={handleRetry} />
-            <ButtonComponent text="Về trang chủ" type="secondary" onPress={handleBackHome} />
+            <ButtonComponent
+              text="Thử lại"
+              type="primary"
+              onPress={handleRetry}
+            />
+            <ButtonComponent
+              text="Về trang chủ"
+              type="secondary"
+              onPress={handleBackHome}
+            />
           </View>
         )}
       </View>
@@ -95,7 +127,9 @@ const PaymentInfor = ({ route, navigation }: any) => {
   return (
     <View style={{ flex: 1, backgroundColor: appColor.white }}>
       {loading && (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <ActivityIndicator size="large" color={appColor.primary} />
           <Text style={{ marginTop: 10, color: appColor.text }}>
             Đang xử lý...
@@ -103,7 +137,11 @@ const PaymentInfor = ({ route, navigation }: any) => {
         </View>
       )}
       {paymentUrl && (
-        <WebView source={{ uri: paymentUrl }} style={{ flex: 1 }} />
+        <WebView
+          source={{ uri: paymentUrl }}
+          style={{ flex: 1 }}
+          onNavigationStateChange={handleNavigationStateChange}
+        />
       )}
       {!paymentUrl && renderResult()}
     </View>
