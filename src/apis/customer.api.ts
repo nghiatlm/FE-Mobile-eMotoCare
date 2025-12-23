@@ -14,3 +14,8 @@ export const newVehicle = async (model: any) => {
   const res = await apiClient.post(`/customers/sync-data`, model);
   return res.data;
 };
+
+export const updateCustomer = async (customerId: string, data: any) => {
+  const res = await apiClient.put(`/customers/${customerId}`, data);
+  return res.data;
+};

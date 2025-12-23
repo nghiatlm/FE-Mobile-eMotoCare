@@ -20,7 +20,7 @@ export interface Customer {
 
 export interface Vehicle {
   id: string;
-  vinNUmber: string; // giữ nguyên theo API của bạn (chữ U viết hoa)
+  vinNUmber: string;
   image: string;
   color: string;
   modelName: string;
