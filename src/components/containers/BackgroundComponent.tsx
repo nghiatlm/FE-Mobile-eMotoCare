@@ -97,7 +97,7 @@ const BackgroundComponent = (props: Props) => {
               contentContainerStyle={{
                 paddingBottom: footer
                   ? FOOTER_HEIGHT + (insets?.bottom ?? 0)
-                  : (insets?.bottom ?? 0) + 100,
+                  : (insets?.bottom ?? 0) + 40,
               }}
               style={{ flex: 1 }}
             >

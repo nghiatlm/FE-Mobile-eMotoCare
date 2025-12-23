@@ -2,6 +2,7 @@ import { AntDesign, Feather, Ionicons, MaterialIcons } from "@expo/vector-icons"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getCustomerByAccount, getCustomerById } from "../../apis/customer.api";
 import {
@@ -20,6 +21,7 @@ const SettingScreen = () => {
   const [customer, setCustomer] = useState<any>(null);
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const fetchCustomerData = async () => {
@@ -93,7 +95,7 @@ const SettingScreen = () => {
     {
       id: 1,
       title: "Thêm phương tiện mới",
-      icon: <AntDesign name="pluscircleo" size={24} color={appColor.primary} />,
+      icon: <AntDesign name="plus-circle" size={24} color={appColor.primary} />,
       onPress: () => {
         console.log("Thêm phương tiện mới");
       },
@@ -143,43 +145,46 @@ const SettingScreen = () => {
   return (
     <BackgroundComponent title="Cài đặt" back isScroll>
       <View style={styles.container}>
-        {/* User Info Card */}
-        <SectionComponent styles={styles.userCard}>
-          <RowComponent>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={getAvatarSource()}
-                style={styles.avatar}
-                resizeMode="cover"
-              />
-            </View>
-            <View style={styles.userInfo}>
-              <TextComponent
-                text={getFullName()}
-                size={16}
-                color={appColor.text}
-                font={fontFamilies.roboto_medium}
-              />
-              <TextComponent
-                text={getPhone()}
-                size={18}
-                color={appColor.text}
-                font={fontFamilies.roboto_bold}
-                styles={{ marginTop: 4 }}
-              />
-              <TextComponent
-                text={`Hoạt động từ: ${getActiveFromDate()}`}
-                size={12}
-                color={appColor.gray2}
-                styles={{ marginTop: 4 }}
-              />
-            </View>
-          </RowComponent>
-        </SectionComponent>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate("ProfileScreen")}
+        >
+          <SectionComponent styles={styles.userCard}>
+            <RowComponent>
+              <View style={styles.avatarContainer}>
+                <Image
+                  source={getAvatarSource()}
+                  style={styles.avatar}
+                  resizeMode="cover"
+                />
+              </View>
+              <View style={styles.userInfo}>
+                <TextComponent
+                  text={getFullName()}
+                  size={16}
+                  color={appColor.text}
+                  font={fontFamilies.roboto_medium}
+                />
+                <TextComponent
+                  text={getPhone()}
+                  size={18}
+                  color={appColor.text}
+                  font={fontFamilies.roboto_bold}
+                  styles={{ marginTop: 4 }}
+                />
+                <TextComponent
+                  text={`Hoạt động từ: ${getActiveFromDate()}`}
+                  size={12}
+                  color={appColor.gray2}
+                  styles={{ marginTop: 4 }}
+                />
+              </View>
+            </RowComponent>
+          </SectionComponent>
+        </TouchableOpacity>
 
         <SpaceComponent height={24} />
 
-        {/* Menu Items */}
         <View style={styles.menuContainer}>
           {menuItems.map((item) => (
             <TouchableOpacity
@@ -207,7 +212,6 @@ const SettingScreen = () => {
 
         <SpaceComponent height={32} />
 
-        {/* Logout Button */}
         <ButtonComponent
           text="Đăng xuất"
           type="primary"
@@ -221,7 +225,6 @@ const SettingScreen = () => {
 
         <SpaceComponent height={16} />
 
-        {/* Version */}
         <View style={styles.versionContainer}>
           <TextComponent
             text="Phiên bản: 1.01.1"
