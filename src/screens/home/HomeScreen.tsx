@@ -40,6 +40,7 @@ const HomeScreen = () => {
   const auth = useSelector(authSelecter);
   const dispatch = useDispatch();
   const [accountId, setAccountId] = React.useState<string | null>(null);
+  const name = customer?.lastName + customer?.firstName;
 
   useEffect(() => {
     const id = auth?.accountResponse?.id || auth?.id || null;
@@ -136,7 +137,9 @@ const HomeScreen = () => {
           }}
         >
           <RowComponent justify="space-between">
-            <RowComponent
+            <TouchableOpacity
+              activeOpacity={0.8}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               onPress={() => {
                 console.log("Profile button pressed");
                 try {
@@ -145,21 +148,35 @@ const HomeScreen = () => {
                   console.log("Navigation error:", error);
                 }
               }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
             >
               <View
                 style={{
                   width: 34,
                   height: 34,
                   borderRadius: 100,
-                  backgroundColor: "#DFF7E2",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  overflow: "hidden",
                 }}
               >
-                <Ionicons name="person" color={appColor.primary} size={24} />
+                {customer?.avatarUrl ? (
+                  <Image
+                    source={{ uri: customer.avatarUrl }}
+                    style={{ width: 34, height: 34 }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Image
+                    source={require("../../assets/images/avt_default.png")}
+                    style={{ width: 34, height: 34 }}
+                    resizeMode="cover"
+                  />
+                )}
               </View>
               <TextComponent
-                text={customer?.customerCode || "Khách hàng mới"}
+                text={name || "Khách hàng mới"}
                 font={fontFamilies.roboto_bold}
                 color={appColor.text}
                 size={16}
@@ -167,7 +184,7 @@ const HomeScreen = () => {
                   marginLeft: 12,
                 }}
               />
-            </RowComponent>
+            </TouchableOpacity>
             <TouchableOpacity>
               <View
                 style={{
@@ -188,7 +205,6 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </RowComponent>
         </SectionComponent>
-        {/* Vehicle section */}
         <SectionComponent
           styles={{
             marginLeft: -8,
