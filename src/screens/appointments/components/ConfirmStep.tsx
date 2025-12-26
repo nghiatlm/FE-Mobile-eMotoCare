@@ -57,8 +57,22 @@ const ConfirmStep = (props: Props) => {
       <ConfirmCard
         icon="motorcycle"
         title="Thông tin xe"
-        line1={vehicle?.licensePlate || "Chưa có biển số"}
-        line2={vehicle?.modelName ? `Loại xe: ${vehicle.modelName}` : ""}
+        line1={
+          vehicle?.modelName 
+            ? `${vehicle.modelName}${vehicle?.color ? ` - ${vehicle.color}` : ""}`
+            : vehicle?.model?.name
+            ? vehicle.model.name
+            : "Chưa có thông tin xe"
+        }
+        line2={
+          vehicle?.vinNUmber 
+            ? `Số khung: ${vehicle.vinNUmber}`
+            : vehicle?.chassisNumber
+            ? `Số khung: ${vehicle.chassisNumber}`
+            : vehicle?.model?.manufacturer
+            ? `Hãng: ${vehicle.model.manufacturer}`
+            : ""
+        }
       />
 
       <ConfirmCard

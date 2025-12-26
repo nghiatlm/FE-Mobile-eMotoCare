@@ -1,19 +1,25 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator
 } from "react-native";
+import { useSelector } from "react-redux";
 import {
   BackgroundComponent,
   RowComponent,
   SectionComponent,
+  SpaceComponent,
   TextComponent
 } from "../../components";
 import { appColor } from "../../constants/appColor";
 import { fontFamilies } from "../../constants/fontFamilies";
+import { globalStyle } from "../../styles/globalStyle";
+import { authSelecter } from "../../redux/reducers/authReducer";
+import { fetchNotifications } from "../../services/notification.service";
 
 interface Notification {
   id: string;
@@ -25,64 +31,52 @@ interface Notification {
   icon: string;
 }
 
-const notificationData: Notification[] = [
-  {
-    id: "1",
-    title: "Lịch hẹn sắp tới",
-    message:
-      "Bạn có lịch hẹn bảo dưỡng vào ngày 15/12/2025 tại Trung tâm dịch vụ A",
-    type: "appointment",
-    timestamp: "2 giờ trước",
-    read: false,
-    icon: "calendar-check",
-  },
-  {
-    id: "2",
-    title: "Pin xe cần theo dõi",
-    message: "Dung lượng pin của xe đã giảm xuống 45%. Vui lòng kiểm tra sớm",
-    type: "battery",
-    timestamp: "4 giờ trước",
-    read: false,
-    icon: "battery-alert",
-  },
-  {
-    id: "3",
-    title: "Bảo dưỡng định kỳ",
-    message: "Xe của bạn cần bảo dưỡng định kỳ. Hãy đặt lịch ngay",
-    type: "maintenance",
-    timestamp: "1 ngày trước",
-    read: true,
-    icon: "wrench",
-  },
-  {
-    id: "4",
-    title: "Cập nhật hệ thống",
-    message:
-      "Ứng dụng đã được cập nhật phiên bản mới với các tính năng tốt hơn",
-    type: "system",
-    timestamp: "3 ngày trước",
-    read: true,
-    icon: "update",
-  },
-  {
-    id: "5",
-    title: "Cảnh báo quãng đường",
-    message: "Xe của bạn đã lái được 8000km. Kiểm tra các bộ phận quan trọng",
-    type: "alert",
-    timestamp: "1 tuần trước",
-    read: true,
-    icon: "alert-circle",
-  },
-  {
-    id: "6",
-    title: "Lịch hẹn đã hoàn thành",
-    message: "Lịch hẹn bảo dưỡng tại Trung tâm dịch vụ B đã hoàn thành",
-    type: "appointment",
-    timestamp: "2 tuần trước",
-    read: true,
-    icon: "check-circle",
-  },
-];
+// Helper function to format relative time
+const formatRelativeTime = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+
+    if (diffMins < 1) return "Vừa xong";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffWeeks < 4) return `${diffWeeks} tuần trước`;
+    
+    const months = Math.floor(diffDays / 30);
+    if (months < 12) return `${months} tháng trước`;
+    
+    const years = Math.floor(diffDays / 365);
+    return `${years} năm trước`;
+  } catch {
+    return dateString;
+  }
+};
+
+// Map API notification type to component type
+const mapNotificationType = (apiType: string): "appointment" | "maintenance" | "battery" | "system" | "alert" => {
+  const type = apiType?.toUpperCase() || "";
+  if (type.includes("APPOINTMENT")) return "appointment";
+  if (type.includes("MAINTENANCE")) return "maintenance";
+  if (type.includes("BATTERY")) return "battery";
+  if (type.includes("ALERT") || type.includes("WARNING")) return "alert";
+  return "system";
+};
+
+// Map API notification type to icon name
+const mapNotificationIcon = (apiType: string): string => {
+  const type = apiType?.toUpperCase() || "";
+  if (type.includes("APPOINTMENT")) return "calendar-check";
+  if (type.includes("MAINTENANCE")) return "wrench";
+  if (type.includes("BATTERY")) return "battery-alert";
+  if (type.includes("ALERT") || type.includes("WARNING")) return "alert-circle";
+  return "notifications";
+};
 
 const getNotificationColor = (type: string) => {
   switch (type) {
@@ -150,8 +144,61 @@ const getNotificationIcon = (type: string, iconName: string) => {
 
 const NotificationScreen = () => {
   const navigation = useNavigation<any>();
-  const [notifications, setNotifications] =
-    useState<Notification[]>(notificationData);
+  const auth = useSelector(authSelecter);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const accountId = auth?.accountResponse?.id || auth?.id || null;
+
+  const fetchNotificationData = useCallback(async () => {
+    if (!accountId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetchNotifications({
+        receiverId: accountId,
+        page: 1,
+        pageSize: 100, // Lấy nhiều thông báo
+      });
+
+      if (res.success && res.data?.rowDatas) {
+        // Map API data to component format
+        const mappedNotifications: Notification[] = res.data.rowDatas.map(
+          (item: any) => ({
+            id: item.id,
+            title: item.title || "Thông báo",
+            message: item.message || "",
+            type: mapNotificationType(item.type),
+            timestamp: formatRelativeTime(item.sentAt),
+            read: item.isRead || false,
+            icon: mapNotificationIcon(item.type),
+          })
+        );
+        setNotifications(mappedNotifications);
+      } else {
+        console.log("Lỗi lấy thông báo:", res.message);
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.log("Lỗi khi gọi API notification:", error);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    fetchNotificationData();
+  }, [fetchNotificationData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotificationData();
+    }, [fetchNotificationData])
+  );
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(
@@ -165,97 +212,137 @@ const NotificationScreen = () => {
 
   return (
     <BackgroundComponent title="Thông báo" back isScroll>
-      {unreadCount > 0 && (
-        <SectionComponent styles={{ marginBottom: 12 }}>
-          <View
-            style={{
-              backgroundColor: appColor.primary,
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-              borderRadius: 8,
-              alignItems: "center",
-            }}
-          >
-            <TextComponent
-              text={`Bạn có ${unreadCount} thông báo chưa đọc`}
-              color={appColor.white}
-              size={14}
-              font={fontFamilies.roboto_medium}
-            />
-          </View>
+      {loading ? (
+        <SectionComponent styles={{ marginTop: 40, alignItems: "center" }}>
+          <ActivityIndicator size="large" color={appColor.primary} />
+          <SpaceComponent height={12} />
+          <TextComponent
+            text="Đang tải thông báo..."
+            color={appColor.gray2}
+            size={14}
+          />
         </SectionComponent>
-      )}
-
-      {notifications.map((notification) => (
-        <TouchableOpacity
-          key={notification.id}
-          onPress={() => {
-            handleMarkAsRead(notification.id);
-            navigation.navigate("NotificationDetail", { notification });
-          }}
-          activeOpacity={0.7}
-        >
-          <View
-            style={[
-              styles.notificationCard,
-              {
-                backgroundColor: notification.read ? appColor.white : "#F8F9FF",
-                borderLeftColor: getNotificationColor(notification.type),
-              },
-            ]}
-          >
-            <RowComponent justify="space-between">
-              <View style={{ flex: 1, marginRight: 12 }}>
-                <RowComponent>
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      {
-                        backgroundColor:
-                          getNotificationColor(notification.type) + "15",
-                      },
-                    ]}
-                  >
-                    {getNotificationIcon(notification.type, notification.icon)}
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <RowComponent justify="space-between">
-                      <TextComponent
-                        text={notification.title}
-                        size={16}
-                        font={fontFamilies.roboto_medium}
-                        color={appColor.text}
-                      />
-                      {!notification.read && (
-                        <View
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: appColor.primary,
-                          }}
-                        />
-                      )}
-                    </RowComponent>
-                    <TextComponent
-                      text={notification.message}
-                      size={13}
-                      color={appColor.gray2}
-                      styles={{ marginTop: 6, lineHeight: 18 }}
-                    />
-                    <TextComponent
-                      text={notification.timestamp}
-                      size={12}
-                      color={appColor.gray}
-                      styles={{ marginTop: 8 }}
-                    />
-                  </View>
-                </RowComponent>
+      ) : (
+        <>
+          {unreadCount > 0 && (
+            <SectionComponent styles={{ marginBottom: 16 }}>
+              <View style={styles.unreadBadge}>
+                <View style={styles.unreadDot} />
+                <TextComponent
+                  text={`Bạn có ${unreadCount} thông báo chưa đọc`}
+                  color={appColor.white}
+                  size={14}
+                  font={fontFamilies.roboto_medium}
+                />
               </View>
-            </RowComponent>
-          </View>
-        </TouchableOpacity>
-      ))}
+            </SectionComponent>
+          )}
+
+          {notifications.length === 0 ? (
+            <SectionComponent styles={styles.emptyContainer}>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="notifications-off-outline" size={64} color={appColor.gray2} />
+              </View>
+              <SpaceComponent height={16} />
+              <TextComponent
+                text="Không có thông báo nào"
+                color={appColor.text}
+                size={18}
+                font={fontFamilies.roboto_medium}
+              />
+              <SpaceComponent height={8} />
+              <TextComponent
+                text="Các thông báo mới sẽ xuất hiện ở đây"
+                color={appColor.gray2}
+                size={14}
+                styles={{ textAlign: "center" }}
+              />
+            </SectionComponent>
+          ) : (
+            notifications.map((notification, index) => (
+              <TouchableOpacity
+                key={notification.id}
+                onPress={() => {
+                  handleMarkAsRead(notification.id);
+                  navigation.navigate("NotificationDetail", { notification });
+                }}
+                activeOpacity={0.7}
+                style={[
+                  styles.notificationCardWrapper,
+                  index === 0 && { marginTop: 0 }
+                ]}
+              >
+                <View
+                  style={[
+                    styles.notificationCard,
+                    globalStyle.shadow,
+                    {
+                      backgroundColor: notification.read ? appColor.white : "#F8F9FF",
+                      borderLeftColor: getNotificationColor(notification.type),
+                    },
+                  ]}
+                >
+                  <RowComponent justify="flex-start" styles={{ alignItems: "flex-start" }}>
+                    <View
+                      style={[
+                        styles.iconContainer,
+                        {
+                          backgroundColor: getNotificationColor(notification.type) + "20",
+                        },
+                      ]}
+                    >
+                      {getNotificationIcon(notification.type, notification.icon)}
+                    </View>
+                    <View style={styles.contentContainer}>
+                      <RowComponent justify="space-between" styles={{ marginBottom: 4 }}>
+                        <TextComponent
+                          text={notification.title}
+                          size={16}
+                          font={fontFamilies.roboto_medium}
+                          color={appColor.text}
+                          styles={{ flex: 1 }}
+                          numberOfLines={1}
+                        />
+                        {!notification.read && (
+                          <View style={styles.readIndicator} />
+                        )}
+                      </RowComponent>
+                      <TextComponent
+                        text={notification.message}
+                        size={14}
+                        color={appColor.gray2}
+                        styles={{ marginTop: 4, lineHeight: 20 }}
+                        numberOfLines={2}
+                      />
+                      <RowComponent justify="space-between" styles={{ marginTop: 8 }}>
+                        <TextComponent
+                          text={notification.timestamp}
+                          size={12}
+                          color={appColor.gray}
+                        />
+                        <View style={[
+                          styles.typeBadge,
+                          { backgroundColor: getNotificationColor(notification.type) + "15" }
+                        ]}>
+                          <TextComponent
+                            text={notification.type === "appointment" ? "Lịch hẹn" : 
+                                  notification.type === "maintenance" ? "Bảo dưỡng" :
+                                  notification.type === "battery" ? "Pin" :
+                                  notification.type === "alert" ? "Cảnh báo" : "Hệ thống"}
+                            size={10}
+                            color={getNotificationColor(notification.type)}
+                            font={fontFamilies.roboto_medium}
+                          />
+                        </View>
+                      </RowComponent>
+                    </View>
+                  </RowComponent>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </>
+      )}
     </BackgroundComponent>
   );
 };
@@ -263,20 +350,68 @@ const NotificationScreen = () => {
 export default NotificationScreen;
 
 const styles = StyleSheet.create({
-  notificationCard: {
-    backgroundColor: appColor.white,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderWidth: 0.5,
-    borderColor: appColor.gray,
+  unreadBadge: {
+    backgroundColor: appColor.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    ...globalStyle.shadow,
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: appColor.white,
+    marginRight: 8,
+  },
+  emptyContainer: {
+    marginTop: 60,
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: appColor.gray + "10",
     justifyContent: "center",
     alignItems: "center",
+  },
+  notificationCardWrapper: {
+    marginBottom: 12,
+    marginHorizontal: 4,
+  },
+  notificationCard: {
+    backgroundColor: appColor.white,
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderWidth: 0,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  readIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: appColor.primary,
+    marginLeft: 8,
+  },
+  typeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
 });
