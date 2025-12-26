@@ -68,7 +68,6 @@ const CreateAppointment = ({ route, navigation }: any) => {
     loadLocation();
   }, []);
 
-  // Ensure we show loading first when entering REPAIR flow
   useEffect(() => {
     if (type === "REPAIR_TYPE") {
       setVehiclesLoading(true);
@@ -81,7 +80,6 @@ const CreateAppointment = ({ route, navigation }: any) => {
         console.log("Fetching vehicles for customer:", customer.id);
         fetchVehicles();
       } else if (customerLoaded) {
-        // Customer load finished but no id -> end loading and show empty state
         setVehicles([]);
         setVehiclesLoading(false);
       }
@@ -568,7 +566,7 @@ const CreateAppointment = ({ route, navigation }: any) => {
         {step === (type === "REPAIR_TYPE" ? 3 : 2) && (
           <ConfirmStep
             center={selectedCenter}
-            vehicle={vehicle}
+            vehicle={type === "REPAIR_TYPE" ? (selectedVehicle || vehicle) : vehicle}
             timeSlot={selectedSlot}
             appointmentRequest={appointmentRequest}
           />

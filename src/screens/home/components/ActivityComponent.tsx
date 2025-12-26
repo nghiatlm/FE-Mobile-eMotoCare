@@ -10,6 +10,8 @@ import { appColor } from "../../../constants/appColor";
 import { fontFamilies } from "../../../constants/fontFamilies";
 import { getAppointments } from "../../../services/appointment.service";
 import { statusActivities, statusColor } from "../../../utils/generateStatus";
+import { formatSlotTime } from "../../../utils/formatSlotTime";
+import { formatDateDDMMYYYY } from "../../../utils/formatDate";
 
 const statusToColor = (status: string) => {
   switch ((status || "").toUpperCase()) {
@@ -28,21 +30,46 @@ const statusToColor = (status: string) => {
   }
 };
 
-const formatDate = (s: string) => {
-  if (!s) return "-";
-  const parts = s.split("-");
-  if (parts[0].length === 4) {
-    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+// Format date with weekday: "Thứ 2, 26/12/2025"
+const formatDateWithWeekday = (dateString: string): string => {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      // Fallback to simple format if date is invalid
+      return formatDateDDMMYYYY(dateString);
+    }
+    
+    const weekdays = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+    const weekday = weekdays[date.getDay()];
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    
+    return `${weekday}, ${day}/${month}/${year}`;
+  } catch {
+    return formatDateDDMMYYYY(dateString);
   }
-  return s;
+};
+
+// Format date short: "26/12/2025"
+const formatDateShort = (dateString: string): string => {
+  if (!dateString) return "-";
+  return formatDateDDMMYYYY(dateString).replace(/-/g, "/");
 };
 
 interface Props {
   customerId?: string;
+  filterCompleted?: boolean; // true = chỉ hiển thị đã hoàn thành, false = chỉ hiển thị chưa hoàn thành
 }
 
+const isCompleted = (s?: string) => {
+  const t = String(s || "").toUpperCase();
+  return t === "SUCCESS" || t === "COMPLETED" || t === "REPAIR_COMPLETED";
+};
+
 const ActivityComponent = forwardRef((props: Props, ref) => {
-  const { customerId } = props;
+  const { customerId, filterCompleted } = props;
   const navigation = useNavigation<any>();
   const [appointments, setAppointments] = useState<any[]>([]);
 
@@ -73,7 +100,15 @@ const ActivityComponent = forwardRef((props: Props, ref) => {
     }
   };
 
-  const topAppointments = appointments.slice(0, 2);
+  // Filter appointments based on filterCompleted prop
+  const filteredAppointments = filterCompleted !== undefined
+    ? appointments.filter((item) => {
+        const completed = isCompleted(item.status);
+        return filterCompleted ? completed : !completed;
+      })
+    : appointments;
+  
+  const topAppointments = filteredAppointments.slice(0, 2);
 
   return (
     <View>
@@ -116,7 +151,7 @@ const ActivityComponent = forwardRef((props: Props, ref) => {
                   </>
                 ) : (
                   <TextComponent
-                    text={formatDate(item.appointmentDate)}
+                    text={formatDateShort(item.appointmentDate)}
                     size={12}
                     color={appColor.gray2}
                     styles={{ marginTop: 4 }}
@@ -128,12 +163,13 @@ const ActivityComponent = forwardRef((props: Props, ref) => {
                 {isFirst ? (
                   <>
                     <TextComponent
-                      text={formatDate(item.appointmentDate)}
+                      text={formatDateWithWeekday(item.appointmentDate)}
                       size={14}
                       color={appColor.text}
+                      font={fontFamilies.roboto_medium}
                     />
                     <TextComponent
-                      text={item.slotTime}
+                      text={formatSlotTime(item.slotTime) || item.slotTime}
                       size={12}
                       color={appColor.gray2}
                       styles={{ marginTop: 4 }}

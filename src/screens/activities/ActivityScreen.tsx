@@ -86,7 +86,7 @@ const ActivityScreen = () => {
         font={fontFamilies.roboto_bold}
       />
       <SpaceComponent height={8} />
-      <ActivityComponent />
+      <ActivityComponent customerId={customerId} filterCompleted={false} />
 
       <SpaceComponent height={16} />
       <TextComponent
@@ -95,7 +95,7 @@ const ActivityScreen = () => {
         font={fontFamilies.roboto_bold}
       />
       <SpaceComponent height={8} />
-      <ActivityComponent />
+      <ActivityComponent customerId={customerId} filterCompleted={true} />
     </BackgroundComponent>
   );
 };
